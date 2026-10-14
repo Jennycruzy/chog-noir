@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+dist/
+coverage/
+data/
+runs/
+SPEC-ITEMS.md
+*SPEC*.md
+chognoir-private/
+*.pem
+*.key
+out/
+cache/
