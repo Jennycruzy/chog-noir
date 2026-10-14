@@ -9,7 +9,9 @@ const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 async function request(url, options) {
   for (let attempt = 0; attempt < 6; attempt++) {
     try {
-      const response = await fetch(url, { ...options, signal: AbortSignal.timeout(45000) });
+      const target = attempt > 0 && url.startsWith(gateway)
+        ? url.replace(gateway, 'https://gateway.pinata.cloud/ipfs/') : url;
+      const response = await fetch(target, { ...options, signal: AbortSignal.timeout(20000) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return response;
     } catch (error) {
