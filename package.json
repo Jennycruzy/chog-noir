@@ -13,6 +13,7 @@
     "data:payments": "tsx scripts/inspect-payments.mts",
     "data:history": "tsx scripts/inspect-history.mts",
     "data:subscription": "tsx scripts/check-subscription.mts",
+    "data:subscription-check": "tsx scripts/reconcile-subscription.mts",
     "data:art": "tsx scripts/check-art.mts",
     "data:owners": "tsx scripts/check-owners.mts",
     "data:escrow": "tsx scripts/check-escrow.mts",
