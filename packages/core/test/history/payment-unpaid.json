@@ -1,0 +1,147 @@
+{
+  "checkedAt": "2026-10-16T11:36:13.373Z",
+  "input": {
+    "transfer": {
+      "tx": "0xe3fa036d75423405a28f8f79664906e1623840f7d4507ddd5f2991be88717824",
+      "block": 110068765,
+      "logIndex": 142,
+      "tokenId": 382,
+      "from": "0x7199c74e7b7bbe1ee6e0ee5132867fe2e68607e5",
+      "to": "0x72e3d4ef273e5a6bd3bd091ebb95f704c6742ae3",
+      "class": "PLAIN_TRANSFER",
+      "rule": "R6",
+      "reason": "Owner signed a direct NFT transfer; intent is not inferred",
+      "evidence": {
+        "tx": "0xe3fa036d75423405a28f8f79664906e1623840f7d4507ddd5f2991be88717824",
+        "transferLogIndex": 142,
+        "orderLogIndices": []
+      }
+    },
+    "center": {
+      "block": {
+        "number": 110068765,
+        "hash": "0xe217a86ff9dbc1bfc179334e52099877331620753b371e362825cc107d3cdca0",
+        "timestamp": 1790996853
+      },
+      "api": {
+        "fetchedAt": "2026-10-16T11:35:58.792Z",
+        "request": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "method": "eth_getBlockByNumber",
+          "params": [
+            "0x68f841d",
+            false
+          ]
+        }
+      }
+    },
+    "bounds": {
+      "before": {
+        "block": {
+          "number": 110056836,
+          "hash": "0xdf6bf4178b8d667f972804994629a1c4091bd286bf6a49b1d098d5a093661457",
+          "timestamp": 1790993252
+        },
+        "api": {
+          "fetchedAt": "2026-10-16T11:36:04.588Z",
+          "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "eth_getBlockByNumber",
+            "params": [
+              "0x68f5584",
+              false
+            ]
+          }
+        }
+      },
+      "after": {
+        "block": {
+          "number": 110080693,
+          "hash": "0x2bb28a4b89255b64ef584014efab8a0923b88ebbccdea55d7aeed315cb63b0bd",
+          "timestamp": 1791000454
+        },
+        "api": {
+          "fetchedAt": "2026-10-16T11:36:08.122Z",
+          "request": {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "eth_getBlockByNumber",
+            "params": [
+              "0x68fb2b5",
+              false
+            ]
+          }
+        }
+      }
+    },
+    "pages": [
+      {
+        "fetchedAt": "2026-10-16T11:36:08.405Z",
+        "request": {
+          "chainid": "143",
+          "module": "account",
+          "action": "txlist",
+          "address": "0x72e3d4ef273e5a6bd3bd091ebb95f704c6742ae3",
+          "startblock": 110056837,
+          "endblock": 110080692,
+          "page": 1,
+          "offset": 100,
+          "sort": "asc"
+        },
+        "reply": {
+          "status": "0",
+          "message": "No transactions found",
+          "result": []
+        }
+      },
+      {
+        "fetchedAt": "2026-10-16T11:36:10.586Z",
+        "request": {
+          "chainid": "143",
+          "module": "account",
+          "action": "txlistinternal",
+          "address": "0x72e3d4ef273e5a6bd3bd091ebb95f704c6742ae3",
+          "startblock": 110056837,
+          "endblock": 110080692,
+          "page": 1,
+          "offset": 100,
+          "sort": "asc"
+        },
+        "reply": {
+          "status": "0",
+          "message": "No transactions found",
+          "result": []
+        }
+      },
+      {
+        "fetchedAt": "2026-10-16T11:36:11.995Z",
+        "request": {
+          "chainid": "143",
+          "module": "account",
+          "action": "tokentx",
+          "address": "0x72e3d4ef273e5a6bd3bd091ebb95f704c6742ae3",
+          "startblock": 110056837,
+          "endblock": 110080692,
+          "page": 1,
+          "offset": 100,
+          "sort": "asc",
+          "contractaddress": "0x3bd359c1119da7da1d913d1c4d2b7c461115433a"
+        },
+        "reply": {
+          "status": "0",
+          "message": "No transactions found",
+          "result": []
+        }
+      }
+    ]
+  },
+  "assessment": {
+    "status": "NO_PAYMENT_FOUND",
+    "start": 1790993253,
+    "end": 1791000453,
+    "payments": [],
+    "reason": "No MON or WMON payment from the receiving wallet to the sending wallet was found within one hour before or after the transfer"
+  }
+}

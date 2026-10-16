@@ -1,3 +1,4 @@
+import type {EscrowIndex} from './escrow.mts';
 import { decodeEventLog, type Hex } from 'viem';
 import { CHOG, SEAPORT, WMON, ZERO, ESCROW, BULK, DELEGATION, ROUTERS, TRANSFER_TOPIC, ORDER_TOPIC, orderAbi, decodeTransfer, type ChainLog, type ChainTransaction, type Classification, type Price } from './chain.mts';
 
@@ -9,7 +10,7 @@ function currency(item: Item): 'MON' | 'WMON' | undefined {
 }
 function isNft(item: Item): boolean { return item.itemType >= 2; }
 
-export function classifyTransaction(tx: ChainTransaction, logs: readonly ChainLog[]): Classification[] {
+export function classifyTransaction(tx: ChainTransaction, logs: readonly ChainLog[], escrow?:EscrowIndex): Classification[] {
   if (!/^0x[0-9a-f]{64}$/i.test(tx.hash) || !/^0x[0-9a-f]{40}$/i.test(tx.from) || (tx.to !== null && !/^0x[0-9a-f]{40}$/i.test(tx.to)) || !/^0x(?:[0-9a-f]{2})*$/i.test(tx.input) || !Number.isSafeInteger(tx.blockNumber) || tx.blockNumber < 0) throw new Error('DATA_TRANSACTION: Invalid transaction');
   const seen = new Set<number>();
   for (const log of logs) {
@@ -30,7 +31,11 @@ export function classifyTransaction(tx: ChainTransaction, logs: readonly ChainLo
     const unknown = (reason: string) => result('UNCLASSIFIED', 'R8', reason);
     if (transfer.from === ZERO) return result('MINT', 'R1', 'Transfer from the zero address');
     if (transfer.to === ZERO) return result('BURN', 'BURN', 'Transfer to the zero address');
-    if (transfer.from === ESCROW || transfer.to === ESCROW) return unknown('CLASS_ESCROW: Escrow payment and collection require separate deal evidence');
+    if (transfer.from === ESCROW || transfer.to === ESCROW) {
+      const proof=escrow?.resolve(transfer);
+      if(!proof) return unknown('CLASS_ESCROW: Escrow payment and collection require separate deal evidence');
+      return {...result(proof.role==='deposit'?'ESCROW_DEPOSIT':'ESCROW_COLLECTION','ESCROW',proof.role==='deposit'?'NFT deposited into escrow; seller payment recorded':'Buyer collected NFT from escrow; no second sale counted'),escrow:proof};
+    }
     if (matched.length) {
       if (transfers.filter(item => item.tokenId === transfer.tokenId).length !== 1 || transfer.from === transfer.to) return unknown('CLASS_COMPLEX: Repeated token movement in one transaction');
       if (matched.some(order => order.offer.some(matchingItem) && order.consideration.some(matchingItem))) return unknown('CLASS_COMPLEX: Same NFT on both sides of a fulfilled order');

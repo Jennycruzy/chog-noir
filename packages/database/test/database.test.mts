@@ -1,3 +1,7 @@
+import {storeEscrowDeals} from '../escrow-deals.mts';
+import {EscrowIndex,type EscrowInput} from '../../core/src/escrow.mts';
+import {CHOG,TRANSFER_TOPIC,decodeTransfer,type ChainLog} from '../../core/src/chain.mts';
+import type {StoredTrace} from '../../core/src/native-payments.mts';
 import { PGlite } from '@electric-sql/pglite';
 import { beforeAll, afterAll, beforeEach, afterEach, test, expect } from 'vitest';
 import { readFile, mkdtemp, writeFile, rm } from 'node:fs/promises';
@@ -7,6 +11,10 @@ import { migrate } from '../migrate.mts';
 import { required, type StoredFixture, type RpcTransaction, type RpcReceipt, type StoredMetadata, type HistoryBlock } from '../../../scripts/data-types.mts';
 
 const database = new PGlite();
+const escrowFixture=JSON.parse(await readFile(new URL('../../core/test/history/escrow.json',import.meta.url),'utf8')) as {input:EscrowInput;traces:Record<string,StoredTrace>;logs:ChainLog[]};
+const escrowIndex=new EscrowIndex(escrowFixture.input,escrowFixture.logs.filter(log=>log.address.toLowerCase()===CHOG&&log.topics[0]===TRANSFER_TOPIC).map(decodeTransfer),{traces:escrowFixture.traces,logs:escrowFixture.logs});
+const realDeal=escrowIndex.deals.find(deal=>deal.id==='35')!;
+const escrowMetadata=JSON.parse(await readFile(new URL('fixtures/token-1021.json',import.meta.url),'utf8')) as StoredMetadata;
 const fixture = JSON.parse(await readFile(new URL('../../core/test/fixtures/0x89c8e99142bd0c0419d83b79c316c33996a25b497e35c0af7f5958eb33a9a134.json', import.meta.url), 'utf8')) as StoredFixture;
 const tx = required(fixture.replies.find(row => row.id === 0)?.result, 'Transaction missing') as RpcTransaction;
 const receipt = required(fixture.replies.find(row => row.id === 1)?.result, 'Receipt missing') as RpcReceipt;
@@ -23,6 +31,7 @@ beforeAll(async () => {
   await database.query('INSERT INTO chain_blocks VALUES ($1,$2,$3,$4)', [block.number, block.hash, at, fixture.fetchedAt]);
   await database.query('INSERT INTO chain_transactions(hash,block_number,signer,destination,input,value_wei,receipt,fetched_at,source_record) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)', [tx.hash, block.number, tx.from, tx.to, tx.input, BigInt(tx.value).toString(), receipt, fixture.fetchedAt, {provider: 'RPC', fetchedAt: fixture.fetchedAt}]);
   await database.query('INSERT INTO chogs VALUES ($1,$2,$3,$4,$5,$6)', [650, metadata.uri, metadata.metadata.name, metadata.metadata.image, metadata.metadata, metadata.fetchedAt]);
+  await database.query('INSERT INTO chogs VALUES ($1,$2,$3,$4,$5,$6)', [1021,escrowMetadata.uri,escrowMetadata.metadata.name,escrowMetadata.metadata.image,escrowMetadata.metadata,escrowMetadata.fetchedAt]);
   await database.query('INSERT INTO transfers VALUES ($1,$2,$3,$4,$5,$6)', [tx.hash, index, 650, sender, receiver, log]);
 }, 90000);
 afterAll(async () => { await database.close(); });
@@ -76,7 +85,7 @@ test('departure cannot precede arrival', async () => {
 test('migration rerun preserves records', async () => {
   // Migration runner owns its transaction, so use a separate database.
   const other = new PGlite();
-  try { expect(await migrate(other)).toEqual(['001_chain_records.sql', '002_transaction_sources.sql']); expect(await migrate(other)).toEqual([]); }
+  try { expect(await migrate(other)).toEqual(['001_chain_records.sql', '002_transaction_sources.sql', '003_escrow_records.sql']); expect(await migrate(other)).toEqual([]); }
   finally { await other.close(); }
 }, 90000);
 test('edited migration is rejected', async () => {
@@ -102,3 +111,23 @@ test('failed migration rolls back its tables and history', async () => {
     expect((await other.query('SELECT * FROM schema_migrations')).rows).toEqual([]);
   } finally { await other.close(); await rm(directory, { recursive: true, force: true }); }
 }, 90000);
+
+test('real escrow lifecycle can advance from creation to payment to collection',async()=>{
+  await storeEscrowDeals(database,[{...realDeal,sold:null,collected:null}]);
+  await storeEscrowDeals(database,[{...realDeal,collected:null}]);
+  await storeEscrowDeals(database,[realDeal]);
+  const result=await database.query<{sold:unknown;collected:unknown}>('SELECT sold,collected FROM escrow_deals WHERE deal_id=$1',[realDeal.id]);
+  expect(result.rows[0]?.sold).toEqual(realDeal.sold);expect(result.rows[0]?.collected).toEqual(realDeal.collected);
+});
+test('repeated escrow import preserves one deal and its exact amount',async()=>{
+  await storeEscrowDeals(database,[realDeal]);await storeEscrowDeals(database,[realDeal]);
+  expect((await database.query('SELECT * FROM escrow_deals')).rows).toHaveLength(1);
+});
+test('escrow payment cannot be erased by an earlier lifecycle state',async()=>{
+  await storeEscrowDeals(database,[realDeal]);
+  await expect(storeEscrowDeals(database,[{...realDeal,sold:null,collected:null}])).rejects.toThrow('DB_SOURCE_CONFLICT');
+});
+test('changed escrow amount conflicts with its saved chain record',async()=>{
+  await storeEscrowDeals(database,[realDeal]);
+  await expect(storeEscrowDeals(database,[{...realDeal,amountWei:(BigInt(realDeal.amountWei)+1n).toString()}])).rejects.toThrow('DB_SOURCE_CONFLICT');
+});

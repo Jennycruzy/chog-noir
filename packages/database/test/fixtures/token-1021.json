@@ -1,0 +1,55 @@
+{
+  "fetchedAt": "2026-10-15T00:15:28.373Z",
+  "uri": "ipfs://bafybeid4ybujnscdipkno7ps5utqelp5ry5ryreqhay3zhgk3a6x4jruqu/513.json",
+  "metadata": {
+    "name": "CHOG #513",
+    "description": "CHOG — a 1969-piece collection on Monad.",
+    "image": "ipfs://bafybeihau2egcccbdxymeckmmbrqytbfor5gkt3en6d5fsbueymdbq7g6e/513.webp",
+    "attributes": [
+      {
+        "trait_type": "Background",
+        "value": "Peach Pink"
+      },
+      {
+        "trait_type": "Base",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Skin",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Side",
+        "value": "Right"
+      },
+      {
+        "trait_type": "Body",
+        "value": "Red Trackset"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "Lip Bite"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "fire laser"
+      },
+      {
+        "trait_type": "Head",
+        "value": "Durag"
+      },
+      {
+        "trait_type": "Form",
+        "value": "Chog"
+      },
+      {
+        "trait_type": "Tier",
+        "value": "Common"
+      },
+      {
+        "trait_type": "Naked",
+        "value": "No"
+      }
+    ]
+  }
+}

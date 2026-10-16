@@ -1,6 +1,8 @@
+import type {EscrowProof} from './escrow.mts';
 import { parseAbi, toEventSelector } from 'viem';
 export const CHOG = '0xc96d31f8626c6d03fae5dcd3d61e3fb9f4a73763';
 export const SEAPORT = '0x0000000000000068f116a894984e2db1123eb395';
+export const CHOG_TOKEN = '0x350035555e10d9afaf1566aaebfced5ba6c27777';
 export const WMON = '0x3bd359c1119da7da1d913d1c4d2b7c461115433a';
 export const ZERO = '0x0000000000000000000000000000000000000000';
 export const ESCROW = '0x0c13d51f3d52bb74e4eb131a2ed6978a99a417cf';
@@ -13,9 +15,9 @@ export const ORDER_TOPIC = toEventSelector(orderAbi[0]);
 export interface ChainLog { address: string; topics: readonly string[]; data: string; transactionHash: string; blockNumber: number; logIndex: number; removed?: boolean }
 export interface ChainTransaction { hash: string; from: string; to: string | null; input: string; blockNumber: number }
 export interface Transfer { tx: string; block: number; logIndex: number; tokenId: number; from: string; to: string }
-export type EventClass = 'MINT' | 'BURN' | 'SALE' | 'SEAPORT_NO_PAYMENT' | 'BULK_MOVE' | 'SMART_WALLET_ACTION' | 'PLAIN_TRANSFER' | 'ROUTER_MOVE' | 'UNCLASSIFIED';
+export type EventClass = 'MINT' | 'BURN' | 'SALE' | 'SEAPORT_NO_PAYMENT' | 'BULK_MOVE' | 'SMART_WALLET_ACTION' | 'PLAIN_TRANSFER' | 'ROUTER_MOVE' | 'UNCLASSIFIED' | 'ESCROW_DEPOSIT' | 'ESCROW_COLLECTION';
 export interface Price { asset: 'MON' | 'WMON'; status: 'EXACT' | 'PRICE_BUNDLE'; grossWei: string | null; sellerProceedsWei: string | null; feesWei: string | null }
-export interface Classification extends Transfer { class: EventClass; rule: string; reason: string; evidence: { tx: string; transferLogIndex: number; orderLogIndices: number[] }; route?: 'offer_accepted' | 'listing_bought'; price?: Price }
+export interface Classification extends Transfer { class: EventClass; rule: string; reason: string; evidence: { tx: string; transferLogIndex: number; orderLogIndices: number[] }; route?: 'offer_accepted' | 'listing_bought'; price?: Price; escrow?: EscrowProof }
 export function decodeTransfer(log: ChainLog): Transfer {
   if (log.removed || log.address.toLowerCase() !== CHOG || log.topics[0]?.toLowerCase() !== TRANSFER_TOPIC || log.topics.length !== 4 || !/^0x[0-9a-f]{64}$/i.test(log.transactionHash) || !Number.isSafeInteger(log.blockNumber) || log.blockNumber < 0 || !Number.isSafeInteger(log.logIndex) || log.logIndex < 0 || log.data !== '0x') throw new Error('DATA_TRANSFER: Invalid Chog transfer');
   const [from, to, id] = log.topics.slice(1);

@@ -21,3 +21,8 @@
 - Include fees in both halves of matched orders. Cross-check the total passed between the orders instead of adding two descriptions of the same payment.
 - Preserve original HyperSync requests and fetch times when importing records. Keep absent RPC receipts absent. Reject conflicting source records and roll back the import.
 - Derive holding times and counts from the full owner history. A transfer to the same wallet does not restart the hold. Keep gift intent and common wallet control unconfirmed without their separate evidence.
+
+- Join escrow deposits to their funded deal and exact NFT transfer. Verify native payments inside the matching NFT receiver callback, and verify token payments using the official token contract's log. Collection references that earlier payment and never creates a second sale.
+- Keep the 32 MON escrow deals and 58 $CHOG escrow deals separate from the Seaport market-price reference. Preserve amounts in their original base units.
+- Use Etherscan's complete account histories for payment-window checks because Monad's public RPC supports individual execution traces but does not support filtered trace history. Store all requested pages and enclosing source blocks. The key stays out of the saved query.
+- Treat no-payment results as findings for MON and WMON within a stated two-hour window. They do not prove gift intent, common wallet control or absence of payments in other assets.

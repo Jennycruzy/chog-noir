@@ -1,4 +1,5 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { escrowContext } from './escrow-context.mts';
 import { classifyTransaction } from '../packages/core/src/classify.mts';
 import { enrichHistory } from '../packages/core/src/enrich.mts';
 import { buildOwnership } from '../packages/core/src/owners.mts';
@@ -11,7 +12,8 @@ for (const log of history.data.logs) {
   list.push(log);
   byTx.set(log.transactionHash, list);
 }
-const events = history.data.transactions.flatMap(tx => classifyTransaction(tx, required(byTx.get(tx.hash), 'DATA_HISTORY: Transaction logs missing')));
+const escrow=await escrowContext(history.toBlockExclusive,history.data.logs);
+const events = history.data.transactions.flatMap(tx => classifyTransaction(tx, required(byTx.get(tx.hash), 'DATA_HISTORY: Transaction logs missing'),escrow.index));
 const transferCount = history.data.logs.filter(log => log.address.toLowerCase() === CHOG && log.topics[0] === TRANSFER_TOPIC).length;
 if (events.length !== transferCount) throw new Error('DATA_HISTORY: Some transfers lack a transaction');
 const times = new Map(history.data.blocks.map(block => [block.number, block.timestamp]));

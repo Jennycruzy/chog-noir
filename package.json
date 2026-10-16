@@ -26,7 +26,12 @@
     "db:migrate": "tsx scripts/migrate.mts",
     "data:classify": "tsx scripts/classify-history.mts",
     "db:import": "tsx scripts/import-history.mts",
-    "fixtures:history": "tsx scripts/build-history-fixtures.mts"
+    "fixtures:history": "tsx scripts/build-history-fixtures.mts",
+    "data:traces": "tsx scripts/check-traces.mts",
+    "data:escrow-traces": "tsx scripts/fetch-escrow-traces.mts",
+    "fixtures:escrow": "tsx scripts/build-escrow-fixtures.mts",
+    "data:payment-window": "tsx scripts/check-payment-window.mts",
+    "fixtures:payments": "tsx scripts/build-payment-fixtures.mts"
   },
   "engines": {
     "node": ">=20"

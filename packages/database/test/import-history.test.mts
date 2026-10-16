@@ -54,3 +54,14 @@ test('older snapshot cannot move progress backwards',async()=>{
 test('missing original API provenance fails before writing',async()=>{
   await expect(importHistory(database,{...input,sources:{transactions:{},blocks:{}}})).rejects.toThrow('DATA_SOURCE');
 });
+test('explicit reclassification rebuilds derived records while preserving chain sources',async()=>{
+  await database.exec('BEGIN');
+  await database.exec('DELETE FROM sales');
+  await database.exec("UPDATE events_classified SET classification='UNCLASSIFIED',rule='R8',reason='Damaged test copy' WHERE classification='SALE'");
+  await database.exec('COMMIT');
+  await expect(importHistory(database,input)).rejects.toThrow('DB_SOURCE_CONFLICT');
+  const rebuilt=await importHistory(database,input,{reclassify:true});
+  expect(rebuilt.snapshotHash).toBe(original.snapshotHash);
+  expect(rebuilt.sales).toBe(original.sales);
+  expect((await database.query('SELECT * FROM chain_transactions')).rows).toHaveLength(input.transactions.length);
+});

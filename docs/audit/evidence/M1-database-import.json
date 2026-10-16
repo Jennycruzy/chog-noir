@@ -1,13 +1,17 @@
 {
-  "checkedAt": "2026-10-16T10:53:45.176Z",
+  "storedEscrowMovements": 180,
+  "checkedAt": "2026-10-16T12:06:44.868Z",
   "mode": "offline-check",
-  "snapshotHash": "079857b894efcb6bf44262d133f29f6b0cd723a5d584be63751ccdd69e82efec",
+  "snapshotHash": "8500ded17cf79dfbc911e14b98ac2fbeb4cc3c9d61045a5454f4d3a116087f2d",
   "blocks": 3264,
   "transactions": 3953,
   "tokens": 1969,
   "transfers": 4842,
   "sales": 1580,
-  "unclassified": 208,
+  "unclassified": 28,
+  "paymentWindows": 2,
+  "escrowDeposits": 90,
+  "escrowCollections": 90,
   "ownershipRecords": 4841,
   "lastEventBlock": 113457077,
   "sourceToBlockExclusive": 113457890,
@@ -15,6 +19,14 @@
     {
       "classification": "BULK_MOVE",
       "count": "185"
+    },
+    {
+      "classification": "ESCROW_COLLECTION",
+      "count": "90"
+    },
+    {
+      "classification": "ESCROW_DEPOSIT",
+      "count": "90"
     },
     {
       "classification": "MINT",
@@ -34,7 +46,7 @@
     },
     {
       "classification": "UNCLASSIFIED",
-      "count": "208"
+      "count": "28"
     }
   ],
   "names": [
