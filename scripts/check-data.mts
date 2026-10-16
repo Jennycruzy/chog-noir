@@ -1,3 +1,4 @@
+import { required } from './data-types.mts';
 import { mkdir, writeFile } from 'node:fs/promises';
 
 const rpc = process.env.MONAD_RPC_HTTP || 'https://rpc.monad.xyz';
@@ -23,7 +24,7 @@ for (const request of requests) {
   const reply = replies.find(item => item.id === request.id);
   if (!reply || reply.error || typeof reply.result !== 'string') throw new Error(`DATA_RPC_REPLY: ${request.method} failed`);
 }
-const result = id => replies.find(reply => reply.id === id).result;
+const result = (id: number): string => required(replies.find(reply => reply.id === id)?.result, 'DATA_RPC_REPLY: Missing result');
 if (BigInt(result(1)) !== 143n) throw new Error('DATA_CHAIN: Expected Monad mainnet');
 if (BigInt(result(3)) !== 1969n) throw new Error('DATA_SUPPLY: Collection supply differs from 1,969');
 console.log(JSON.stringify({ fetchedAt, chainId: Number(BigInt(result(1))), block: Number(BigInt(result(2))), supply: Number(BigInt(result(3))) }));

@@ -1,4 +1,5 @@
-import test from 'node:test';
+import { required, type StoredFixture, type RpcTransaction, type RpcReceipt } from '../../../scripts/data-types.mts';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 
@@ -7,9 +8,9 @@ const files = (await readdir(directory)).filter(file => file.endsWith('.json'));
 assert.equal(files.length, 12, 'All twelve real transactions must be available offline');
 for (const file of files) {
   test(`Stored transaction and receipt agree: ${file.slice(0, -5)}`, async () => {
-    const record = JSON.parse(await readFile(new URL(file, directory), 'utf8'));
-    const tx = record.replies.find(reply => reply.id === 0)?.result;
-    const receipt = record.replies.find(reply => reply.id === 1)?.result;
+    const record = JSON.parse(await readFile(new URL(file, directory), 'utf8')) as StoredFixture;
+    const tx = record.replies.find(reply => reply.id === 0)?.result as RpcTransaction | undefined;
+    const receipt = record.replies.find(reply => reply.id === 1)?.result as RpcReceipt | undefined;
     assert.ok(tx && receipt);
     assert.equal(tx.hash, file.slice(0, -5));
     assert.equal(receipt.transactionHash, tx.hash);

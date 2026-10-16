@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-10-15T00:14:22.359Z",
+  "cutoffExclusive": "2026-10-14T23:22:51.000Z",
+  "scope": "Transactions before the last stored Chog-event second; boundary-second events excluded on both sides.",
+  "chainToBlockExclusive": 113457890,
+  "chainPaidEventPairs": 1581,
+  "apiSaleEventPairs": 1581,
+  "apiFetchedAt": "2026-10-14T23:28:20.058Z",
+  "chainOnly": [],
+  "apiOnly": [],
+  "eventFeedMatches": true,
+  "aggregateStats": {
+    "fetchedAt": "2026-10-14T23:24:55.472Z",
+    "totalSales": 1551,
+    "fullApiFeedSales": 1581,
+    "differencePercent": 1.9342359767891684
+  },
+  "unusualPaidRoutesExcludedFromCases": [
+    {
+      "tx": "0xb99816a46217e53c5da521b31ce721fd6f751e16cc12bcf3bcc301ab9f07d2bf",
+      "tokenId": "1864",
+      "logIndex": 201
+    }
+  ],
+  "note": "Matching a marketplace event does not approve a route for a case. The aggregate stats discrepancy remains open."
+}

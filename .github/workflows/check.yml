@@ -9,10 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: node --test packages/core/test/*.test.mjs
-      - run: node --check scripts/check-data.mjs
-      - run: node --check scripts/mirror-art.mjs
-      - run: node --check scripts/fetch-fixtures.mjs
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level high
+      - run: pnpm check:private
+      - run: pnpm typecheck
+      - run: pnpm test
