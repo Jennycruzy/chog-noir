@@ -22,19 +22,23 @@
     "check:private": "tsx scripts/check-private.mts",
     "typecheck": "tsc --noEmit",
     "data:colours": "tsx scripts/check-colours.mts",
-    "data:colour-review": "tsx scripts/review-colours.mts"
+    "data:colour-review": "tsx scripts/review-colours.mts",
+    "db:migrate": "tsx scripts/migrate.mts"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "@envio-dev/hypersync-client": "1.4.1",
+    "pg": "8.23.1",
     "sharp": "0.35.5",
     "viem": "2.57.6",
     "ws": "8.22.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.10",
     "@types/node": "26.6.5",
+    "@types/pg": "8.23.1",
     "@types/ws": "8.18.2",
     "tsx": "4.23.15",
     "typescript": "7.0.2",

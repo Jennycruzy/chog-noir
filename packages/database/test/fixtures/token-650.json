@@ -1,0 +1,55 @@
+{
+  "fetchedAt": "2026-10-15T00:12:18.655Z",
+  "uri": "ipfs://bafybeid4ybujnscdipkno7ps5utqelp5ry5ryreqhay3zhgk3a6x4jruqu/142.json",
+  "metadata": {
+    "name": "CHOG #142",
+    "description": "CHOG — a 1969-piece collection on Monad.",
+    "image": "ipfs://bafybeihau2egcccbdxymeckmmbrqytbfor5gkt3en6d5fsbueymdbq7g6e/142.webp",
+    "attributes": [
+      {
+        "trait_type": "Background",
+        "value": "Rosy Pink"
+      },
+      {
+        "trait_type": "Base",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Skin",
+        "value": "Pink"
+      },
+      {
+        "trait_type": "Side",
+        "value": "Left"
+      },
+      {
+        "trait_type": "Body",
+        "value": "Electro Hoodie"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "BTC Coin"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "Clown Eye"
+      },
+      {
+        "trait_type": "Head",
+        "value": "Chog Cap"
+      },
+      {
+        "trait_type": "Form",
+        "value": "Chog"
+      },
+      {
+        "trait_type": "Tier",
+        "value": "Uncommon"
+      },
+      {
+        "trait_type": "Naked",
+        "value": "No"
+      }
+    ]
+  }
+}

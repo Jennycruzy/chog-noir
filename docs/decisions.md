@@ -15,3 +15,5 @@
 - Preserve metadata names exactly, including named suffixes. Record absent traits so later code can handle them explicitly.
 - Compare individual chain transaction/token pairs with the complete OpenSea event feed. Record the separate aggregate stats discrepancy; do not treat its original count requirement as passed.
 - Keep disputed routes out of cases. The data report records payment evidence without declaring a finished sale classifier.
+- Keep database work on the separate data-engine branch while M0 remains open. The first database change stores source records and enforces payment and ownership consistency; it does not declare disputed events to be sales.
+- Test SQL migrations offline with embedded PostgreSQL. Use the PostgreSQL client for deployment, with the connection string read from the local environment and excluded from logs.
