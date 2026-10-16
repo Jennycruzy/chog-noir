@@ -17,3 +17,7 @@
 - Keep disputed routes out of cases. The data report records payment evidence without declaring a finished sale classifier.
 - Keep database work on the separate data-engine branch while M0 remains open. The first database change stores source records and enforces payment and ownership consistency; it does not declare disputed events to be sales.
 - Test SQL migrations offline with embedded PostgreSQL. Use the PostgreSQL client for deployment, with the connection string read from the local environment and excluded from logs.
+- Read offer versus listing from fulfilled order items and their parties. The original router examples contain real Seaport sales. The original delegation example enters the payment-bearing escrow, so it stays unclassified until deal evidence is joined. These factual corrections are recorded privately and in the audit report.
+- Include fees in both halves of matched orders. Cross-check the total passed between the orders instead of adding two descriptions of the same payment.
+- Preserve original HyperSync requests and fetch times when importing records. Keep absent RPC receipts absent. Reject conflicting source records and roll back the import.
+- Derive holding times and counts from the full owner history. A transfer to the same wallet does not restart the hold. Keep gift intent and common wallet control unconfirmed without their separate evidence.

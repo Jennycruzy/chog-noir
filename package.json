@@ -23,7 +23,10 @@
     "typecheck": "tsc --noEmit",
     "data:colours": "tsx scripts/check-colours.mts",
     "data:colour-review": "tsx scripts/review-colours.mts",
-    "db:migrate": "tsx scripts/migrate.mts"
+    "db:migrate": "tsx scripts/migrate.mts",
+    "data:classify": "tsx scripts/classify-history.mts",
+    "db:import": "tsx scripts/import-history.mts",
+    "fixtures:history": "tsx scripts/build-history-fixtures.mts"
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,23 @@
+import { test,expect } from 'vitest';
+import { readFile } from 'node:fs/promises';
+import { classifyTransaction } from '../src/classify.mts';
+import { enrichHistory } from '../src/enrich.mts';
+import { type ChainLog,type ChainTransaction } from '../src/chain.mts';
+const source=JSON.parse(await readFile(new URL('history/token-650.json',import.meta.url),'utf8')) as {relatedLogs:ChainLog[];blocks:{number:number;timestamp:number}[];transactions:ChainTransaction[]};
+const events=source.transactions.flatMap(tx=>classifyTransaction(tx,source.relatedLogs.filter(log=>log.transactionHash===tx.hash)));
+const times=new Map(source.blocks.map(block=>[block.number,block.timestamp]));
+test('mint has no invented earlier hold or owner',()=>{const first=enrichHistory(events,times)[0]!;expect(first.holdSeconds).toBeNull();expect(first.ownersBefore).toBe(0);expect(first.sources.arrival).toBeNull();});
+test('holding time comes from actual arrival and event blocks',()=>{const rows=enrichHistory(events,times);const row=rows[1]!;expect(row.holdSeconds).toBe(times.get(row.event.block)!-times.get(rows[0]!.event.block)!);expect(row.sources.arrival).toEqual(rows[0]?.sources.transfer);});
+test('missing price reference is explicit',()=>{const row=enrichHistory(events,times)[0]!;expect(row.priorSaleMedianWei).toBeNull();expect(row.priceReferenceReason).toBe('INSUFFICIENT_PRIOR_SALES');});
+test('duplicate transfer cannot inflate daily counts',()=>{expect(()=>enrichHistory([...events,events[0]!],times)).toThrow('DATA_ENRICH_DUPLICATE');});
+test('incomplete ownership cannot produce enrichment facts',()=>{expect(()=>enrichHistory(events.slice(1),times)).toThrow('DATA_ENRICH_GAP');});
+test('real self-transfer preserves arrival and owner count',async()=>{
+  const self=JSON.parse(await readFile(new URL('history/token-1217.json',import.meta.url),'utf8')) as {logs:ChainLog[];blocks:{number:number;timestamp:number}[];transactions:ChainTransaction[]};
+  const moves=self.transactions.flatMap(tx=>classifyTransaction(tx,self.logs.filter(log=>log.transactionHash===tx.hash)));
+  const rows=enrichHistory(moves,new Map(self.blocks.map(block=>[block.number,block.timestamp])));
+  const index=rows.findIndex(row=>row.event.from===row.event.to);
+  const next=rows[index+1];
+  expect(next).toBeDefined();
+  expect(next?.sources.arrival?.tx).not.toBe(rows[index]?.event.tx);
+  expect(rows[index]?.receiverNewToChogs).toBe(false);
+});

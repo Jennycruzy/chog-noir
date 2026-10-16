@@ -1,0 +1,22 @@
+import { test, expect } from 'vitest';
+import { readFile } from 'node:fs/promises';
+import { decodeTransfer, type ChainLog, type ChainTransaction } from '../src/chain.mts';
+import { classifyTransaction } from '../src/classify.mts';
+import { buildOwnership } from '../src/owners.mts';
+const source=JSON.parse(await readFile(new URL('history/token-650.json',import.meta.url),'utf8')) as { logs: ChainLog[]; blocks:{number:number;timestamp:number}[];transactions:ChainTransaction[] };
+const transfers=source.logs.map(decodeTransfer);
+const times=new Map(source.blocks.map(block=>[block.number,block.timestamp]));
+test('real history starts with its mint',()=>{const mint=source.logs.find(log=>log.topics[1]==='0x'+'0'.repeat(64))!;const tx=source.transactions.find(tx=>tx.hash===mint.transactionHash)!;expect(classifyTransaction(tx,[mint])[0]?.class).toBe('MINT');});
+test('complete real history has one current owner',()=>{const owners=buildOwnership(transfers,times);expect(owners.filter(owner=>!owner.departure)).toHaveLength(1);expect(owners.at(-1)?.owner).toBe(transfers.at(-1)?.to);});
+test('closed holds use source block seconds',()=>{for(const owner of buildOwnership(transfers,times).filter(owner=>owner.departure)){expect(owner.heldSeconds).toBe((Date.parse(owner.departedAt!)-Date.parse(owner.arrivedAt))/1000);expect(owner.heldSeconds).toBeGreaterThanOrEqual(0);}});
+test('history order is determined by block and log index',()=>{expect(buildOwnership([...transfers].reverse(),times)).toEqual(buildOwnership(transfers,times));});
+test('missing earlier ownership fails loudly',()=>{expect(()=>buildOwnership(transfers.slice(1),times)).toThrow('DATA_OWNER_GAP');});
+test('duplicate real log fails loudly',()=>{expect(()=>buildOwnership([...transfers,transfers[0]!],times)).toThrow('DATA_OWNER_DUPLICATE');});
+test('missing block time fails loudly',()=>{expect(()=>buildOwnership(transfers,new Map())).toThrow('DATA_OWNER_TIME');});
+test('real self-transfer does not restart the holding period',async()=>{
+  const self=JSON.parse(await readFile(new URL('history/token-1217.json',import.meta.url),'utf8')) as typeof source;
+  const moves=self.logs.map(decodeTransfer);
+  expect(moves.some(move=>move.from===move.to)).toBe(true);
+  const owners=buildOwnership(moves,new Map(self.blocks.map(block=>[block.number,block.timestamp])));
+  expect(owners.length).toBe(moves.filter(move=>move.from!==move.to).length);
+});

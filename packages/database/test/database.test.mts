@@ -21,7 +21,7 @@ const receiver = `0x${required(log.topics[2], 'Receiver missing').slice(-40)}`;
 beforeAll(async () => {
   await migrate(database);
   await database.query('INSERT INTO chain_blocks VALUES ($1,$2,$3,$4)', [block.number, block.hash, at, fixture.fetchedAt]);
-  await database.query('INSERT INTO chain_transactions VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [tx.hash, block.number, tx.from, tx.to, tx.input, BigInt(tx.value).toString(), receipt, fixture.fetchedAt]);
+  await database.query('INSERT INTO chain_transactions(hash,block_number,signer,destination,input,value_wei,receipt,fetched_at,source_record) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)', [tx.hash, block.number, tx.from, tx.to, tx.input, BigInt(tx.value).toString(), receipt, fixture.fetchedAt, {provider: 'RPC', fetchedAt: fixture.fetchedAt}]);
   await database.query('INSERT INTO chogs VALUES ($1,$2,$3,$4,$5,$6)', [650, metadata.uri, metadata.metadata.name, metadata.metadata.image, metadata.metadata, metadata.fetchedAt]);
   await database.query('INSERT INTO transfers VALUES ($1,$2,$3,$4,$5,$6)', [tx.hash, index, 650, sender, receiver, log]);
 }, 90000);
@@ -76,7 +76,7 @@ test('departure cannot precede arrival', async () => {
 test('migration rerun preserves records', async () => {
   // Migration runner owns its transaction, so use a separate database.
   const other = new PGlite();
-  try { expect(await migrate(other)).toEqual(['001_chain_records.sql']); expect(await migrate(other)).toEqual([]); }
+  try { expect(await migrate(other)).toEqual(['001_chain_records.sql', '002_transaction_sources.sql']); expect(await migrate(other)).toEqual([]); }
   finally { await other.close(); }
 }, 90000);
 test('edited migration is rejected', async () => {

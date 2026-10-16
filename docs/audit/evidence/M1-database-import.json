@@ -1,0 +1,54 @@
+{
+  "checkedAt": "2026-10-16T10:53:45.176Z",
+  "mode": "offline-check",
+  "snapshotHash": "079857b894efcb6bf44262d133f29f6b0cd723a5d584be63751ccdd69e82efec",
+  "blocks": 3264,
+  "transactions": 3953,
+  "tokens": 1969,
+  "transfers": 4842,
+  "sales": 1580,
+  "unclassified": 208,
+  "ownershipRecords": 4841,
+  "lastEventBlock": 113457077,
+  "sourceToBlockExclusive": 113457890,
+  "counts": [
+    {
+      "classification": "BULK_MOVE",
+      "count": "185"
+    },
+    {
+      "classification": "MINT",
+      "count": "1969"
+    },
+    {
+      "classification": "PLAIN_TRANSFER",
+      "count": "658"
+    },
+    {
+      "classification": "SALE",
+      "count": "1580"
+    },
+    {
+      "classification": "SMART_WALLET_ACTION",
+      "count": "242"
+    },
+    {
+      "classification": "UNCLASSIFIED",
+      "count": "208"
+    }
+  ],
+  "names": [
+    {
+      "token_id": 1,
+      "metadata_name": "CHOG #1462"
+    },
+    {
+      "token_id": 1021,
+      "metadata_name": "CHOG #513"
+    },
+    {
+      "token_id": 1864,
+      "metadata_name": "CHOG #1356"
+    }
+  ]
+}

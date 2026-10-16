@@ -1,0 +1,1487 @@
+{
+  "generatedAt": "2026-10-16T10:52:37.073Z",
+  "sourceFetchedAt": "2026-10-14T23:27:11.772Z",
+  "toBlockExclusive": 113457890,
+  "transferCount": 4842,
+  "counts": {
+    "MINT": 1969,
+    "PLAIN_TRANSFER": 658,
+    "SALE": 1580,
+    "UNCLASSIFIED": 208,
+    "SMART_WALLET_ACTION": 242,
+    "BULK_MOVE": 185
+  },
+  "ownershipRecords": 4841,
+  "currentTokens": 1969,
+  "researchWindow": {
+    "start": "2026-09-29T21:00:00.000Z",
+    "end": "2026-10-13T21:00:00.000Z",
+    "transfers": 339,
+    "tokens": 145,
+    "counts": {
+      "SALE": 161,
+      "PLAIN_TRANSFER": 69,
+      "SMART_WALLET_ACTION": 14,
+      "UNCLASSIFIED": 85,
+      "BULK_MOVE": 10
+    }
+  },
+  "unknown": [
+    {
+      "tx": "0xc2a30572aef283258dd60e30bcf14c69d2ca5030501d6cb196605911949482e7",
+      "block": 101919052,
+      "logIndex": 177,
+      "tokenId": 698,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0xa509e8f2cb0f88ab37f1839cde95ca1f3f2fc448657045758119c03c544fd66f",
+      "block": 102131823,
+      "logIndex": 90,
+      "tokenId": 1627,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 85,
+      "tokenId": 92,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 88,
+      "tokenId": 96,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 91,
+      "tokenId": 107,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 94,
+      "tokenId": 110,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 97,
+      "tokenId": 117,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 100,
+      "tokenId": 121,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 103,
+      "tokenId": 126,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 106,
+      "tokenId": 127,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 109,
+      "tokenId": 128,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 112,
+      "tokenId": 131,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 115,
+      "tokenId": 134,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 118,
+      "tokenId": 139,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 121,
+      "tokenId": 144,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 124,
+      "tokenId": 145,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 127,
+      "tokenId": 146,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 130,
+      "tokenId": 148,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 133,
+      "tokenId": 153,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 136,
+      "tokenId": 154,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 139,
+      "tokenId": 155,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 142,
+      "tokenId": 156,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 145,
+      "tokenId": 161,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 148,
+      "tokenId": 162,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 151,
+      "tokenId": 164,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 154,
+      "tokenId": 168,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0x13a42d3c2e7b72a78032e0d799ed2a02b98e04d90b6f15514f245940356aceca",
+      "block": 102229446,
+      "logIndex": 157,
+      "tokenId": 169,
+      "reason": "CLASS_UNKNOWN: No verified classification rule matches"
+    },
+    {
+      "tx": "0xb99816a46217e53c5da521b31ce721fd6f751e16cc12bcf3bcc301ab9f07d2bf",
+      "block": 109495028,
+      "logIndex": 201,
+      "tokenId": 1864,
+      "reason": "CLASS_COMPLEX: Same NFT on both sides of a fulfilled order"
+    },
+    {
+      "tx": "0xac5436c4a942dceef690a54967db391c6741f3c01a9099592ac27d5c4a55346e",
+      "block": 111942160,
+      "logIndex": 132,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x55773dd278f3843d186dcb4912807f230b8b2681760ed9436788b3e0a7e419d6",
+      "block": 111942245,
+      "logIndex": 128,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x74c40ca4b7e6dbda2240cd9446c642dc9f070493931058e180d031267ef427b4",
+      "block": 111987922,
+      "logIndex": 157,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x26f2b851fdbad4a60dbe2e604fe171bbf9c84b2cae0b09231714f67f29eba1b8",
+      "block": 111988006,
+      "logIndex": 73,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xd5ededf41b4d64b763ded63c24a71ea3c6de25f90159cc7eb8556cbd63b8c411",
+      "block": 111989532,
+      "logIndex": 68,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xd3ca4572b16232b2e9c53b937ee26c16265dbb166e7ce4d9308be7205d12851a",
+      "block": 111992597,
+      "logIndex": 134,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xda63cf06eba59b4deaf3a9ef6cda6b3dfeea6b428a96679a4e194906631e3f85",
+      "block": 112257336,
+      "logIndex": 74,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x56c04892507ae5d11707d1aaecae6de5015fd8ccd9cf6e4302b0758be2e419d6",
+      "block": 112257424,
+      "logIndex": 78,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xd3f85057bf11481387fa91ac6b7f41bf4d918573e1373d4f5e2b124af9cb2175",
+      "block": 112274035,
+      "logIndex": 71,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xf1968ec578d1338a11b7201731ddea8bfe30bb13f6d1c1d76329ff84ad83ede8",
+      "block": 112274125,
+      "logIndex": 116,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xfbe4091334b2a1674c0850f3b5c03602471eacac9ea73d3555e6e07363336b5a",
+      "block": 112275193,
+      "logIndex": 57,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x84fa8b63634e67700c2642223831de3eeb53bd9a7f01c0774dbc2adf945617d1",
+      "block": 112275323,
+      "logIndex": 89,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x45727fabdffe916f48dd9646cc7c3cb32f2adbd0645be6c9f0f84bd7b7cacd9f",
+      "block": 112321856,
+      "logIndex": 87,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x39ca4517ba25c3b2afefc11416661cc616d82a1809c62b684eaabdfb957d4951",
+      "block": 112321961,
+      "logIndex": 78,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x1fe8571478f96fe4416911159c8bef6ec9e360357f6943462f2b83dac4b1664b",
+      "block": 112490852,
+      "logIndex": 60,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xfbb7f90898616a49a8863892f40380b126454f1d4c1bbaf3e4262d5ac6924198",
+      "block": 112490964,
+      "logIndex": 52,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x00812f8661c9097175db37a572e886281fafdc490ce6ca3e48dec3e139bf14f9",
+      "block": 112493606,
+      "logIndex": 165,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x144341efc8acc4c22f5104839cafcab95dd0232065675f5a2534c1a517889003",
+      "block": 112493770,
+      "logIndex": 95,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xe5b807a060bba03bc455e0016f12eb8ac665fd67bdd2c1f348a52c93bae8316a",
+      "block": 112495606,
+      "logIndex": 76,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x9864bf473725280416565a5a064a7a888e1fea53d62e6477eb9c70bf54e260b3",
+      "block": 112495750,
+      "logIndex": 63,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x300bab7a6767aa7a36a6697fb4566e9fa9cc0e6eec0374a6d54c66ecf376b697",
+      "block": 112505902,
+      "logIndex": 97,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x8fc7e7f5f6a95735053cabe1446f6764f04e1e1b6b693764b90534d454f8ed6f",
+      "block": 112505976,
+      "logIndex": 57,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x1b0192ed388fd9b75900e7803a23dd339dc4b07a6e8db5fa63c4bb3109b7ce52",
+      "block": 112526796,
+      "logIndex": 101,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xeb35a5f0d9cf3b25b702297b3831d8303a2464ac5aa1c3d8a4083817d45d123d",
+      "block": 112526876,
+      "logIndex": 60,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x431c12aaf2a275baa5f512bc811d3177431332a1d0d48b0bb5baf1c15c0e2d77",
+      "block": 112541269,
+      "logIndex": 99,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x0a5697a5112e4df39373f144b21df96dcb990e480e60da9a87978c3e7268bf95",
+      "block": 112541352,
+      "logIndex": 176,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x2c1ec04ede31063eb35e95209e16b7d7711360161a379a941145d0b8addebfd4",
+      "block": 112548384,
+      "logIndex": 88,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xd7e8b3cd84adc484447c291abfb995a3ceffb4f7d86cd78c454896721dda6738",
+      "block": 112548460,
+      "logIndex": 153,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x6568b48b64c94150fcd68cb6e9be67e2ec0121e22894d852d63e93fe255837e8",
+      "block": 112549679,
+      "logIndex": 60,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x51edaf3de7dbd1667b4fe814022d4be1a327724019929a2e9974e0374aff9de5",
+      "block": 112549731,
+      "logIndex": 10,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x43d9aa62ca7887f3c17c99b0f023ab7d1a1a45415f4888d6d76e4b4bf6c51d2b",
+      "block": 112551706,
+      "logIndex": 42,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x456b996cf2273e53ea6ce82fb465ccd57fc7f9c7047f36e386582258dcd2b8e7",
+      "block": 112551780,
+      "logIndex": 80,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xb7cadb3418c2922e7299c07350565ae748cbba995072864620646d57edb53e30",
+      "block": 112572571,
+      "logIndex": 87,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x0e31e8fc3ac1cb9d279c41d2cd264e280cd0fe80340a19714af683d8865fb46e",
+      "block": 112572702,
+      "logIndex": 65,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x879024fb628a9e9aaddf2bf2b373d9f9053e95c7d3ff60f4b8f6cec48c358c32",
+      "block": 112573158,
+      "logIndex": 117,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x968b2636f5b1ac314fa2ffc657025683ab2cc6c35dd7e8a2d0ea23f0dc240bf2",
+      "block": 112573260,
+      "logIndex": 48,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x56e94f67a12fd88f04a17f867c94664fa832418f141772f60d89c7ad183bf165",
+      "block": 112836613,
+      "logIndex": 195,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xc05c18fb796d47771f9a27472c93567e033e4236c755e3e741ad56b296d01a19",
+      "block": 112836700,
+      "logIndex": 39,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xfbb81cdab4012697ca5105da728267b361a51aa7f2ac18a53ea050598bd1a703",
+      "block": 112836970,
+      "logIndex": 156,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x3a10edf6c0b3cb43b0e718b36a97193fc10f7e00b28f7fd8b9fa166a960edb6d",
+      "block": 112837080,
+      "logIndex": 80,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa5146c5642bff43bef9746e3f408657f6c1dc4109439d05482da04b6a1c147bc",
+      "block": 112838718,
+      "logIndex": 32,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xcc15491228c1dfbaf380614efa6d0df809c5cf130793c03c5fba06c593657b93",
+      "block": 112838819,
+      "logIndex": 88,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x4968e0aaff9f25b93081f403cf6d5c6ff0fae2be410a0f98f23a2e0c155b5b53",
+      "block": 112839314,
+      "logIndex": 165,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xe7dad8dc148423be88caed2ce76fe5c70069a14cd4a665db4d1cd8b46684fb41",
+      "block": 112839427,
+      "logIndex": 86,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x9c252f9f3093ea1ebc5373ee1fce0a3decb58223e03f4a965a5e42fa22611235",
+      "block": 112841455,
+      "logIndex": 271,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x427527cf79f6d61c4f33049316c568f5fc1eb670caf63f9c67c8b64418209414",
+      "block": 112841510,
+      "logIndex": 31,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x54635bbf6d851fa4dba8363bca6fa85cfd90d9f916ba90ac5aba86f1a1fbbfb4",
+      "block": 112841719,
+      "logIndex": 95,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x4d85845691b82417e314a187ac7117b1b722068e40f43944485a71321084a5e4",
+      "block": 112841834,
+      "logIndex": 116,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x06ee81aeccaa5f841fe4e996c42d9000cfc9eaff4d9b41c8018d69c319c3d811",
+      "block": 112889677,
+      "logIndex": 44,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x3d8d056d07e6dfba2d15ce0d07e88b906821b43646444d21e55973122af622ab",
+      "block": 112889825,
+      "logIndex": 57,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x30affdd74135c01cde309bd6e10bc357263ed9152e7bc386a7e3909080c7703e",
+      "block": 112892526,
+      "logIndex": 91,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x56c2812a9dfae5f74ca448a5ab32150737b4447181526172519aeb4d64dcfdf8",
+      "block": 112892613,
+      "logIndex": 133,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x4ae539b371be5ee94c6a4b80b7afc4fd3bb77b477034503a31f58eddb52cc819",
+      "block": 112894318,
+      "logIndex": 287,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x3adcd7553e9ffc9558a82b4e8520a2b3149f35e1a501e7223ecc8f326686db24",
+      "block": 112894405,
+      "logIndex": 239,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x7cfb2f364c2c55883227cfbb0687f09393cfb80c8b59496bcf616221dd84dacb",
+      "block": 112897342,
+      "logIndex": 166,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xed4c962109b18c706d9f8749aa7a5ce9b06035e84285fb0601927177f4958157",
+      "block": 112897464,
+      "logIndex": 91,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xb47341b5867872ec663d1fbd1a2db352829c0cac3d4f997b7bb273df3c4d5363",
+      "block": 112992526,
+      "logIndex": 71,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xf1dd35a074cc98e4a81f4705da72e8b7afbbe4773f5146c0bee1794b1c4067da",
+      "block": 112992620,
+      "logIndex": 214,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x2c6cbefd98958728285957cb5dbdf34079a26d05fccc573207c5e97a9ac15aad",
+      "block": 112993717,
+      "logIndex": 72,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xe742af9d280ae57629da86fd828943e4ee53c9c5cfdad9d6eaa8311d9afa58f1",
+      "block": 112993846,
+      "logIndex": 34,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x8c1ac5d860fcc11cee14d6ae426aaeefda58c4bff0e5e1060463d9812ee52d6b",
+      "block": 112994139,
+      "logIndex": 106,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x43dbd19a0a1b96bd2575ed4a93ce6adb7599c154cb44f8282e309808c52029a4",
+      "block": 112994240,
+      "logIndex": 161,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x0d53245e4acc9bd348aeee5d807ad9376ee6599c9d275fefe42cd455b9702c6c",
+      "block": 112994728,
+      "logIndex": 53,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xff9c65c1eb5d408942543ef386b8abc67b84e85bf90fde2baafc296d777841d3",
+      "block": 112994862,
+      "logIndex": 117,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa03f0247bc4ba74c24d6bfe533b1d9961e18e6cab7c73e640ba748f8291e7869",
+      "block": 112996979,
+      "logIndex": 64,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xda105c61ed91f731b29ac5ca0d639d41cdc3bbc8bd1f21a761fa3b9d2e33eca3",
+      "block": 112997055,
+      "logIndex": 126,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x619ad8d43d4ba050338db9cc1383edcdad5d77d844684bcb094334412b3a5a26",
+      "block": 112997423,
+      "logIndex": 120,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xdc53967c0615f87ffc23b6abb38a8f98873e92604c320030c8448fcef088fdf1",
+      "block": 112997539,
+      "logIndex": 70,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x4bfeb4beb878a29c80b2cad67998e47c99bc24a9f928ffd23a55e96a8b5d2b65",
+      "block": 113036115,
+      "logIndex": 111,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xf367511425b227cf1a00e91b612bce86ba8c2e827a8df22f4c8243dc6171bb8c",
+      "block": 113036175,
+      "logIndex": 132,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xf4a7dbba0252953c2199467e35ad8bc897cc3c1f4a6e198213399cb4ee9fc041",
+      "block": 113037757,
+      "logIndex": 116,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x25ab49cf61ba82037f0ec467f332437ae82b3deaa824fb1fb38089cb04b9cb57",
+      "block": 113037870,
+      "logIndex": 67,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x6bdb26cfbd3e2a7c1b4e9b93c03b853f3a9d46b10bad8d6d0eb156318e291189",
+      "block": 113040015,
+      "logIndex": 64,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xed18e272c9146707339b228f7c825ff87216b3cb0fbb6f2a91b45b0f4b54f81f",
+      "block": 113040087,
+      "logIndex": 146,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa1343f537ab10b6a929a321e6634574cf30906faa687dfe767008d914659a845",
+      "block": 113042115,
+      "logIndex": 73,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xb3467d9f621860883d3a610de54d304ce77de0c922e18f4a95f4f80805d72c67",
+      "block": 113042190,
+      "logIndex": 66,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x5baeb3c4339b35ef7124c3cdc35330ab650c10642adcc0f32325e872a0467e70",
+      "block": 113042610,
+      "logIndex": 183,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xe6f2a45afa08b0f51e50c69e9e594f5b124dd1cb4561f95defdeb3ac48d08c3e",
+      "block": 113042692,
+      "logIndex": 23,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xab85de87dafdb06e6b7adb0a17896bc506fe6862d0b0c7b53683fbc02dcc35a2",
+      "block": 113045664,
+      "logIndex": 188,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xdfe18d8a7af10b092f8ce09fd3427275ffd81a65fd4743ee022d5e92f64f4245",
+      "block": 113045771,
+      "logIndex": 86,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xe93f9ecafb95009c76d1326b7b5bb0c8f6168a47babc3f38b17146eecc046401",
+      "block": 113050449,
+      "logIndex": 38,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x85e1f3e0b18f12d324538c966bacbf6e76dee6fceb55d13247631f3d72580dc0",
+      "block": 113050529,
+      "logIndex": 171,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xd5c8da45f2cc00d3119ce282055a6b52d418034fbd2d8df3bdf1b1b2ca12e13c",
+      "block": 113051287,
+      "logIndex": 20,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x38aa2152b9c452b8f1802ac3b8a678db03b755c6f31b3cd3e3bad20491528692",
+      "block": 113051941,
+      "logIndex": 165,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xfb42552ac0e68e9b72ed8cdf2a1c4b621c46cd89a98973a6877d9985ca8ba8bf",
+      "block": 113347034,
+      "logIndex": 36,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa606bc8e76d6f31c7e837907b75a7e39632ad5f60bfc3f3142e68ec28f40d77f",
+      "block": 113347570,
+      "logIndex": 84,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x41d97e9ecd46f74b105f6e9eed07a5766320042f4ef5103905f436f9c3945757",
+      "block": 113354065,
+      "logIndex": 278,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x0d7064f3ddfbeb103eae1867bcccefc9ff8639de17ff06821110b882c97eab72",
+      "block": 113354224,
+      "logIndex": 74,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xd868449466ac4b4100c6964cd3102185307d69afae22646734dce3ce4306a1b7",
+      "block": 113355064,
+      "logIndex": 173,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xf09cc5f21353006a0df4832918667c23dc292d01f7b83d27a08d11e07853e75c",
+      "block": 113355484,
+      "logIndex": 51,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x47b81af8e8cfd7099a2e79645efcb2c390d1bae0819e596fa5443f4778542b61",
+      "block": 113357306,
+      "logIndex": 68,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa93458ac6f4eaf087569924333746b4ec07333aada5bbd85151eb53fbd131425",
+      "block": 113357595,
+      "logIndex": 124,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x159359834ae651e50e6708cf75479112edbc3c666f833f175fa507617712d2e4",
+      "block": 113359157,
+      "logIndex": 64,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x7d2947ca07af635e2c9450b6d97bd8286f37e2d9288bdabcce08e935bad00579",
+      "block": 113359270,
+      "logIndex": 134,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x40b7a2139b9cead4ac33132ef7d80187431cd83eba5003bf106966a789a7f54a",
+      "block": 113369650,
+      "logIndex": 23,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa514fb9c02ac4a396ed4ea08f3eb314478a9c1b608c487d427d87b9f84a2723a",
+      "block": 113369921,
+      "logIndex": 77,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x194c60f744a6c4be384e4ddb099c4d82a140ce6ac5cc1a6c07be13a4dacf730b",
+      "block": 113383444,
+      "logIndex": 50,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xebd2558cc424f07c52502f15878929782435105e1f7bffe1f4e94de55f752af1",
+      "block": 113383571,
+      "logIndex": 2,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x8542d3307bdeeb3ecd2446e4040e150d9c7cfae38992c564f41967b4aa34c70f",
+      "block": 113383897,
+      "logIndex": 74,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x435dacca4bdc78fbedeb61a8ecc89a0a3c08913d90ea476e28362a7b0b29c554",
+      "block": 113384009,
+      "logIndex": 21,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xb86c92bb1973c4397c3af6690e92150c3140d8bfd86d98443369fb65730dde83",
+      "block": 113385801,
+      "logIndex": 164,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x01a4de7f7ef3a25c6f498c1ea3e531f1bc2118c891a66c12566c966a24b4cc96",
+      "block": 113385920,
+      "logIndex": 182,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xc20634df512b0e7ad43f0933aee91142e7e1b867be6d11be43db4dd9ffd00ad5",
+      "block": 113395025,
+      "logIndex": 83,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa23af1daa19ed5273b10d7b3a320c9878a5a52e823b36768c099edb4dc022df1",
+      "block": 113395129,
+      "logIndex": 4,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x0dc575066aca99629e9ae85a7a91d0bc047cf910ab861d35e32940e1391615fc",
+      "block": 113395995,
+      "logIndex": 88,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x6204d2551e4cee8e63221a94f995e2c7f567b9ddf1b3fd35b55fb18a54fb31df",
+      "block": 113396100,
+      "logIndex": 34,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x130ec08749d02ee2af3689a8aad3770b6402f1a6e6ae349f5989165858071be1",
+      "block": 113397216,
+      "logIndex": 85,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xcfb0edb6a327b7c8f38f631e014f20d49ba724df57c7ecab76f8285ccfbaf728",
+      "block": 113397309,
+      "logIndex": 61,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x625b80b19b9a234835cc964b6ad69fffe857ee3ef2493efc51d2673568454e39",
+      "block": 113398355,
+      "logIndex": 107,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x2639c548b76a66501d7f5ffa2cd6fa36e1b4bd35f98faa6d2aad1c184648bc9f",
+      "block": 113398470,
+      "logIndex": 149,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xc15c3d28880b1a0ae527841448d6e3ad9e2741374c2c11e1764060d273d0bba8",
+      "block": 113399585,
+      "logIndex": 80,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xce617f2e97595589d452eebe26359c0182417b23c64f2d3ef97102ff7f63070b",
+      "block": 113399689,
+      "logIndex": 77,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa5652130f94cf4e31ecd90de5fbbb9c267f399ca6f68cf06951a06de9e0e5935",
+      "block": 113404029,
+      "logIndex": 78,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x93d92096246e94d4b951bc968e167546f448c66360518c267c8a388b2be55577",
+      "block": 113404108,
+      "logIndex": 205,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x10862a200cc0095c6d1b827df2a3b469ca42fc4826c9dcaf2ed297dc7f9e77f5",
+      "block": 113406408,
+      "logIndex": 89,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x005006e3f5ba58689153e382c7f09e5f261910ab716b14dc0c82c6c4c43cd2ce",
+      "block": 113406510,
+      "logIndex": 203,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xab1a5c1c53b979cbd73462583e1d415e23ca67faf725d338026c690a91af1977",
+      "block": 113413819,
+      "logIndex": 48,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xf749b5dcddd11e1ad304c2c6ce7eb3dfcdc000cde70e8603288bdcca90ebb0b0",
+      "block": 113413933,
+      "logIndex": 143,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa2048040b39595beb65c0da40a1af507d18b29ea488299a3633e5ee45b94c426",
+      "block": 113417100,
+      "logIndex": 42,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x7a0432d5d5a423c5c0eacf0804dc123a3a50b938c6f3e963afe7e98f53155904",
+      "block": 113417179,
+      "logIndex": 161,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x81c32c3c1d89007b26cb1d4b4dafe493cf4095b528045678fb3f9880fd905d8f",
+      "block": 113422184,
+      "logIndex": 56,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xaff3e9cbe3701f39e85e3e4ba379f637a6863a4f08ad2e368080b5a359727448",
+      "block": 113422263,
+      "logIndex": 52,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x93f0f2e64935f3da505ad1fee4b6ce8b54b0af668c8d63bdac2b38a1c72ae782",
+      "block": 113426630,
+      "logIndex": 68,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x0f34d95f9bed57e979e06a894e313821ef65a74df2d1dca34a7b49bc5d3244ce",
+      "block": 113426704,
+      "logIndex": 36,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xc2cc0678caeed5e056b5571153fa390cef06efa61002760268a6f8564d501da4",
+      "block": 113428005,
+      "logIndex": 200,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x05cb853c3d3fc6b20ea75152bf9bd86d43b0f97fb604bcaae90cc2e67b3a7ae0",
+      "block": 113428137,
+      "logIndex": 42,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x865f7f214fbb283e5963b1f3251eff8b4db9ed28c2ad90cf6c7ab527e4e8b63c",
+      "block": 113428966,
+      "logIndex": 23,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x5cf87b1442f2937a7ab6a2dedc335f36c25c2a2bcb21dcdbb4e7defd8667778f",
+      "block": 113429078,
+      "logIndex": 56,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x26a40ea95872239c659bcb74dbd352e5fabbb95f111e114b5bcc1c0154f074b3",
+      "block": 113431575,
+      "logIndex": 148,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x26be39988ccea2e99edaf7d0da6843e886ebc706ffcd6021f1dba26c885e1f6a",
+      "block": 113431688,
+      "logIndex": 89,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x957100920226bbf9a216f279a16c35980227a2d9038e3aae315b3563114e0794",
+      "block": 113431972,
+      "logIndex": 245,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x9272e77e64d937cf5e3f88c3dcea5791bdf913f664a109e0281b9ab6bfd71d1b",
+      "block": 113432107,
+      "logIndex": 136,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x375287da03d97daa4b395c1404b9ee164bd96bc4403e897a1e187236d683e9b5",
+      "block": 113433653,
+      "logIndex": 84,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xc62254ebc5aeb82a6b9e191a5cfc2557a6ef885eae724529aa789f26a56cf2a8",
+      "block": 113433754,
+      "logIndex": 41,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x17f5b3c6b5f4dcc8d60d9c8f28990734740bd93f813d4d1cfae38c800d483b0f",
+      "block": 113433998,
+      "logIndex": 75,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x19c6bf8cc9b68a2031b971aa9874118bbddfab407f2c7c4a5fd196e7a0431644",
+      "block": 113434118,
+      "logIndex": 62,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xb544e8b1d3885b430c3634968bf5634c6e380c9629f39579bf151e9e8f439638",
+      "block": 113436445,
+      "logIndex": 31,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x6ad393e002b896bd906d72e3947c233193b5e78d98569e7d71235cf87d1c5a8c",
+      "block": 113436535,
+      "logIndex": 18,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x0e3ae56e537a9c37c6aeaf04bd0310119d5fdf07d5a3940cd6f8755c5e214e1e",
+      "block": 113436943,
+      "logIndex": 37,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x13ed69f23423b50de834da5f844aae3d6e32c289c98fb397af11ad780541a531",
+      "block": 113437046,
+      "logIndex": 78,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x30c0103fb9e7ff4e8d4baa360094c0da27b1ed1637019872579b7a6f581e4180",
+      "block": 113437296,
+      "logIndex": 132,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa63cac61da0d421cb3a027bf2037d7be3442e7a7593bc57c00715c9f33e65d8a",
+      "block": 113437423,
+      "logIndex": 23,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xe1d4f9683e11141b85246f9b5fc0c0d2a854f3521df1af0e85677be2571af97a",
+      "block": 113437850,
+      "logIndex": 65,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xbc0c6b36820a51c31b7cba5c45ef879aa6e6f6654e4485837e2ef86ae8341ec0",
+      "block": 113437962,
+      "logIndex": 105,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x93dd8ac4326dbc1a595e1d5a88f70c3da09e5424871d9adafddc51b6e5b5b050",
+      "block": 113438357,
+      "logIndex": 25,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x100a10e91898ffd40b980eda8c5c78dfd8ac61722aa77816fda60bddcebbea23",
+      "block": 113438440,
+      "logIndex": 60,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xda9c1e3a5203c353ed623c98b0c01129cc2ba456c839593f25eb85839a5177a6",
+      "block": 113440054,
+      "logIndex": 62,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x2a09c9b218cf19a6c11578eb17926bb23818dfce2a3c7ec2200cc64e89e468f7",
+      "block": 113440137,
+      "logIndex": 36,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x92eeac22d5ee315c7a686ab16091e15d342d718e51435647e24432486f5f1fc1",
+      "block": 113440406,
+      "logIndex": 60,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x27f6924561e108917a676324dc359042049236e24ee59d9468136fcc2371ca00",
+      "block": 113440507,
+      "logIndex": 62,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x8eec28412e84ce5a83a2d2a027f5c50b858e99fc1fca8767260eb4586c557f0a",
+      "block": 113440769,
+      "logIndex": 56,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x534e3c5848f800e02ef05395a2c5c843c72e757975039014a42b7d1ac1da6faf",
+      "block": 113440883,
+      "logIndex": 112,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xb39745709820d59a39be2bff35ebd93a668ba673cca2ca8edace0b53bf01c445",
+      "block": 113441293,
+      "logIndex": 79,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xa08935ce9d134fefa7d004be50f8a06d57ee6438248265e382d63011fb5ee6c0",
+      "block": 113441376,
+      "logIndex": 110,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x0c96b3cdb21644301ec18ecb253afe1e77533df69967cf0b32af08116a05ea77",
+      "block": 113442260,
+      "logIndex": 131,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xb7c87e22c155027123685915d294d22de49c63d3ca37d2b94c3ea75a1b421ad3",
+      "block": 113442363,
+      "logIndex": 101,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x9182184a9e8b43609cf6f4d0771b0675ae3a0e17de6e1aa43cb9c455d4d9e04c",
+      "block": 113442561,
+      "logIndex": 67,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xf6a135e2120c54157ca8e2ca6730dca9a16f0d27c1f163c0f257cf0b1f56da3f",
+      "block": 113442639,
+      "logIndex": 111,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x1b17a968954b0b207994b0a0ad7a3de66303c61428115beeb2904737cdb766f8",
+      "block": 113442858,
+      "logIndex": 31,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x61c75cee2ac113bb67e838d711a2978ecf291a88023d95afacaac281e19e34c6",
+      "block": 113442986,
+      "logIndex": 4,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xaf4a7d9e8075783eca2260cb326d1a76eba6f35cd86110c43e1e8b4d95eeed6f",
+      "block": 113443182,
+      "logIndex": 128,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x544ab58da52520c1bbea3d33995c524226050b2c5ee47db3f303e9184555bc62",
+      "block": 113443293,
+      "logIndex": 98,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xefd9da505a3972003250272b7e60b18aa01868b1782560dd2e11108bbfbc5fd3",
+      "block": 113443479,
+      "logIndex": 50,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xe6417b383cef33410f227dc2519af854520bf0f90806e4790abaa74fe9504bc0",
+      "block": 113444120,
+      "logIndex": 94,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x7be2f099fac5125f9d7f44dcb521b1fe1bb8cd4dec30ede377702dd0cf98e871",
+      "block": 113444933,
+      "logIndex": 57,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x9a3d615e3762d741dadb12981ecdc52c7bc8bc2bebc16afea029c1ca1e47075e",
+      "block": 113445012,
+      "logIndex": 85,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x98e5d7ab68ecbef1f0702ff74031e8cdcc615e99b541a513dbe97f797293ea7d",
+      "block": 113445202,
+      "logIndex": 122,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x711687d27076b45c95a3abad6fcf144af91c117b1183e4a54aa83cfea30a2ef8",
+      "block": 113445273,
+      "logIndex": 55,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xc68991fa0ab44afb5bed08bdc0641ed33ef908560ec8f4b86d3a77cfa5224fec",
+      "block": 113446525,
+      "logIndex": 58,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x7762975ba723b8f5e988bd686676aa0b4f6b7ad9e968a08f6bffc8bd360f0b0e",
+      "block": 113446619,
+      "logIndex": 19,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x43f2a7bbfbba456de925e4335bede8dcc720bd3f91a1e4ccb0fde969723fe7f7",
+      "block": 113446838,
+      "logIndex": 73,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x4d516f50cb20aaaf588357e5c83fefebbd7abb03983d05597c9ad96c35a8ff55",
+      "block": 113446910,
+      "logIndex": 128,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xe06301b03e9a363aa1aded24310648d1c5a5ba69ace37b282e84e6b7dfa6b418",
+      "block": 113447103,
+      "logIndex": 39,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xfda39020fd2f148127b73961ee8f53bf5d36f888411409fdeae11961bf56aa12",
+      "block": 113447204,
+      "logIndex": 133,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xc415e74cf64c1d08ad592621bfbb39a3cb072f9547591c4ef210ded5983e3cfe",
+      "block": 113451480,
+      "logIndex": 115,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x426f008d00d6ca1c947e234116a6d6a2a1189516c8c5c56697ad340ab37c5a17",
+      "block": 113451614,
+      "logIndex": 46,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0xd49fbd29f86de7824cb31bba4b593377d2e0a1a772497023ea726da4ac69b235",
+      "block": 113454728,
+      "logIndex": 70,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x852ba87651f42de4c0d7661e49966fbee316e987f118219a4de69da32fb6f016",
+      "block": 113454878,
+      "logIndex": 32,
+      "tokenId": 1358,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x4c7ade6d96349cdecd2dc4bfc4a2b4986ae7c4bd5a63325bd1478f4704723315",
+      "block": 113456913,
+      "logIndex": 146,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    },
+    {
+      "tx": "0x8f97aafbfa595db04cb0e629d9e820da6108ef4e839d190449c8b9dc02c4536b",
+      "block": 113457077,
+      "logIndex": 82,
+      "tokenId": 1021,
+      "reason": "CLASS_ESCROW: Escrow payment and collection require separate deal evidence"
+    }
+  ]
+}
