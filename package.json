@@ -21,6 +21,7 @@
     "eval:witness": "tsx scripts/run-witness-eval.mts",
     "eval:tone:prepare": "tsx scripts/template-review.mts",
     "eval:tone:grade": "tsx scripts/template-review.mts --grade",
+    "cases:build": "node --import tsx scripts/build-case-archive.mts",
     "audit:wallet-history": "tsx scripts/audit-wallet-history.mts",
     "data:art": "tsx scripts/check-art.mts",
     "data:owners": "tsx scripts/check-owners.mts",

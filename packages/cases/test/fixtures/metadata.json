@@ -1,0 +1,410 @@
+{
+  "281": {
+    "name": "CHOG #1742",
+    "description": "CHOG \u2014 a 1969-piece collection on Monad.",
+    "image": "ipfs://bafybeihau2egcccbdxymeckmmbrqytbfor5gkt3en6d5fsbueymdbq7g6e/1742.webp",
+    "attributes": [
+      {
+        "trait_type": "Background",
+        "value": "Lemon Yellow"
+      },
+      {
+        "trait_type": "Base",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Skin",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Side",
+        "value": "Left"
+      },
+      {
+        "trait_type": "Body",
+        "value": "Golden Armor"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "Drooling"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "Chog Viper"
+      },
+      {
+        "trait_type": "Head",
+        "value": "Buttcoin Cap"
+      },
+      {
+        "trait_type": "Accessory",
+        "value": "Heart"
+      },
+      {
+        "trait_type": "Form",
+        "value": "Chog"
+      },
+      {
+        "trait_type": "Tier",
+        "value": "Uncommon"
+      },
+      {
+        "trait_type": "Naked",
+        "value": "No"
+      }
+    ]
+  },
+  "370": {
+    "name": "CHOG #1831",
+    "description": "CHOG \u2014 a 1969-piece collection on Monad.",
+    "image": "ipfs://bafybeihau2egcccbdxymeckmmbrqytbfor5gkt3en6d5fsbueymdbq7g6e/1831.webp",
+    "attributes": [
+      {
+        "trait_type": "Background",
+        "value": "Peach Pink"
+      },
+      {
+        "trait_type": "Base",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Skin",
+        "value": "Yellow"
+      },
+      {
+        "trait_type": "Side",
+        "value": "Right"
+      },
+      {
+        "trait_type": "Body",
+        "value": "Kings Robe"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "Lip Bite"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "Anime Glass"
+      },
+      {
+        "trait_type": "Head",
+        "value": "Peace hat"
+      },
+      {
+        "trait_type": "Form",
+        "value": "Chog"
+      },
+      {
+        "trait_type": "Tier",
+        "value": "Common"
+      },
+      {
+        "trait_type": "Naked",
+        "value": "No"
+      }
+    ]
+  },
+  "457": {
+    "name": "CHOG #1918",
+    "description": "CHOG \u2014 a 1969-piece collection on Monad.",
+    "image": "ipfs://bafybeihau2egcccbdxymeckmmbrqytbfor5gkt3en6d5fsbueymdbq7g6e/1918.webp",
+    "attributes": [
+      {
+        "trait_type": "Background",
+        "value": "Sunlight"
+      },
+      {
+        "trait_type": "Aura",
+        "value": "Violet"
+      },
+      {
+        "trait_type": "Base",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Skin",
+        "value": "Red"
+      },
+      {
+        "trait_type": "Side",
+        "value": "Right"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "Rainbow Puke"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "Round Tear"
+      },
+      {
+        "trait_type": "Form",
+        "value": "Chog"
+      },
+      {
+        "trait_type": "Tier",
+        "value": "Common"
+      },
+      {
+        "trait_type": "Naked",
+        "value": "Yes"
+      }
+    ]
+  },
+  "1004": {
+    "name": "CHOG #496",
+    "description": "CHOG \u2014 a 1969-piece collection on Monad.",
+    "image": "ipfs://bafybeihau2egcccbdxymeckmmbrqytbfor5gkt3en6d5fsbueymdbq7g6e/496.webp",
+    "attributes": [
+      {
+        "trait_type": "Background",
+        "value": "Mon"
+      },
+      {
+        "trait_type": "Base",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Skin",
+        "value": "Pink"
+      },
+      {
+        "trait_type": "Side",
+        "value": "Left"
+      },
+      {
+        "trait_type": "Body",
+        "value": "Sky Hoodie"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "Drooling"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "Chog Viper"
+      },
+      {
+        "trait_type": "Head",
+        "value": "Wizard Beanie"
+      },
+      {
+        "trait_type": "Form",
+        "value": "Chog"
+      },
+      {
+        "trait_type": "Tier",
+        "value": "Uncommon"
+      },
+      {
+        "trait_type": "Naked",
+        "value": "No"
+      }
+    ]
+  },
+  "1090": {
+    "name": "CHOG #582",
+    "description": "CHOG \u2014 a 1969-piece collection on Monad.",
+    "image": "ipfs://bafybeihau2egcccbdxymeckmmbrqytbfor5gkt3en6d5fsbueymdbq7g6e/582.webp",
+    "attributes": [
+      {
+        "trait_type": "Background",
+        "value": "Lemon Yellow"
+      },
+      {
+        "trait_type": "Base",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Skin",
+        "value": "Pink"
+      },
+      {
+        "trait_type": "Side",
+        "value": "Right"
+      },
+      {
+        "trait_type": "Body",
+        "value": "Blue Chinese"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "Gold Tooth"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "Closed Eye Crying"
+      },
+      {
+        "trait_type": "Head",
+        "value": "Clown Nose"
+      },
+      {
+        "trait_type": "Form",
+        "value": "Chog"
+      },
+      {
+        "trait_type": "Tier",
+        "value": "Common"
+      },
+      {
+        "trait_type": "Naked",
+        "value": "No"
+      }
+    ]
+  },
+  "1233": {
+    "name": "CHOG #725",
+    "description": "CHOG \u2014 a 1969-piece collection on Monad.",
+    "image": "ipfs://bafybeihau2egcccbdxymeckmmbrqytbfor5gkt3en6d5fsbueymdbq7g6e/725.webp",
+    "attributes": [
+      {
+        "trait_type": "Background",
+        "value": "Sky Blue"
+      },
+      {
+        "trait_type": "Base",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Skin",
+        "value": "Red"
+      },
+      {
+        "trait_type": "Side",
+        "value": "Right"
+      },
+      {
+        "trait_type": "Body",
+        "value": "CWO"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "Gold Tooth"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "Teary"
+      },
+      {
+        "trait_type": "Head",
+        "value": "Thunder Cap"
+      },
+      {
+        "trait_type": "Form",
+        "value": "Chog"
+      },
+      {
+        "trait_type": "Tier",
+        "value": "Common"
+      },
+      {
+        "trait_type": "Naked",
+        "value": "No"
+      }
+    ]
+  },
+  "1268": {
+    "name": "CHOG #760",
+    "description": "CHOG \u2014 a 1969-piece collection on Monad.",
+    "image": "ipfs://bafybeihau2egcccbdxymeckmmbrqytbfor5gkt3en6d5fsbueymdbq7g6e/760.webp",
+    "attributes": [
+      {
+        "trait_type": "Background",
+        "value": "Mint"
+      },
+      {
+        "trait_type": "Aura",
+        "value": "Rose Aura"
+      },
+      {
+        "trait_type": "Base",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Skin",
+        "value": "Pink"
+      },
+      {
+        "trait_type": "Side",
+        "value": "Left"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "normal smile"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "Clown Eye"
+      },
+      {
+        "trait_type": "Form",
+        "value": "Chog"
+      },
+      {
+        "trait_type": "Tier",
+        "value": "Uncommon"
+      },
+      {
+        "trait_type": "Naked",
+        "value": "Yes"
+      }
+    ]
+  },
+  "1931": {
+    "name": "CHOG #1423",
+    "description": "CHOG \u2014 a 1969-piece collection on Monad.",
+    "image": "ipfs://bafybeihau2egcccbdxymeckmmbrqytbfor5gkt3en6d5fsbueymdbq7g6e/1423.webp",
+    "attributes": [
+      {
+        "trait_type": "Background",
+        "value": "Aqua"
+      },
+      {
+        "trait_type": "Aura",
+        "value": "Smoke"
+      },
+      {
+        "trait_type": "Base",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Skin",
+        "value": "Origin"
+      },
+      {
+        "trait_type": "Side",
+        "value": "Left"
+      },
+      {
+        "trait_type": "Body",
+        "value": "Blue jacket"
+      },
+      {
+        "trait_type": "Mouth",
+        "value": "Flat"
+      },
+      {
+        "trait_type": "Eyes",
+        "value": "Smirk"
+      },
+      {
+        "trait_type": "Head",
+        "value": "Mon Cap"
+      },
+      {
+        "trait_type": "Form",
+        "value": "Chog"
+      },
+      {
+        "trait_type": "Tier",
+        "value": "Uncommon"
+      },
+      {
+        "trait_type": "Naked",
+        "value": "No"
+      }
+    ]
+  }
+}

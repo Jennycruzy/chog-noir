@@ -12,3 +12,7 @@ The game will let anyone question Chogs about real events, compare their answers
 | Art | Original Chog Genesis art with a noir treatment |
 
 Chog Genesis by CHOGLABS. Unofficial Chogathon entry.
+
+Development: [source-backed case builder](docs/cases/README.md),
+[archive case review](docs/cases/archive-review.md), and
+[VPS operations](docs/vps.md).
