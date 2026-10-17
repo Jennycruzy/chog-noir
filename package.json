@@ -32,7 +32,10 @@
     "data:escrow-traces": "tsx scripts/fetch-escrow-traces.mts",
     "fixtures:escrow": "tsx scripts/build-escrow-fixtures.mts",
     "data:payment-window": "tsx scripts/check-payment-window.mts",
-    "fixtures:payments": "tsx scripts/build-payment-fixtures.mts"
+    "fixtures:payments": "tsx scripts/build-payment-fixtures.mts",
+    "data:subscription-recover": "tsx scripts/recover-subscription.mts",
+    "indexer:live": "tsx scripts/live-indexer.mts",
+    "indexer:reliability": "node --import tsx scripts/start-reliability.mts"
   },
   "engines": {
     "node": ">=20"

@@ -1,0 +1,17 @@
+{
+  "recordedAt": "2026-10-16T19:49:55.940Z",
+  "directory": "runs/reliability/2026-10-16T19-49-04-806Z",
+  "startedAt": "2026-10-16T19:49:16.972Z",
+  "plannedEndAt": "2026-10-17T01:49:16.973Z",
+  "durationSeconds": 21600,
+  "fromBlock": 113985138,
+  "state": "RUNNING",
+  "connections": 1,
+  "subscriptions": 1,
+  "disconnects": 0,
+  "messages": 0,
+  "errors": 0,
+  "syncs": 4,
+  "finishedAt": null,
+  "note": "Launch/progress evidence only. Final six-hour result is pending in the local reliability-report.json."
+}

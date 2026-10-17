@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-10-16T19:15:42.643Z",
+  "status": "PASS",
+  "fromBlock": 113868296,
+  "toBlockExclusive": 113939463,
+  "pages": 1,
+  "fetchedPages": 1,
+  "historyTransfers": 10,
+  "subscriptionTransfers": 6,
+  "recovered": [
+    "0x67b0f21f87addff3123b5539a4800caf533495ea79b32afc10cf74aaf66dbe9e:100",
+    "0x80bdb7698a20f9942491793ffa845f92873c2e79ea6258847ee19b4704ecdf26:20",
+    "0x25d2996043f7520cba1f91050b73ae74f4058efb2485bdd1a18895a04f040ced:182",
+    "0xcf5be66d84d41c8acd4da819fe95272840e2b880b36f652643b7b1c90d4ca72b:179"
+  ],
+  "unexpected": [],
+  "note": "Complete validated transfer logs saved in recovery/page-*.json. This is history recovery, not a subscription completeness pass or a finality guarantee."
+}

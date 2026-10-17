@@ -1,0 +1,33 @@
+{
+  "startedAt": "2026-10-16T20:03:13.742Z",
+  "finishedAt": "2026-10-17T02:03:25.185Z",
+  "durationSeconds": 21600,
+  "elapsedSeconds": 21611.443,
+  "fromBlock": 113987919,
+  "toBlockExclusive": 114059522,
+  "fullWindow": true,
+  "status": "PASS",
+  "expected": 22,
+  "stored": 22,
+  "storedDuplicates": 0,
+  "referenceDuplicates": 0,
+  "missing": [],
+  "unexpected": [],
+  "conflicting": [],
+  "note": "Fresh full-range HyperSync comparison against saved incremental ingestion; not an independent-provider or chain-finality check. Does not pass other M0 checks.",
+  "referencePages": 1,
+  "metrics": {
+    "startedAt": "2026-10-16T20:03:13.742Z",
+    "plannedEndAt": "2026-10-17T02:03:13.742Z",
+    "durationSeconds": 21600,
+    "fromBlock": 113987919,
+    "state": "FINALIZING",
+    "connections": 1,
+    "subscriptions": 1,
+    "disconnects": 1,
+    "messages": 22,
+    "errors": 0,
+    "syncs": 1038,
+    "finishedAt": null
+  }
+}

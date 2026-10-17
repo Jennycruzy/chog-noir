@@ -1,0 +1,18 @@
+[Unit]
+Description=Chog Noir six-hour transfer recovery reliability check
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=exec
+User=ubuntu
+WorkingDirectory=/home/ubuntu/chog-noir-monitor
+Environment=INDEXER_RUN_SECONDS=21600
+ExecStart=/usr/bin/node --import tsx scripts/live-indexer.mts runs/reliability-vps now
+Restart=no
+TimeoutStopSec=180
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
