@@ -1,0 +1,37 @@
+{
+  "fetchedAt": "2026-10-17T08:08:31.530Z",
+  "source": "https://raw.githubusercontent.com/monad-crypto/token-list/refs/heads/main/tokenlist-mainnet.json",
+  "note": "Address references for symbol comparisons; list inclusion does not establish token safety or endorsement. Unlisted symbols are not classified.",
+  "assets": {
+    "MON": [
+      "0x0000000000000000000000000000000000000000"
+    ],
+    "AUSD": [
+      "0x00000000efe302beaa2b3e6e1b18d08d69a9012a"
+    ],
+    "USDC": [
+      "0x754704bc059f8c67012fed69bc8a327a5aafb603"
+    ],
+    "USDT0": [
+      "0xe7cd86e13ac4309349f30b3435a9d337750fc82d"
+    ],
+    "WBTC": [
+      "0x0555e30da8f98308edb960aa94c0db47230d2b9c"
+    ],
+    "WETH": [
+      "0xee8c0e9f1bffb4eb878d8f15f368a02a35481242"
+    ],
+    "WMON": [
+      "0x3bd359c1119da7da1d913d1c4d2b7c461115433a"
+    ],
+    "SMON": [
+      "0xa3227c5969757783154c60bf0bc1944180ed81b9"
+    ],
+    "SHMON": [
+      "0x1b68626dca36c7fe922fd2d55e4f631d962de19c"
+    ],
+    "CHOG": [
+      "0x350035555e10d9afaf1566aaebfced5ba6c27777"
+    ]
+  }
+}

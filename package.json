@@ -19,6 +19,7 @@
     "indexer:reliability": "node --import tsx scripts/start-reliability.mts",
     "eval:prepare": "tsx scripts/build-witness-eval.mts",
     "eval:witness": "tsx scripts/run-witness-eval.mts",
+    "audit:wallet-history": "tsx scripts/audit-wallet-history.mts",
     "data:art": "tsx scripts/check-art.mts",
     "data:owners": "tsx scripts/check-owners.mts",
     "data:escrow": "tsx scripts/check-escrow.mts",

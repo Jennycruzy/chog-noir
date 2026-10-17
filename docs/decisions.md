@@ -1,5 +1,12 @@
 # Build decisions
 
+## 17 October 2026
+
+- The user requested one branch: merge all committed development work into `main` and remove `data-engine`. Keep unfinished audit items explicit. Commit and push in coherent pieces at substantial milestones, rather than accumulating completed work locally.
+- The user approved replacing the original ±1% OpenSea aggregate-count gate with exact chain-to-event reconciliation at a shared cutoff. The refreshed comparison matches all 1,581 transaction/token pairs. Preserve the separate discrepancy: the current complete event feed has 1,595 sales while aggregate stats reports 1,565. Do not describe the aggregate counter as reconciled.
+- Use the selected VPS's existing Nginx and Certbot setup for the isolated Chog Noir readiness host, rather than replacing the shared web server with Caddy. A hostname-specific webroot challenge obtains the certificate; the API reports that the indexer stopped after its completed reliability check, rather than implying live indexing.
+- Scope sender-forgery checks to the queried wallet before evaluating signer mismatch. Normal incoming vault/redemption records in the broad collector are not sender-side false positives. Require per-transaction execution-time bytecode and exact calldata binding for the narrow synthetic-record finding; keep missing proofs, stateful routes and unknown authorization on review. A Unicode lookalike signal alone is not proof of forgery.
+
 ## 14 October 2026
 
 - Start from public sources because the expected private data folder was not present. Save each download so the checks can be repeated.

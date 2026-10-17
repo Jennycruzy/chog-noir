@@ -1,0 +1,106 @@
+{
+  "checkedAt": "2026-10-17T08:50:57.385Z",
+  "scope": {
+    "checkedAt": "2026-10-17T07:59:21.822Z",
+    "status": "REVIEW_REQUIRED",
+    "fromBlock": 105546841,
+    "toBlockExclusive": 114125194,
+    "startTime": "2026-09-17T07:33:45.000Z",
+    "endTimeInclusive": "2026-10-17T07:33:45.000Z",
+    "walletUniverse": "All nonzero wallets named in complete Chog ownership history at the fixed ending block",
+    "wallets": 2289,
+    "pages": 19,
+    "erc20Transfers": 26653,
+    "candidateCount": 913,
+    "note": "Candidate collection only: signer mismatch is not a forgery finding. Approval, permit, smart-wallet and token-code evidence must be reviewed before labeling. No zero-false-positive claim."
+  },
+  "startTime": "2026-09-17T07:33:45.000Z",
+  "endTimeInclusive": "2026-10-17T07:33:45.000Z",
+  "status": "REVIEW_REQUIRED",
+  "tokens": 433,
+  "erc20Transfers": 26653,
+  "signerCandidates": 913,
+  "senderScopedCandidates": 576,
+  "executionProofAudit": {
+    "finishedAt": "2026-10-17T08:47:29.643Z",
+    "transactions": 346,
+    "done": 346,
+    "errors": 294,
+    "eligibleTokens": [
+      "0x5ecfed54e9c1724868e221a0604be291f0757d3e",
+      "0x2794c3eba5686e4faba5647d1db3dddca1dfb933"
+    ]
+  },
+  "syntheticRecords": 65,
+  "unprovenCandidates": 511,
+  "legitimateRegressionRecords": 6,
+  "falsePositivesOnReviewedLegitimateRecords": 0,
+  "lookalikeTokens": [
+    {
+      "address": "0x5ecfed54e9c1724868e221a0604be291f0757d3e",
+      "records": 645,
+      "fetchedAt": "2026-10-17T08:09:19.587Z",
+      "status": "LOOKALIKE",
+      "shown": "MỌN",
+      "normalized": "MON",
+      "referenceAddresses": [
+        "0x0000000000000000000000000000000000000000"
+      ],
+      "note": "Unicode symbol resembles a referenced symbol at a different address. This is a symbol comparison, not proof of signer authorization or a claim about a person."
+    },
+    {
+      "address": "0x29f9c424803ac7b09d97ee218adbbb9329703946",
+      "records": 219,
+      "fetchedAt": "2026-10-17T08:09:22.373Z",
+      "status": "LOOKALIKE",
+      "shown": "UṢDC",
+      "normalized": "USDC",
+      "referenceAddresses": [
+        "0x754704bc059f8c67012fed69bc8a327a5aafb603"
+      ],
+      "note": "Unicode symbol resembles a referenced symbol at a different address. This is a symbol comparison, not proof of signer authorization or a claim about a person."
+    },
+    {
+      "address": "0x2794c3eba5686e4faba5647d1db3dddca1dfb933",
+      "records": 34,
+      "fetchedAt": "2026-10-17T08:09:25.501Z",
+      "status": "LOOKALIKE",
+      "shown": "AUṢD",
+      "normalized": "AUSD",
+      "referenceAddresses": [
+        "0x00000000efe302beaa2b3e6e1b18d08d69a9012a"
+      ],
+      "note": "Unicode symbol resembles a referenced symbol at a different address. This is a symbol comparison, not proof of signer authorization or a claim about a person."
+    },
+    {
+      "address": "0x55eb1d7d380ea1dc9e2c4e78ce4306ef598a7a7f",
+      "records": 8,
+      "fetchedAt": "2026-10-17T08:09:46.340Z",
+      "status": "LOOKALIKE",
+      "shown": "USḌT0",
+      "normalized": "USDT0",
+      "referenceAddresses": [
+        "0xe7cd86e13ac4309349f30b3435a9d337750fc82d"
+      ],
+      "note": "Unicode symbol resembles a referenced symbol at a different address. This is a symbol comparison, not proof of signer authorization or a claim about a person."
+    },
+    {
+      "address": "0xb18a1eb648db055e6364fb2f75c949ae50cab427",
+      "records": 1,
+      "fetchedAt": "2026-10-17T08:10:32.625Z",
+      "status": "LOOKALIKE",
+      "shown": "WEṬH",
+      "normalized": "WETH",
+      "referenceAddresses": [
+        "0xee8c0e9f1bffb4eb878d8f15f368a02a35481242"
+      ],
+      "note": "Unicode symbol resembles a referenced symbol at a different address. This is a symbol comparison, not proof of signer authorization or a claim about a person."
+    }
+  ],
+  "symbolUnavailable": 0,
+  "registry": {
+    "source": "https://raw.githubusercontent.com/monad-crypto/token-list/refs/heads/main/tokenlist-mainnet.json",
+    "fetchedAt": "2026-10-17T08:08:31.530Z"
+  },
+  "note": "The initial broad collector included six legitimate receiver-side vault/redemption records. They do not name audited wallets as senders and must be excluded before the sender detector. Proof-only detector leaves stateful, delegated and insufficiently proven records unclassified. Zero reviewed-regression false positives is not a complete independently labeled 30-day zero-false-positive certification. A12 remains open until the review population and tightened rules are accepted."
+}
