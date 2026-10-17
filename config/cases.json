@@ -1,0 +1,8 @@
+{
+  "quickExitDiscountBps": 1000,
+  "quickExitHoldHours": 72,
+  "bigSpenderPremiumBps": 2000,
+  "longGoodbyeHoldDays": 90,
+  "priceBandUpperMon": [4000, 5000, 6000, 8000],
+  "archiveQueueSize": 14
+}
