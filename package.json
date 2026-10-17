@@ -14,6 +14,11 @@
     "data:history": "tsx scripts/inspect-history.mts",
     "data:subscription": "tsx scripts/check-subscription.mts",
     "data:subscription-check": "tsx scripts/reconcile-subscription.mts",
+    "data:subscription-recover": "tsx scripts/recover-subscription.mts",
+    "indexer:live": "tsx scripts/live-indexer.mts",
+    "indexer:reliability": "node --import tsx scripts/start-reliability.mts",
+    "eval:prepare": "tsx scripts/build-witness-eval.mts",
+    "eval:witness": "tsx scripts/run-witness-eval.mts",
     "data:art": "tsx scripts/check-art.mts",
     "data:owners": "tsx scripts/check-owners.mts",
     "data:escrow": "tsx scripts/check-escrow.mts",
@@ -32,15 +37,13 @@
     "data:escrow-traces": "tsx scripts/fetch-escrow-traces.mts",
     "fixtures:escrow": "tsx scripts/build-escrow-fixtures.mts",
     "data:payment-window": "tsx scripts/check-payment-window.mts",
-    "fixtures:payments": "tsx scripts/build-payment-fixtures.mts",
-    "data:subscription-recover": "tsx scripts/recover-subscription.mts",
-    "indexer:live": "tsx scripts/live-indexer.mts",
-    "indexer:reliability": "node --import tsx scripts/start-reliability.mts"
+    "fixtures:payments": "tsx scripts/build-payment-fixtures.mts"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.135.0",
     "@envio-dev/hypersync-client": "1.4.1",
     "pg": "8.23.1",
     "sharp": "0.35.5",

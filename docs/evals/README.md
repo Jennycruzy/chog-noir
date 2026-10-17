@@ -1,0 +1,13 @@
+# Witness evaluation
+
+`pnpm eval:prepare` builds 320 inputs from saved real classified history, metadata and ownership evidence: ten cards × four voices × true/planned-false testimony × four examples. Every value retains its chain references. Planned false testimony exists in the ignored evaluation directory only; it is not a published case. Crude metadata labels are replaced with neutral persona phrases before any model request. These neutral labels still need the user's broader M2 trait-map review.
+
+`pnpm eval:witness` requires `ANTHROPIC_API_KEY` in the local `.env`. It uses the official Anthropic SDK and `claude-opus-5-5` with structured JSON output, adaptive thinking and low effort. Each request asks for at most 256 output tokens. Token counts are measured before submission, and a persistent $5 reservation cap uses full standard $4/$20 per-million rates rather than assuming a batch discount. Do not delete evaluation state to bypass the cap.
+
+The first invocation submits a batch. Generation runs in Anthropic's batch infrastructure; it does not need the local computer to remain awake. Subsequent invocations check the saved batch ID, collect results and submit up to two further attempts for failed lines. Saved results and prompt/corpus hashes prevent a changed prompt from silently continuing an old evaluation. Missing results, duplicate result IDs and malformed replies are errors. After three failed attempts a validated template is used. Templates are not counted as first-try model passes.
+
+Completed results go to `docs/evals/witness-eval.json`. Automatic targets: at least 98% first-try pass, 100% final validation and zero refusals. A separate `witness-review.json` contains 60 lines for the user to rate for tone and offensiveness: at least 54 good and zero offensive. The automatic checker cannot establish that prose contains no subtle unsupported claim; human review is required. No live API result or human approval is inferred from offline tests or template previews.
+
+Store model replies in `runs/witness-eval/`; do not overwrite approved lines or review ratings on repeated collection. The batch creation SDK call has automatic retries disabled. If submission fails ambiguously, inspect the provider's batch list before resubmitting; reservations are saved before creation to bound possible repeated spend.
+
+API format references: [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) and [batch processing](https://platform.claude.com/docs/en/build-with-claude/batch-processing). The M0 live evaluation remains pending until the configured key is available and these actual results are collected.
