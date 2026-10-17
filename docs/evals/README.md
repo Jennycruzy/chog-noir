@@ -1,5 +1,7 @@
 # Witness evaluation
 
+The key-free fallback review is ready in [template-tone-review.md](template-tone-review.md). It contains 60 template-written lines, balanced across all ten cards, four voices and true/planned-false testimony. Ratings in `template-tone-review.json` start blank. After the user rates every row, `pnpm eval:tone:grade` checks the same 54-good/zero-offensive threshold and rejects altered review text. This reviews fallback prose only; it does not count as live Claude output or pass A6/A7. `pnpm eval:tone:prepare` preserves existing ratings; `--refresh-unrated` refuses to overwrite any feedback.
+
 `pnpm eval:prepare` builds 320 inputs from saved real classified history, metadata and ownership evidence: ten cards × four voices × true/planned-false testimony × four examples. Every value retains its chain references. Planned false testimony exists in the ignored evaluation directory only; it is not a published case. Crude metadata labels are replaced with neutral persona phrases before any model request. These neutral labels still need the user's broader M2 trait-map review.
 
 `pnpm eval:witness` requires `ANTHROPIC_API_KEY` in the local `.env`. It uses the official Anthropic SDK and `claude-opus-5-5` with structured JSON output, adaptive thinking and low effort. Each request asks for at most 256 output tokens. Token counts are measured before submission, and a persistent $5 reservation cap uses full standard $4/$20 per-million rates rather than assuming a batch discount. Do not delete evaluation state to bypass the cap.

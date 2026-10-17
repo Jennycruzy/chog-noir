@@ -33,7 +33,21 @@ const tails = {
 };
 // Ten card subjects × four voices × three variants: 120 slot templates.
 export function templateLine(input: WitnessInput, variant = 0): WitnessLine {
-  const facts = input.displayFacts.join('; ');
+  const [name, detail, date] = input.displayFacts;
+  if (!name || !detail || input.displayFacts.length !== (input.card === 'LAST_SALE' ? 3 : 2)) throw new Error('WITNESS_TEMPLATE: Missing card facts');
+  const phrases: Record<typeof cards[number], string> = {
+    LAST_SALE: `${name}: ${detail} on ${date}`,
+    LONGEST_HOLD: `${name}, ${detail}`,
+    LAST_NIGHT: `${name}: ${detail}`,
+    ROOMMATES: detail.startsWith('shares') ? `${name} ${detail}` : `${name}: ${detail}`,
+    ARRIVAL: `${name} ${detail}`,
+    GIFT_OR_SALE: `${name}: ${detail}`,
+    PRICE_TALK: `${name} went for ${detail}`,
+    KNOW_WALLET: `${name}: ${detail}`,
+    OWNER_COUNT: `${name} has ${detail}`,
+    ODD_MOVES: `${name} made ${detail}`,
+  };
+  const facts = phrases[input.card];
   const tail = tails[input.voice][variant % 3];
   if (!tail) throw new Error('WITNESS_TEMPLATE: Invalid variant');
   const output = { line: `${facts}. ${tail}`, facts_used: [...input.displayFacts] };
