@@ -33,3 +33,9 @@
 - Keep the 32 MON escrow deals and 58 $CHOG escrow deals separate from the Seaport market-price reference. Preserve amounts in their original base units.
 - Use Etherscan's complete account histories for payment-window checks because Monad's public RPC supports individual execution traces but does not support filtered trace history. Store all requested pages and enclosing source blocks. The key stays out of the saved query.
 - Treat no-payment results as findings for MON and WMON within a stated two-hour window. They do not prove gift intent, common wallet control or absence of payments in other assets.
+
+
+## 17 October 2026 — detector evidence
+
+- Preserve the original public RPC’s 294 unavailable traces and recover historical execution proofs through Goldsky’s public Monad RPC on the VPS. Save the second provider’s successful receipts separately and compare every accepted record against them.
+- Apply A12 to accepted findings from the tightened proof-only detector over the saved 30-day corpus. All 410 accepted records have matching execution and receipt evidence; 166 unresolved candidates remain REVIEW. A12’s zero-false-positive requirement does not imply complete recall. This does not complete the M8 Scam Desk product.

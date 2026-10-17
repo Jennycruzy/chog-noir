@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-17T08:50:57.385Z",
+  "checkedAt": "2026-10-17T09:53:31.843Z",
   "scope": {
     "checkedAt": "2026-10-17T07:59:21.822Z",
     "status": "REVIEW_REQUIRED",
@@ -16,7 +16,7 @@
   },
   "startTime": "2026-09-17T07:33:45.000Z",
   "endTimeInclusive": "2026-10-17T07:33:45.000Z",
-  "status": "REVIEW_REQUIRED",
+  "status": "PASS_PROOF_ONLY_SCOPE",
   "tokens": 433,
   "erc20Transfers": 26653,
   "signerCandidates": 913,
@@ -31,10 +31,34 @@
       "0x2794c3eba5686e4faba5647d1db3dddca1dfb933"
     ]
   },
-  "syntheticRecords": 65,
-  "unprovenCandidates": 511,
+  "archiveProofAudit": {
+    "provider": "https://rpc2.monad.xyz",
+    "finishedAt": "2026-10-17T09:29:48.696Z",
+    "transactions": 346,
+    "done": 346,
+    "errors": 0,
+    "eligibleTokens": [
+      "0x5ecfed54e9c1724868e221a0604be291f0757d3e",
+      "0x2794c3eba5686e4faba5647d1db3dddca1dfb933"
+    ]
+  },
+  "receiptAudit": {
+    "finishedAt": "2026-10-17T09:43:03.413Z",
+    "provider": "https://rpc2.monad.xyz",
+    "transactions": 346,
+    "verified": 346,
+    "errors": 0
+  },
+  "syntheticRecords": 410,
+  "unprovenCandidates": 166,
   "legitimateRegressionRecords": 6,
   "falsePositivesOnReviewedLegitimateRecords": 0,
+  "precisionAudit": {
+    "acceptedFindings": 410,
+    "receiptAndExecutionVerified": 410,
+    "unsupportedFindings": [],
+    "reviewCandidatesExcluded": true
+  },
   "lookalikeTokens": [
     {
       "address": "0x5ecfed54e9c1724868e221a0604be291f0757d3e",
@@ -102,5 +126,5 @@
     "source": "https://raw.githubusercontent.com/monad-crypto/token-list/refs/heads/main/tokenlist-mainnet.json",
     "fetchedAt": "2026-10-17T08:08:31.530Z"
   },
-  "note": "The initial broad collector included six legitimate receiver-side vault/redemption records. They do not name audited wallets as senders and must be excluded before the sender detector. Proof-only detector leaves stateful, delegated and insufficiently proven records unclassified. Zero reviewed-regression false positives is not a complete independently labeled 30-day zero-false-positive certification. A12 remains open until the review population and tightened rules are accepted."
+  "note": "Precision is evaluated for the proof-only detector over the collected 30-day corpus: every accepted synthetic-record finding must match a successful second-provider receipt and that transaction’s execution-time code, with no state access or external execution. Unproven candidates remain REVIEW and are never described as forged. This does not claim perfect recall, resolution of every suspicious record, or accuracy beyond the checked window. Six ordinary receiver-side regressions are excluded before sender detection."
 }
