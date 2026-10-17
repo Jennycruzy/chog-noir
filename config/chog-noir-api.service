@@ -1,0 +1,15 @@
+[Unit]
+Description=Chog Noir M0 readiness API
+After=network-online.target
+[Service]
+Type=exec
+User=ubuntu
+WorkingDirectory=/home/ubuntu/chog-noir-monitor
+ExecStart=/usr/bin/node --import tsx apps/api/src/health.mts
+Environment=PORT=8311
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+UMask=0077
+[Install]
+WantedBy=multi-user.target
