@@ -1,8 +1,12 @@
-# Chog Noir monitor host
+# Chog Noir VPS
 
-Use the VPS previously selected for this project: `ubuntu@54.154.121.30`. The monitor runtime is isolated at `/home/ubuntu/chog-noir-monitor`. Keep long reliability runs on this VPS, not the local development computer.
+Use `ubuntu@54.154.121.30` as the project's execution host. The full checkout lives at `/home/ubuntu/chog-noir-monitor`; the existing directory name is retained so deployed services and saved report paths remain valid. It includes Git history, application and package source, contracts, scripts, configuration, mirrored artwork and metadata, source data, and saved runs. Keep long work on this VPS, independent of the local computer.
 
-The `chog-noir-reliability.service` systemd service runs as `ubuntu`, with its own working directory and a six-hour duration. It does not depend on an SSH session or the local computer staying on. The runtime receives only the HyperSync credential needed for history access, stored in a mode-600 `.env`; other project credentials are not deployed.
+Dependencies are installed for Linux from `pnpm-lock.yaml` using `corepack pnpm install --frozen-lockfile`. Run project commands from the checkout using `corepack pnpm`. The private build specification lives separately at `/home/ubuntu/chognoir-private`, outside Git. Project credentials are stored in a mode-600 `.env`; they are never committed. The migration preserves existing VPS settings and backs up its previous environment file privately.
+
+The `chog-noir-api.service` systemd service serves the readiness API and starts at boot. Nginx serves the public site at https://chognoir.54-154-121-30.sslip.io/ and proxies its `/health` endpoint. The local computer and SSH session can be turned off without stopping these services.
+
+Use systemd for long jobs, with an explicit working directory and a persistent output directory under `runs/`. A plain foreground SSH command can stop when its connection closes. The `chog-noir-reliability.service` runs as `ubuntu`, with its own working directory and a six-hour duration, independently of SSH.
 
 Check service state with `sudo systemctl status chog-noir-reliability.service` and logs with `sudo journalctl -u chog-noir-reliability.service`. Progress and reports are saved under `/home/ubuntu/chog-noir-monitor/runs/reliability-vps/` as `run-summary.json`, `snapshot.json`, source pages and the final `reliability-report.json`.
 
