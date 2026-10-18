@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-10-18T21:03:13.347Z",
+  "status": "PASS",
+  "browser": "Chromium 1234 cached on VPS",
+  "caseId": "sale-111176922-19-quick_exit",
+  "widths": [
+    1440,
+    360
+  ],
+  "checks": [
+    "landing and original artwork",
+    "partner selection",
+    "question witness",
+    "free partner unseal",
+    "evidence-backed lie accusation",
+    "refresh resumes caught lie",
+    "answer three questions",
+    "server-scored A reveal",
+    "browser casebook",
+    "navigation after mutations",
+    "no horizontal overflow at 360px",
+    "no JavaScript exceptions"
+  ],
+  "screenshots": [
+    "desktop-files.png",
+    "desktop-room.png",
+    "mobile-room.png",
+    "mobile-questions.png",
+    "mobile-reveal.png",
+    "mobile-files.png"
+  ]
+}

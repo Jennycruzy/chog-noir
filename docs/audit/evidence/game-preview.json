@@ -1,0 +1,113 @@
+{
+  "checkedAt": "2026-10-18T21:01:14.232Z",
+  "status": "PASS",
+  "mode": "ARCHIVE_PREVIEW",
+  "cases": 14,
+  "checks": [
+    "initial response hides key, salt and sealed fact text",
+    "partner ability and card accounting",
+    "evidence-backed lie accusation",
+    "all three answers and server score",
+    "revealed commitment matches saved archive"
+  ],
+  "results": [
+    {
+      "caseId": "sale-109373326-191-cold_case",
+      "partnerPower": "XRAY",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-109640246-153-big_spender",
+      "partnerPower": "ANALYST",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-109925729-112-big_spender",
+      "partnerPower": "EMPATH",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-110190554-30-cold_case",
+      "partnerPower": "XRAY",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-110509935-166-cold_case",
+      "partnerPower": "ANALYST",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-110849070-72-big_spender",
+      "partnerPower": "EMPATH",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-111001059-194-big_spender",
+      "partnerPower": "XRAY",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-111176922-19-quick_exit",
+      "partnerPower": "ANALYST",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-111572238-54-big_spender",
+      "partnerPower": "EMPATH",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-111832499-133-big_spender",
+      "partnerPower": "XRAY",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-112087737-170-quick_exit",
+      "partnerPower": "ANALYST",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-112481261-116-cold_case",
+      "partnerPower": "EMPATH",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-112806207-259-quick_exit",
+      "partnerPower": "XRAY",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    },
+    {
+      "caseId": "sale-113158098-40-quick_exit",
+      "partnerPower": "ANALYST",
+      "score": 550,
+      "grade": "A",
+      "commitmentVerified": true
+    }
+  ]
+}

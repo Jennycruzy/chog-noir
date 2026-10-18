@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "packageManager": "pnpm@10.33.4",
   "scripts": {
+    "game:serve": "node --import tsx apps/api/src/game.mts",
+    "game:smoke": "node --import tsx scripts/check-game.mts",
+    "game:browser": "node --import tsx scripts/check-game-browser.mjs",
+    "game:web": "node --import tsx scripts/prepare-game-web.mts",
     "data:check": "tsx scripts/check-data.mts",
     "mirror-art": "tsx scripts/mirror-art.mts",
     "fixtures:fetch": "tsx scripts/fetch-fixtures.mts",

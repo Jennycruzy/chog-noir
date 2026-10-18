@@ -4,7 +4,15 @@ Use `ubuntu@54.154.121.30` as the project's execution host. The full checkout li
 
 Dependencies are installed for Linux from `pnpm-lock.yaml` using `corepack pnpm install --frozen-lockfile`. Run project commands from the checkout using `corepack pnpm`. The private build specification lives separately at `/home/ubuntu/chognoir-private`, outside Git. Project credentials are stored in a mode-600 `.env`; they are never committed. The migration preserves existing VPS settings and backs up its previous environment file privately.
 
-The `chog-noir-api.service` systemd service serves the readiness API and starts at boot. Nginx serves the public site at https://chognoir.54-154-121-30.sslip.io/ and proxies its `/health` endpoint. The local computer and SSH session can be turned off without stopping these services.
+The `chog-noir-api.service` systemd service serves the archive game API and starts at boot. Nginx serves the public preview at https://chognoir.54-154-121-30.sslip.io/ and proxies `/api/` and `/health`. The local computer and SSH session can be turned off without stopping these services. This is archive play, not a live daily case or continuous indexer.
+
+The API loads the validated private archive at startup, then stores guest sessions
+in ignored `runs/game-sessions/`. `corepack pnpm game:web` assembles HTML, JavaScript,
+CSS and only the required original portraits under `runs/game-preview/web/`.
+Nginx serves a copy of that public-only bundle from `/var/www/chog-noir`; it has no
+route to the source archive, metadata, environment or session files. Preserve the
+host's existing Certbot TLS directives when updating Nginx. See
+[preview operation and verification](game-preview.md).
 
 Use systemd for long jobs, with an explicit working directory and a persistent output directory under `runs/`. A plain foreground SSH command can stop when its connection closes. The `chog-noir-reliability.service` runs as `ubuntu`, with its own working directory and a six-hour duration, independently of SSH.
 

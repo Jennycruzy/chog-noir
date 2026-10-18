@@ -1,11 +1,11 @@
 [Unit]
-Description=Chog Noir M0 readiness API
+Description=Chog Noir archive game API
 After=network-online.target
 [Service]
 Type=exec
 User=ubuntu
 WorkingDirectory=/home/ubuntu/chog-noir-monitor
-ExecStart=/usr/bin/node --import tsx apps/api/src/health.mts
+ExecStart=/usr/bin/node --import tsx apps/api/src/game.mts
 Environment=PORT=8311
 Restart=on-failure
 RestartSec=5

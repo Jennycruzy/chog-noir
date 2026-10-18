@@ -46,9 +46,11 @@ sealed facts; it must not be served directly as a gameplay API. A future gamepla
 API must control ledger access and keep keys and salts server-side. Nothing here
 publishes a daily game or counts as human tone or gameplay approval.
 
-Other case families, full ten-card fact sheets, interactive play, scoring, partner
-powers and on-chain publication remain to be implemented. The API currently
-serves its existing health check. Run focused verification on the shared VPS with
+The [archive game preview](../game-preview.md) now connects these drafts to
+server-controlled questioning, ledger access, lie accusations, scoring and three
+simplified starter powers. Other case families, full ten-card fact sheets, full
+trait powers and on-chain publication remain unfinished. The API now serves the
+archive game and its health check. Run focused case-builder verification on the shared VPS with
 `corepack pnpm exec vitest run packages/cases/test --maxWorkers=1 --no-file-parallelism`.
 
 The [saved archive report](../audit/evidence/case-archive.json) covers 30 September
