@@ -25,6 +25,12 @@ the archive, template dialogue and absent on-chain publication explicitly.
   verification logs remain under `runs/game-preview/` on the VPS.
 - The private-file scan passes. The assembled web bundle contains three frontend
   files and 45 original portraits; no private archive or session files are copied.
+- [Public HTTPS verification](evidence/game-preview-hosting.json) passes for the
+  deployed preview: fourteen-case catalogue, frontend assets, original art,
+  Secure/HttpOnly/SameSite session cookie, saved questioning action and resume.
+  Environment, archive, session and raw metadata paths return 404. The previous
+  readiness page and host/service configuration are preserved on the VPS for
+  rollback. The deployment job ended successfully.
 
 ## Remaining work
 
