@@ -9,7 +9,8 @@ import {createServer} from 'node:net';
 import {setTimeout as pause} from 'node:timers/promises';
 import {createPublicClient,http,encodeDeployData,encodeFunctionData,toHex,keccak256,type Hex} from 'viem';
 import {generatePrivateKey,privateKeyToAccount} from 'viem/accounts';
-import {transactionWriter,monad,type SignedJournal} from '../src/client.mts';
+import {transactionWriter,recoverCaseOpened,monad,type SignedJournal} from '../src/client.mts';
+import {draft as originalDraft} from '../../game/test/fixture.mts';
 import {casebookAbi,chainCaseId} from '../src/casebook.mts';
 const binary=process.env.ANVIL_PATH??'/home/ubuntu/.foundry/bin/anvil';
 const enabled=existsSync(binary),run=test.skipIf(!enabled);
@@ -20,7 +21,7 @@ beforeAll(async()=>{
  directory=await mkdtemp(join(tmpdir(),'chog-chain-test-'));
  const listener=createServer();await new Promise<void>(resolve=>listener.listen(0,'127.0.0.1',resolve));const port=(listener.address() as {port:number}).port;await new Promise<void>(resolve=>listener.close(()=>resolve()));
  url=`http://127.0.0.1:${port}`;
- child=spawn(binary,['--host','127.0.0.1','--port',String(port),'--chain-id','143','--block-time','1','--silent'],{stdio:'ignore'});
+ child=spawn(binary,['--host','127.0.0.1','--port',String(port),'--chain-id','143','--block-time','1','--slots-in-an-epoch','1','--silent'],{stdio:'ignore'});
  const client=createPublicClient({chain:monad,transport:http(url,{timeout:1000,retryCount:0})});
  const start=Date.now();while(true){try{if(await client.getChainId()===143)break;}catch{}if(Date.now()-start>90_000)throw new Error('Local Anvil did not start');await pause(300);}
  // This key exists only in process memory and is funded only on the isolated local node.
@@ -50,3 +51,26 @@ run('gas caps are checked before a transaction is signed or broadcast',async()=>
  await expect(bounded.send('over-cap',data,deployed,deployed)).rejects.toThrow('gas exceeds');
  expect(existsSync(join(directory,'runs/chain/transactions/over-cap.json'))).toBe(false);
 },30_000);
+run('a dropped transaction is replaced with the same intent and nonce while both hashes are retained',async()=>{
+ const data=encodeFunctionData({abi:casebookAbi,functionName:'openCase',args:[chainCaseId('dropped-case'),'0x'+'78'.repeat(32) as Hex,1n,BigInt(Math.floor(Date.now()/1000)+3600)]});
+ const nonce=await writer.client.getTransactionCount({address:writer.account.address,blockTag:'pending'}),gas=await writer.client.estimateGas({account:writer.account,to:deployed,data}),gasPrice=await writer.client.getGasPrice();
+ const raw=await writer.account.signTransaction({chainId:143,type:'legacy',nonce,gas,gasPrice,to:deployed,data,value:0n}),hash=keccak256(raw),path=join(directory,'runs/chain/transactions/dropped-case-open.json');
+ const saved:SignedJournal={v:1,hash,raw,nonce,chainId:143,to:deployed,data,receipt:null,attempts:[{hash,raw,signedAt:Date.now()-600_001}]};await writeFile(path,JSON.stringify(saved));
+ const guarded=await transactionWriter(directory,{url,key,enabled:true});await expect(guarded.send('dropped-case-open',data,deployed,deployed)).rejects.toThrow('CHAIN_REPLACEMENT_UNVERIFIED');
+ const capped=await transactionWriter(directory,{url,key,enabled:true,replacementVerified:true,maxCostWei:gas*gasPrice});await expect(capped.send('dropped-case-open',data,deployed,deployed)).rejects.toThrow('Replacement exceeds');
+ expect((JSON.parse(await readFile(path,'utf8')) as SignedJournal).attempts).toHaveLength(1);
+ const resumed=await transactionWriter(directory,{url,key,enabled:true,replacementVerified:true});const result=await resumed.send('dropped-case-open',data,deployed,deployed),journal=JSON.parse(await readFile(path,'utf8')) as SignedJournal;
+ expect(journal.attempts).toHaveLength(2);expect(journal.attempts![0]!.hash).toBe(hash);expect(result.hash).toBe(journal.attempts![1]!.hash);
+ const transaction=await writer.client.getTransaction({hash:result.hash});expect(transaction.nonce).toBe(nonce);expect(transaction.input).toBe(data);expect(transaction.to?.toLowerCase()).toBe(deployed.toLowerCase());expect(transaction.gasPrice).toBe((gasPrice*125n+99n)/100n);
+ expect(await writer.client.getTransactionCount({address:writer.account.address})).toBe(nonce+1);
+ const [answer]=await writer.client.readContract({address:deployed,abi:casebookAbi,functionName:'caseOf',args:[chainCaseId('dropped-case')]});expect(answer).toBe('0x'+'78'.repeat(32));
+},120_000);
+
+run('a confirmed CaseOpened event recovers the original receipt without another nonce',async()=>{
+ const draft=structuredClone(originalDraft);draft.public.id='recoverable-case';const opensAt=1,closesAt=Math.floor(Date.now()/1000)+3600;
+ const data=encodeFunctionData({abi:casebookAbi,functionName:'openCase',args:[chainCaseId(draft.public.id),draft.public.answerHash as Hex,BigInt(opensAt),BigInt(closesAt)]});
+ const first=await writer.send('recoverable-case-open',data,deployed,deployed),nonce=await writer.client.getTransactionCount({address:writer.account.address});
+ await rm(join(directory,'runs/chain/transactions/recoverable-case-open.json'));
+ const recovered=await recoverCaseOpened(writer.client,deployed,draft,opensAt,closesAt,BigInt(first.blockNumber));expect(recovered).toEqual(first);expect(await writer.client.getTransactionCount({address:writer.account.address})).toBe(nonce);
+ await expect(recoverCaseOpened(writer.client,deployed,draft,opensAt,closesAt+1,BigInt(first.blockNumber))).rejects.toThrow('CHAIN_RECOVERY_CONFLICT');
+},120_000);
