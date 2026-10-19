@@ -55,3 +55,13 @@ test('score formula and seven-case repeat penalty are deterministic',()=>{
  expect(repeated.find(row=>row.candidate.id===target.id)!.score).toBeCloseTo(first[0]!.score-40);
  expect(()=>rankCandidates(candidates,{...context,day:'2026-02-30'})).toThrow('CASE_DAY');
 });
+
+test('yesterday’s subject loses priority to an otherwise slightly lower candidate',()=>{
+ const candidates=saleCandidates(fixture.rows,times,rules),first=structuredClone(candidates[0]!),other=structuredClone(candidates.find(item=>item.row.event.tokenId!==first.row.event.tokenId)!);
+ // Normalize score inputs to isolate the production ranking penalty.
+ other.type=first.type;other.at=first.at;
+ for(const candidate of [first,other]){candidate.row.priorSaleMedianWei=null;candidate.row.holdSeconds=0;}
+ const day=new Date(first.at*1000).toISOString().slice(0,10),quality=(candidate:typeof first)=>candidate.id===first.id?1:0.9;
+ expect(rankCandidates([first,other],{day,previous:[],castQuality:quality})[0]!.candidate.id).toBe(first.id);
+ expect(rankCandidates([first,other],{day,previous:[{tokenId:first.row.event.tokenId,wallets:[]}],castQuality:quality})[0]!.candidate.id).toBe(other.id);
+});

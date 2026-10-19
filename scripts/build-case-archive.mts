@@ -55,8 +55,28 @@ const nextArchive=JSON.stringify({inputHash,selections,cases},null,2);
 if(verifyReplay&&nextArchive!==previousArchive)throw new Error('CASE_REPLAY: Rebuilt archive differs from the saved cases');
 await writeFile(new URL('archive.json.tmp',directory),nextArchive,{mode:0o600});
 await rename(new URL('archive.json.tmp',directory),new URL('archive.json',directory));
+const fallback=[...cases],used=new Set(cases.map(draft=>{const src=draft.public.ledger.find(fact=>fact.id==='subject')!.sources[0]!;return `${src.tx}:${src.logIndex}`;}));
+let previousFallback:CaseDraft[]=[];
+try{previousFallback=JSON.parse(await readFile(new URL('fallback.json',directory),'utf8')).cases;}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+const fallbackSalts=new Map(previousFallback.map(draft=>[draft.public.id,draft.private.salt]));
+for(const candidate of [...candidates].reverse()){
+ if(fallback.length>=16)break;
+ const event=candidate.row.event,sourceId=`${event.tx}:${event.logIndex}`;
+ if(used.has(sourceId))continue;
+ const id=`sale-${event.block}-${event.logIndex}-${candidate.type.toLowerCase()}-v2`;
+ try{
+  let draft=buildCase(candidate,rows,times,metadata,rules,fallbackSalts.get(id)??`0x${randomBytes(32).toString('hex')}`);
+  if(validateCase(draft).length||verifyCaseSources(draft,candidates,rows,times,metadata,rules).length)continue;
+  draft.public.id=id;draft.private.facts=buildMemories(draft,rows,times,metadata);draft=planFullLie(draft,metadata);freezeMemories(draft);draft=bindCaseContent(draft);
+  if(validateCase(draft).length)throw new Error('CASE_VALIDATION: Invalid fallback case');
+  fallback.push(draft);used.add(sourceId);
+ }catch(error){if(!/^CASE_(OPTIONS|CAST|LIE):/.test((error as Error).message))throw error;}
+}
+if(fallback.length<16)throw new Error('CASE_FALLBACK_POOL: Sixteen distinct source cases are required');
+await writeFile(new URL('fallback.json.tmp',directory),JSON.stringify({inputHash,cases:fallback},null,2),{mode:0o600});
+await rename(new URL('fallback.json.tmp',directory),new URL('fallback.json',directory));
 await writeFile(new URL('inputs.json',directory),JSON.stringify({inputHash,config:rules,historyEvents:rows.length,coverageEndExclusive:new Date(end*1000).toISOString(),rejected},null,2));
-const report={checkedAt:new Date().toISOString(),status:'DRAFT_ARCHIVE_VALIDATED',inputHash,replayVerified:verifyReplay,cases:cases.length,days:selections.map(item=>item.day),candidateCounts:Object.fromEntries([...new Set(candidates.map(item=>item.type))].sort().map(type=>[type,candidates.filter(item=>item.type===type).length])),selectedTypes:Object.fromEntries([...new Set(cases.map(item=>item.public.type))].sort().map(type=>[type,cases.filter(item=>item.public.type===type).length])),questions:cases.reduce((sum,item)=>sum+item.public.questions.length,0),testimonySource:'VALIDATED_TEMPLATES',plannedLies:cases.length,lieCards:[...lieCards].sort(),subjectLiars,sourceWindowEndExclusive:new Date(end*1000).toISOString(),publicGamePublished:false,onchainCommitment:'NOT_SUBMITTED',humanReview:'PENDING',rejectedCandidates:rejected.length};
+const report={checkedAt:new Date().toISOString(),status:'DRAFT_ARCHIVE_VALIDATED',fallbackCases:fallback.length,inputHash,replayVerified:verifyReplay,cases:cases.length,days:selections.map(item=>item.day),candidateCounts:Object.fromEntries([...new Set(candidates.map(item=>item.type))].sort().map(type=>[type,candidates.filter(item=>item.type===type).length])),selectedTypes:Object.fromEntries([...new Set(cases.map(item=>item.public.type))].sort().map(type=>[type,cases.filter(item=>item.public.type===type).length])),questions:cases.reduce((sum,item)=>sum+item.public.questions.length,0),testimonySource:'VALIDATED_TEMPLATES',plannedLies:cases.length,lieCards:[...lieCards].sort(),subjectLiars,sourceWindowEndExclusive:new Date(end*1000).toISOString(),publicGamePublished:false,onchainCommitment:'NOT_SUBMITTED',humanReview:'PENDING',rejectedCandidates:rejected.length};
 await mkdir(new URL('docs/cases/',root),{recursive:true});
 const lines=['# Archive case review','','These are source-backed drafts for review, with answer spoilers below each case. They are not live daily cases. Dialogue uses deterministic templates; no Claude generation or human approval is claimed. Prices are gross payments including fees. MON and WMON use the same native-unit bands. The recent reference is a seven-sale median, not a historical floor quote.','','Only the sale-based Quick Exit, Big Spender, Long Goodbye and general archive builders are implemented here. Other case families, final partner-group approval, interactive play and on-chain publication remain separate work.',''];
 for(const [index,draft] of cases.entries()){
