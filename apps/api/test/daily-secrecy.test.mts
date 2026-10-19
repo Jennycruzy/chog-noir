@@ -35,8 +35,13 @@ test('daily submission stays private, credits the main streak, and finalizes onc
   // An elapsed deadline alone never authorizes reveal: a confirmed close is required.
   draft.public.publication.closesAt=now-1;
   expect((await request('/api/session')).body.result).toBe(null);
+  expect((await request('/api/session',{caseId:draft.public.id,partnerId:partner.tokenId,restart:true})).status).toBe(403);
   draft.public.publication.closed=true;draft.public.publication.closeTx='0x'+'56'.repeat(32);
-  state=(await request('/api/session')).body;expect(state.locked).toBe(false);expect(state.result.questions).toHaveLength(3);expect(state.result.verification.salt).toBe(draft.private.salt);
+  // Starting practice immediately after reveal must finalize the original pending result first.
+  expect((await request('/api/session',{caseId:draft.public.id,partnerId:partner.tokenId,restart:true})).status).toBe(201);
+  player=(await request('/api/player')).body;expect(player.results).toHaveLength(1);expect(player.results[0].kind).toBe('MAIN');
+  state=(await request('/api/session')).body;expect(state.practice).toBe(true);
+  state=(await request('/api/session/action',{revision:state.revision,type:'submit',answers:draft.private.key.answers})).body;expect(state.locked).toBe(false);expect(state.result.questions).toHaveLength(3);expect(state.result.verification.salt).toBe(draft.private.salt);
   player=(await request('/api/player')).body;expect(player.results).toHaveLength(1);expect(player.results[0].kind).toBe('MAIN');expect(player.streak).toBe(1);
   await request('/api/session');expect((await request('/api/player')).body.results).toHaveLength(1);
   stored=JSON.parse(await readFile(join(root,'runs/players',files[0]!),'utf8'));expect(stored.pending).toEqual([]);

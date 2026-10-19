@@ -8,7 +8,7 @@ export interface Partner {tokenId:number;name:string;power:Power;description:str
 export interface Session {
  v:1;caseId:string;partner:Partner;revision:number;plays:number;initialPlays:number;
  asked:number[];opened:string[];unsealed:string[];accused:number[];caught:boolean;powerUsed:boolean;
- submitted:Record<string,string>|null;createdAt:string;askedCards?:{tokenId:number;card:Card}[];exactCards?:number[];powerUses?:number;sideUsed?:boolean;identified?:number|null;
+ submitted:Record<string,string>|null;createdAt:string;practice?:boolean;submittedAt?:string;askedCards?:{tokenId:number;card:Card}[];exactCards?:number[];powerUses?:number;sideUsed?:boolean;identified?:number|null;
 }
 export class GameError extends Error {
  constructor(public status:number,message:string){super(message);}
@@ -25,12 +25,13 @@ export function starterPartners(metadata:ReadonlyMap<number,Metadata>):Partner[]
 }
 export function createSession(draft:CaseDraft,partner:Partner):Session{
  const initialPlays=8+(partner.power==='EMPATH'?2:0)+(partner.special?1:0);
- return {v:1,caseId:draft.public.id,partner:structuredClone(partner),revision:0,plays:initialPlays,initialPlays,asked:[],opened:[],unsealed:[],accused:[],caught:false,powerUsed:partner.power==='EMPATH',submitted:null,createdAt:new Date().toISOString(),askedCards:[],exactCards:[],powerUses:partner.power==='EMPATH'?0:(partner.uses??1),sideUsed:false,identified:null};
+ return {v:1,practice:!!draft.public.publication?.closed,caseId:draft.public.id,partner:structuredClone(partner),revision:0,plays:initialPlays,initialPlays,asked:[],opened:[],unsealed:[],accused:[],caught:false,powerUsed:partner.power==='EMPATH',submitted:null,createdAt:new Date().toISOString(),askedCards:[],exactCards:[],powerUses:partner.power==='EMPATH'?0:(partner.uses??1),sideUsed:false,identified:null};
 }
 export function play(draft:CaseDraft,session:Session,action:Record<string,unknown>):Session{
  if(session.caseId!==draft.public.id)throw new Error('GAME_CASE: Session does not match archive');
  if(action.revision!==session.revision)throw new GameError(409,'The case changed. Your latest progress has been restored; try again.');
  if(session.submitted)fail('This case is already closed.');
+ if(draft.public.publication&&!session.practice&&Date.now()/1000>=draft.public.publication.closesAt)throw new GameError(403,'Daily play has closed. Wait for the reveal, then restart as archive practice.');
  const next=structuredClone(session),pub=draft.public;
  next.askedCards??=next.asked.map(tokenId=>({tokenId,card:'ARRIVAL' as const}));next.exactCards??=[];next.powerUses??=next.powerUsed?0:(next.partner.uses??1);next.sideUsed??=false;
  const spend=(cost:number)=>{if(next.plays<cost)fail('You do not have enough card plays. You can still answer the case.');next.plays-=cost;};
@@ -84,6 +85,7 @@ export function play(draft:CaseDraft,session:Session,action:Record<string,unknow
    if(!answers||typeof answers!=='object'||Array.isArray(answers))fail('Answer all three questions.');
    const values=answers as Record<string,unknown>;
    if(Object.keys(values).length!==pub.questions.length||pub.questions.some(question=>!question.options.some(option=>option.id===values[question.id])))fail('Choose one valid answer for each question.');
+   next.submittedAt=new Date().toISOString();
    next.submitted=Object.fromEntries(pub.questions.map(question=>[question.id,values[question.id] as string]));break;
   }
   default:fail('Unknown case action.');
@@ -112,7 +114,7 @@ export function viewSession(draft:CaseDraft,session:Session){
   result={questions,points,score,grade:score>=450?'A':score>=330?'B':score>=200?'C':'D',lie:{...lie,name:pub.cast.find(member=>member.tokenId===lie.witness)!.name,proof:pub.ledger.find(fact=>fact.id===lie.ledgerId)!},verification:{answerHash:pub.answerHash,key:!pub.publication||pub.publication.closed?draft.private.key:null,salt:!pub.publication||pub.publication.closed?draft.private.salt:null,onchain:!!pub.publication,openTx:pub.publication?.openTx??null,closeTx:pub.publication?.closeTx??null}};
  }
  return {
-  locked:!!session.submitted&&locked,closesAt:pub.publication?.closesAt??null,lieCaught:session.caught,
+  playClosed:!!pub.publication&&!session.practice&&Date.now()/1000>=pub.publication.closesAt,practice:!!session.practice,locked:!!session.submitted&&locked,closesAt:pub.publication?.closesAt??null,lieCaught:session.caught,
   caseId:pub.id,revision:session.revision,partner:session.partner,plays:session.plays,initialPlays:session.initialPlays,
   caught:session.caught,powerUsed:session.powerUsed,powerUses:session.powerUses??(session.powerUsed?0:session.partner.uses??1),identified:session.identified??null,sideUsed:session.sideUsed??false,accused:session.accused,submitted:session.submitted,
   case:{id:pub.id,publication:pub.publication??null,type:pub.type,occurredAt:pub.occurredAt,subject:pub.subject,answerHash:pub.answerHash,

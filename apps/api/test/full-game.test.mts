@@ -25,6 +25,10 @@ test('a guest receives three stable starters while player responses omit all ses
  await request('/api/cases');const first=(await request('/api/player')).body,second=(await request('/api/player')).body;
  expect(first.starters).toEqual(second.starters);expect(first.starters).toHaveLength(3);expect(first).not.toHaveProperty('sessions');expect(first).not.toHaveProperty('sessionIds');
 });
+test('read-only guest requests do not create player files',async()=>{
+ for(const path of ['/api/cases','/api/player','/api/partners'])await request(path);
+ const files=await readdir(join(root,'runs/players')).catch(error=>{if((error as NodeJS.ErrnoException).code==='ENOENT')return [];throw error;});expect(files).toEqual([]);
+});
 test('an unrecruited partner cannot be selected through a direct API request',async()=>{
  const result=await request('/api/session',{caseId:draft.public.id,partnerId:4});expect(result.response.status).toBe(400);
 });

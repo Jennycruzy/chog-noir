@@ -25,3 +25,9 @@ test('a missed day without an alibi resets the streak and ranks count unique sol
  let player=createPlayer('fixture',partners);for(const day of ['2026-10-01','2026-10-03','2026-10-04']){const {next,session}=completed(day);player=recordResult(player,next,session,result,'MAIN',day);}
  expect(player.streak).toBe(2);expect(playerSummary(player,partners,'2026-10-05').rank).toBe('Gumshoe');expect(playerSummary(player,partners,'2026-10-08').streak).toBe(0);
 });
+test('a practice replay cannot improve the saved daily score or earn another streak credit',()=>{
+ const player=createPlayer('practice',partners),{next,session}=completed('2026-10-19');
+ const saved=recordResult(player,next,session,{...result,score:100,grade:'D'},'MAIN','2026-10-19');
+ session.practice=true;const replayed=recordResult(saved,next,session,result,'ARCHIVE');
+ expect(replayed.results[0]?.score).toBe(100);expect(replayed.results[0]?.kind).toBe('MAIN');expect(replayed.streak).toBe(1);
+});

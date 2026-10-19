@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily Chog Noir storage cleanup
+[Timer]
+OnCalendar=*-*-* 02:10:00 UTC
+Persistent=true
+Unit=chog-noir-cleanup.service
+[Install]
+WantedBy=timers.target
