@@ -59,7 +59,7 @@ test('submission requires exactly three valid options, scores on the server and 
  expect(()=>act(start(),{type:'submit',answers:{...draft.private.key.answers,extra:'bad'}})).toThrow('valid answer');
  const session=act(start(),{type:'submit',answers:draft.private.key.answers}),view=viewSession(draft,session),result=view.result!;
  expect(result.score).toBe(430);expect(result.grade).toBe('B');expect(result.questions.every(item=>item.correct)).toBe(true);
- expect(answerHash(draft.public.id,result.verification.key,result.verification.salt)).toBe(draft.public.answerHash);
+ expect(answerHash(draft.public.id,result.verification.key!,result.verification.salt!)).toBe(draft.public.answerHash);
  expect(()=>act(session,{type:'open',factId:'price'})).toThrow('already closed');
 });
 test('starter groups follow real traits, excluding shifty Eyes from Empath',()=>{

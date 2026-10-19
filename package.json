@@ -45,7 +45,14 @@
     "data:escrow-traces": "tsx scripts/fetch-escrow-traces.mts",
     "fixtures:escrow": "tsx scripts/build-escrow-fixtures.mts",
     "data:payment-window": "tsx scripts/check-payment-window.mts",
-    "fixtures:payments": "tsx scripts/build-payment-fixtures.mts"
+    "fixtures:payments": "tsx scripts/build-payment-fixtures.mts",
+    "chain:status": "node --import tsx scripts/chain.mts status",
+    "chain:deploy": "bash scripts/chain-deploy.sh",
+    "chain:verify-source": "node --import tsx scripts/chain.mts verify-source",
+    "daily:run": "bash scripts/daily.sh",
+    "verify": "node --import tsx scripts/verify.mts",
+    "game:art": "node --import tsx scripts/build-game-art.mts",
+    "live:run": "node --import tsx workers/siren/run.mts"
   },
   "engines": {
     "node": ">=20"

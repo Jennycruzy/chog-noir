@@ -2,7 +2,7 @@ import {test,expect} from 'vitest';
 import {readFile} from 'node:fs/promises';
 import type {EnrichedEvent} from '../../core/src/enrich.mts';
 import {saleCandidates,type CaseRules} from '../src/select.mts';
-import {buildCase,buildCast,validateCase,verifyCaseSources,answerHash,canonicalJSON,type Metadata} from '../src/build.mts';
+import {buildCase,buildCast,validateCase,verifyCaseSources,answerHash,canonicalJSON,bindCaseContent,type Metadata} from '../src/build.mts';
 const fixture=JSON.parse(await readFile(new URL('fixtures/sales.json',import.meta.url),'utf8')) as {rows:EnrichedEvent[];times:[number,number][]};
 const saved=JSON.parse(await readFile(new URL('fixtures/metadata.json',import.meta.url),'utf8')) as Record<string,Metadata>;
 const metadata=new Map(Object.entries(saved).map(([id,data])=>[Number(id),data])),times=new Map(fixture.times);
@@ -48,4 +48,11 @@ test('rebuilding from original sources rejects edited ledger text even with an i
  expect(verifyCaseSources(draft,candidates,fixture.rows,times,metadata,rules)).toEqual([]);
  draft.public.ledger[0]!.text='A different Chog changed hands.';
  expect(verifyCaseSources(draft,candidates,fixture.rows,times,metadata,rules)).toEqual(['SOURCE_MISMATCH']);
+});
+
+test('daily content binding detects changed question labels and preserves publication metadata',()=>{
+ const bound=bindCaseContent(build());expect(validateCase(bound)).toEqual([]);
+ const changed=structuredClone(bound);changed.public.questions[0]!.options[0]!.label='An edited label';expect(validateCase(changed)).toContain('CONTENT_HASH');
+ const ledger=structuredClone(bound);ledger.public.ledger[0]!.text='Edited evidence';expect(validateCase(ledger)).toContain('CONTENT_HASH');
+ bound.public.publication={kind:'MAIN',day:'2026-10-18',opensAt:1,closesAt:2,openTx:'0xfixture',closeTx:null,contract:'0xfixture',closed:false};expect(validateCase(bound)).toEqual([]);
 });

@@ -3,15 +3,17 @@ import type {EnrichedEvent,Source} from '../../core/src/enrich.mts';
 import {ZERO} from '../../core/src/chain.mts';
 import {templateLine,type WitnessInput} from '../../witness/src/lines.mts';
 import type {Candidate,CaseRules} from './select.mts';
+import type {WitnessMemory} from '../../witness/src/facts.mts';
+import type {Card} from '../../witness/src/facts.mts';
 export interface Metadata {name:string;attributes:{trait_type:string;value:string}[]}
 export interface LedgerFact {id:string;text:string;sources:Source[];sealed:boolean;answerValue?:string}
 export interface Option {id:string;value:string;label:string;sources:Source[]}
 export interface Question {id:string;prompt:string;options:Option[];ledgerId:string}
 export interface CastMember {tokenId:number;name:string;role:'SUBJECT'|'SELLER_ROOMMATE'|'BUYER_ROOMMATE'|'RECENT_SALE'|'NEIGHBOUR';arrival:Source;arrivedAt:number}
-export interface AnswerKey {answers:Record<string,string>;lie:{witness:number;card:'ARRIVAL';ledgerId:string;truth:string;claim:string}}
+export interface AnswerKey {answers:Record<string,string>;lie:{witness:number;card:Card;ledgerId:string;truth:string;claim:string};contentHash?:string}
 export interface CaseDraft {
- public:{v:1;id:string;status:'DRAFT';type:Candidate['type'];occurredAt:string;subject:{tokenId:number;name:string};trigger:string;priceBasis:'GROSS_PAYMENT';cast:CastMember[];ledger:LedgerFact[];questions:Question[];testimony:{tokenId:number;card:'ARRIVAL';line:string}[];answerHash:string};
- private:{key:AnswerKey;salt:string};
+ public:{v:1;id:string;status:'DRAFT';type:Candidate['type'];occurredAt:string;subject:{tokenId:number;name:string};trigger:string;priceBasis:'GROSS_PAYMENT';cast:CastMember[];ledger:LedgerFact[];questions:Question[];testimony:{tokenId:number;card:'ARRIVAL';line:string}[];answerHash:string;publication?:{kind:'MAIN'|'COLD';day:string;opensAt:number;closesAt:number;openTx:string;closeTx:string|null;contract:string;closed:boolean}};
+ private:{key:AnswerKey;salt:string;facts?:Record<string,WitnessMemory>};
 }
 const source=(row:EnrichedEvent):Source=>({tx:row.event.tx,block:row.event.block,logIndex:row.event.logIndex});
 const order=(a:EnrichedEvent,b:EnrichedEvent)=>a.event.block-b.event.block||a.event.logIndex-b.event.logIndex;
@@ -28,6 +30,14 @@ export function canonicalJSON(value:unknown):string{
 export function answerHash(caseId:string,key:AnswerKey,salt:string):string{
  if(!/^0x[0-9a-f]{64}$/i.test(salt))throw new Error('CASE_SALT: Expected 32 random bytes');
  return keccak256(toBytes(canonicalJSON({v:1,caseId,key,salt})));
+}
+export function caseContentHash(draft:CaseDraft):string{
+ const {answerHash:_hash,publication:_publication,status:_status,...content}=draft.public;
+ return keccak256(toBytes(canonicalJSON({content,facts:draft.private.facts??null})));
+}
+export function bindCaseContent(draft:CaseDraft):CaseDraft{
+ const next=structuredClone(draft);next.private.key.contentHash=caseContentHash(next);
+ next.public.answerHash=answerHash(next.public.id,next.private.key,next.private.salt);return next;
 }
 function pastRows(candidate:Candidate,history:readonly EnrichedEvent[]):EnrichedEvent[]{return history.filter(row=>order(row,candidate.row)<=0).sort(order);}
 export function buildCast(candidate:Candidate,history:readonly EnrichedEvent[],times:ReadonlyMap<number,number>,metadata:ReadonlyMap<number,Metadata>):CastMember[]{
@@ -120,6 +130,7 @@ export function validateCase(draft:CaseDraft):string[]{
  if(pub.cast.length<2||pub.cast.length>6||new Set(pub.cast.map(member=>member.tokenId)).size!==pub.cast.length)errors.push('CAST');
  if(pub.ledger.filter(fact=>fact.sealed).length!==2||pub.ledger.some(fact=>fact.sources.length===0))errors.push('LEDGER');
  if(answerHash(pub.id,key,draft.private.salt)!==pub.answerHash)errors.push('HASH');
+ if(key.contentHash&&caseContentHash(draft)!==key.contentHash)errors.push('CONTENT_HASH');
  return [...new Set(errors)];
 }
 export function verifyCaseSources(draft:CaseDraft,candidates:readonly Candidate[],history:readonly EnrichedEvent[],times:ReadonlyMap<number,number>,metadata:ReadonlyMap<number,Metadata>,rules:CaseRules):string[]{

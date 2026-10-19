@@ -17,6 +17,7 @@
   "include": [
     "apps/**/*.mts",
     "scripts/**/*.mts",
-    "packages/**/*.mts"
+    "packages/**/*.mts",
+    "workers/**/*.mts"
   ]
 }

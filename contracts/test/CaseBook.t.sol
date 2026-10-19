@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.30;
+import {CaseBook} from "../src/CaseBook.sol";
+interface Vm {
+    function warp(uint256) external;
+    function prank(address) external;
+    function expectRevert(bytes4) external;
+    function expectEmit(bool,bool,bool,bool) external;
+}
+contract CaseBookTest {
+    Vm constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
+    CaseBook book;
+    bytes32 constant ID = keccak256("2026-10-18-main");
+    bytes key = bytes('{"caseId":"2026-10-18-main","key":{},"salt":"fixture","v":1}');
+    event CaseOpened(bytes32 indexed caseId, bytes32 answerHash, uint64 opensAt, uint64 closesAt);
+    function setUp() public { vm.warp(1000); book = new CaseBook(address(this)); }
+    function open() internal { book.openCase(ID,keccak256(key),1000,2000); }
+    function testOpenAndClose() public { open(); vm.warp(2000); book.closeCase(ID,key); (bytes32 hash,bool closed)=book.caseOf(ID); require(hash==keccak256(key)&&closed); }
+    function testOpenEmits() public { vm.expectEmit(true,false,false,true); emit CaseOpened(ID,keccak256(key),1000,2000); open(); }
+    function testWrongKeyReverts() public { open();vm.warp(2000);vm.expectRevert(CaseBook.WrongKey.selector);book.closeCase(ID,bytes("wrong")); }
+    function testDoubleOpenReverts() public { open();vm.expectRevert(CaseBook.AlreadyOpened.selector);open(); }
+    function testNonOwnerOpenReverts() public { vm.prank(address(7));vm.expectRevert(CaseBook.NotOwner.selector);book.openCase(ID,keccak256(key),1000,2000); }
+    function testNonOwnerCloseReverts() public { open();vm.warp(2000);vm.prank(address(7));vm.expectRevert(CaseBook.NotOwner.selector);book.closeCase(ID,key); }
+    function testMissingOpenReverts() public { vm.expectRevert(CaseBook.NotOpened.selector);book.closeCase(ID,key); }
+    function testPrematureRevealReverts() public { open();vm.expectRevert(CaseBook.TooEarly.selector);book.closeCase(ID,key); }
+    function testDoubleCloseReverts() public { open();vm.warp(2000);book.closeCase(ID,key);vm.expectRevert(CaseBook.AlreadyClosed.selector);book.closeCase(ID,key); }
+    function testZeroHashRejected() public { vm.expectRevert(CaseBook.InvalidCase.selector);book.openCase(ID,bytes32(0),1000,2000); }
+    function testInvalidTimesRejected() public { vm.expectRevert(CaseBook.InvalidCase.selector);book.openCase(ID,keccak256(key),2000,1000); }
+    function testOwnershipRequiresAcceptance() public { book.proposeOwner(address(8));require(book.owner()==address(this));vm.prank(address(7));vm.expectRevert(CaseBook.NotOwner.selector);book.acceptOwnership();vm.prank(address(8));book.acceptOwnership();require(book.owner()==address(8)); }
+    function cast() internal pure returns(uint256[] memory ids,uint8[] memory flags) { ids=new uint256[](2);flags=new uint8[](2);ids[0]=1;ids[1]=1969;flags[0]=7;flags[1]=1; }
+    function testCastRecordedOnlyOnce() public { open();vm.warp(2000);book.closeCase(ID,key);(uint256[] memory ids,uint8[] memory flags)=cast();book.recordCast(ID,ids,flags);vm.expectRevert(CaseBook.CastAlreadyRecorded.selector);book.recordCast(ID,ids,flags); }
+    function testCastCannotLeakLiarBeforeClose() public { open();(uint256[] memory ids,uint8[] memory flags)=cast();vm.expectRevert(CaseBook.NotOpened.selector);book.recordCast(ID,ids,flags); }
+    function testDuplicateCastRejected() public { open();vm.warp(2000);book.closeCase(ID,key);(uint256[] memory ids,uint8[] memory flags)=cast();ids[1]=ids[0];vm.expectRevert(CaseBook.InvalidCast.selector);book.recordCast(ID,ids,flags); }
+    function testInvalidCastFlagsRejected() public { open();vm.warp(2000);book.closeCase(ID,key);(uint256[] memory ids,uint8[] memory flags)=cast();flags[1]=16;vm.expectRevert(CaseBook.InvalidCast.selector);book.recordCast(ID,ids,flags); }
+    function testZeroOwnerRejected() public { vm.expectRevert(CaseBook.InvalidOwner.selector); new CaseBook(address(0)); }
+    function testZeroCaseIdRejected() public { vm.expectRevert(CaseBook.InvalidCase.selector);book.openCase(bytes32(0),keccak256(key),1000,2000); }
+    function testNonOwnerCannotRecordCast() public { open();vm.warp(2000);book.closeCase(ID,key);(uint256[] memory ids,uint8[] memory flags)=cast();vm.prank(address(7));vm.expectRevert(CaseBook.NotOwner.selector);book.recordCast(ID,ids,flags); }
+    function testTokenOutsideCollectionRejected() public { open();vm.warp(2000);book.closeCase(ID,key);(uint256[] memory ids,uint8[] memory flags)=cast();ids[1]=1970;vm.expectRevert(CaseBook.InvalidCast.selector);book.recordCast(ID,ids,flags); }
+    function testCastRequiresOneSubject() public { open();vm.warp(2000);book.closeCase(ID,key);(uint256[] memory ids,uint8[] memory flags)=cast();flags[1]=3;vm.expectRevert(CaseBook.InvalidCast.selector);book.recordCast(ID,ids,flags); }
+    function testCastRequiresOneLiar() public { open();vm.warp(2000);book.closeCase(ID,key);(uint256[] memory ids,uint8[] memory flags)=cast();flags[0]=3;vm.expectRevert(CaseBook.InvalidCast.selector);book.recordCast(ID,ids,flags); }
+    function testLateCommitStillCannotRevealEarly() public { vm.warp(1100);open();vm.expectRevert(CaseBook.TooEarly.selector);book.closeCase(ID,key); }
+    function testZeroPendingOwnerRejected() public { vm.expectRevert(CaseBook.InvalidOwner.selector);book.proposeOwner(address(0)); }
+    function testWrongCaseCannotUseAnotherCaseKey() public { open();vm.warp(2000);vm.expectRevert(CaseBook.NotOpened.selector);book.closeCase(keccak256("another"),key); }
+}
