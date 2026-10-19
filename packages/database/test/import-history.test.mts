@@ -1,3 +1,4 @@
+import {databaseStartupTimeout} from './startup.mts';
 import { PGlite } from '@electric-sql/pglite';
 import { beforeAll, afterAll, test, expect } from 'vitest';
 import { readFile } from 'node:fs/promises';
@@ -8,7 +9,7 @@ const metadata=JSON.parse(await readFile(new URL('fixtures/token-650.json',impor
 const input:HistoryInput={sources:source.sources,fetchedAt:source.fetchedAt,toBlockExclusive:source.toBlockExclusive,blocks:source.blocks,transactions:source.transactions,logs:source.relatedLogs,metadata:[{tokenId:650,...metadata}]};
 const database=new PGlite();
 let original:Awaited<ReturnType<typeof importHistory>>;
-beforeAll(async()=>{await migrate(database);original=await importHistory(database,input);},90000);
+beforeAll(async()=>{await migrate(database);original=await importHistory(database,input);},databaseStartupTimeout);
 afterAll(async()=>{await database.close();});
 test('imports the complete real token history and sale',async()=>{
   expect(original.transfers).toBe(3);expect(original.sales).toBeGreaterThanOrEqual(1);

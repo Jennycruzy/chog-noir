@@ -1,3 +1,4 @@
+import {databaseStartupTimeout} from './startup.mts';
 import {storeEscrowDeals} from '../escrow-deals.mts';
 import {EscrowIndex,type EscrowInput} from '../../core/src/escrow.mts';
 import {CHOG,TRANSFER_TOPIC,decodeTransfer,type ChainLog} from '../../core/src/chain.mts';
@@ -33,7 +34,7 @@ beforeAll(async () => {
   await database.query('INSERT INTO chogs VALUES ($1,$2,$3,$4,$5,$6)', [650, metadata.uri, metadata.metadata.name, metadata.metadata.image, metadata.metadata, metadata.fetchedAt]);
   await database.query('INSERT INTO chogs VALUES ($1,$2,$3,$4,$5,$6)', [1021,escrowMetadata.uri,escrowMetadata.metadata.name,escrowMetadata.metadata.image,escrowMetadata.metadata,escrowMetadata.fetchedAt]);
   await database.query('INSERT INTO transfers VALUES ($1,$2,$3,$4,$5,$6)', [tx.hash, index, 650, sender, receiver, log]);
-}, 90000);
+}, databaseStartupTimeout);
 afterAll(async () => { await database.close(); });
 beforeEach(async () => { await database.exec('BEGIN'); });
 afterEach(async () => { await database.exec('ROLLBACK'); });
@@ -87,7 +88,7 @@ test('migration rerun preserves records', async () => {
   const other = new PGlite();
   try { expect(await migrate(other)).toEqual(['001_chain_records.sql', '002_transaction_sources.sql', '003_escrow_records.sql']); expect(await migrate(other)).toEqual([]); }
   finally { await other.close(); }
-}, 90000);
+}, databaseStartupTimeout);
 test('edited migration is rejected', async () => {
   const directory = await mkdtemp(`${tmpdir()}/chog-db-`);
   const other = new PGlite();
@@ -98,7 +99,7 @@ test('edited migration is rejected', async () => {
     await writeFile(new URL('001_check.sql', url), 'CREATE TABLE changed_record (id integer);');
     await expect(migrate(other, url)).rejects.toThrow('DB_MIGRATION_CHANGED');
   } finally { await other.close(); await rm(directory, { recursive: true, force: true }); }
-}, 90000);
+}, databaseStartupTimeout);
 test('failed migration rolls back its tables and history', async () => {
   const directory = await mkdtemp(`${tmpdir()}/chog-db-`);
   const other = new PGlite();
@@ -110,7 +111,7 @@ test('failed migration rolls back its tables and history', async () => {
     expect(result.rows[0]?.record).toBeNull();
     expect((await other.query('SELECT * FROM schema_migrations')).rows).toEqual([]);
   } finally { await other.close(); await rm(directory, { recursive: true, force: true }); }
-}, 90000);
+}, databaseStartupTimeout);
 
 test('real escrow lifecycle can advance from creation to payment to collection',async()=>{
   await storeEscrowDeals(database,[{...realDeal,sold:null,collected:null}]);
