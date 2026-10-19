@@ -21,3 +21,27 @@ Check service state with `sudo systemctl status chog-noir-reliability.service` a
 This is a single observation run. The service does not automatically restart failed runs or start at boot. A stopped or failed service needs review; do not treat a new run as a continuation of a six-hour observation window. Use a separate run directory and update the service before starting a new observation window. The unit source is in `config/chog-noir-reliability.service`.
 
 The earlier local run at `runs/reliability/2026-10-16T19-49-04-806Z/` was deliberately stopped and is marked `INTERRUPTED`. It does not count toward the VPS observation window.
+
+
+## Release deployment
+
+The API, daily builder and live feed run from
+`/home/ubuntu/chog-noir-release/current`. Each release is a detached Git worktree
+named for its commit, with shared `data`, `runs` and `.env` symlinks. Editing the
+main checkout does not change the running release's source.
+
+After committing and synchronizing a tested commit, run
+`bash scripts/deploy-release.sh <full-commit-sha>` under systemd as `ubuntu`,
+with the main checkout as its working directory. It installs the frozen lockfile,
+runs the release checks and browser flow, saves its log under
+`runs/game-preview/release-<short-sha>.log`, builds a public-only static bundle,
+and then switches the source and static symlinks. It restarts only the Chog Noir
+API. Nginx TLS configuration is maintained separately and must pass `nginx -t`.
+Keep the preceding source worktree and matching static release.
+
+To roll back, atomically point `chog-noir-release/current` to the previous
+worktree and `/var/www/chog-noir` to its corresponding static directory under
+`/var/www/chog-noir-releases/`, then restart `chog-noir-api.service`.
+Shared plans, transaction journals, player data and source history stay in place;
+never restore older copies of those files as part of a source rollback. Check
+HTTPS health and deep links after either operation.

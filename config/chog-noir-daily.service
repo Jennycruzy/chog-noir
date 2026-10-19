@@ -1,0 +1,13 @@
+[Unit]
+Description=Build and publish Chog Noir daily cases
+After=network-online.target
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/chog-noir-release/current
+ExecStartPre=/usr/bin/mkdir -p /home/ubuntu/chog-noir-monitor/runs/chain
+ExecStart=/usr/bin/flock -n /home/ubuntu/chog-noir-monitor/runs/chain/write.lock /usr/bin/node --import tsx workers/daily/run.mts
+Environment=CHOG_CHAIN_LOCKED=true
+TimeoutStartSec=20min
+NoNewPrivileges=true
+UMask=0077

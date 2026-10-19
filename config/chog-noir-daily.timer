@@ -1,0 +1,9 @@
+[Unit]
+Description=Resume Chog Noir daily publication and close jobs
+[Timer]
+OnCalendar=*-*-* *:00/5:00 UTC
+Persistent=true
+RandomizedDelaySec=5
+Unit=chog-noir-daily.service
+[Install]
+WantedBy=timers.target

@@ -4,7 +4,7 @@ After=network-online.target
 [Service]
 Type=exec
 User=ubuntu
-WorkingDirectory=/home/ubuntu/chog-noir-monitor
+WorkingDirectory=/home/ubuntu/chog-noir-release/current
 ExecStart=/usr/bin/node --import tsx apps/api/src/game.mts
 Environment=PORT=8311
 Restart=on-failure
