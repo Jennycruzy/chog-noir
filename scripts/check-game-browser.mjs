@@ -15,7 +15,7 @@ const game=gameServer({root:temporary,assetsRoot:root,...data,secure:false});
 const csp="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
 const server=createServer(async(req,res)=>{
  if(req.url.startsWith('/api/')||req.url==='/health'){game.emit('request',req,res);return;}
- const path=req.url.split('?')[0],file=(path==='/'||/^\/(verify|archive|partners|casebook|report|scam-desk|how|about|arc|breaking)$/.test(path)||/^\/chog\/\d+$/.test(path))?'apps/web/index.html':path==='/app.js'?'apps/web/app.js':path==='/style.css'?'apps/web/style.css':/^\/art\/\d+\.webp$/.test(path)?`data/images/${path.split('/').at(-1)}`:null;
+ const path=req.url.split('?')[0],file=(path==='/'||/^\/(verify|archive|partners|casebook|report|scam-desk|how|about|arc|breaking)$/.test(path)||/^\/chog\/\d+$/.test(path))?'apps/web/index.html':path==='/app.js'?'apps/web/app.js':path==='/style.css'?'apps/web/style.css':/^\/(art|medium|thumbs)\/\d+\.webp$/.test(path)?(path.startsWith('/art/')?`data/images/${path.split('/').at(-1)}`:`runs/art${path}`):null;
  if(!file){res.writeHead(404);res.end();return;}
  try{const bytes=await readFile(join(root,file));res.writeHead(200,{'content-type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.webp')?'image/webp':'text/html','content-security-policy':csp});res.end(bytes);}catch{res.writeHead(404);res.end();}
 });
@@ -37,21 +37,29 @@ try{
  const {targetId}=await call('Target.createTarget',{url:'about:blank'}),{sessionId}=await call('Target.attachToTarget',{targetId,flatten:true});
  const send=(method,params)=>call(method,params,sessionId);
  await send('Runtime.enable');await send('Page.enable');
- const evaluate=async expression=>{const value=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(value.exceptionDetails)throw new Error(value.exceptionDetails.text);return value.result.value;};
- const until=async(expression,label)=>{const start=Date.now();while(Date.now()-start<90000){if(await evaluate(expression))return;await pause(300);}throw new Error(`Browser condition timed out: ${label}`);};
- const click=selector=>evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);
+ const evaluate=async expression=>{const value=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(value.exceptionDetails)throw new Error(value.exceptionDetails.exception?.description??value.exceptionDetails.text);return value.result.value;};
+ const until=async(expression,label)=>{const start=Date.now();while(Date.now()-start<90000){if(await evaluate(expression))return;await pause(300);}throw new Error(`Browser condition timed out: ${label}; ${await evaluate("JSON.stringify({notice:document.querySelector('#notice')?.textContent,heading:document.querySelector('h1')?.textContent,modal:document.querySelector('#modal')?.open})")}`);};
+ const key=async value=>{const keyCode={Enter:13,Tab:9,ArrowDown:40,ArrowRight:39,Home:36,' ':32}[value];await send('Input.dispatchKeyEvent',{type:'keyDown',key:value,code:value,windowsVirtualKeyCode:keyCode,nativeVirtualKeyCode:keyCode,...(value==='Enter'?{text:'\r'}:{})});await send('Input.dispatchKeyEvent',{type:'keyUp',key:value,code:value,windowsVirtualKeyCode:keyCode,nativeVirtualKeyCode:keyCode});};
+ const keyboardActivate=async selector=>{for(let attempt=0;attempt<150;attempt++){if(await evaluate(`document.activeElement?.matches(${JSON.stringify(selector)})`)){await key('Enter');return;}await key('Tab');}throw new Error('Keyboard could not reach '+selector);};
+ const click=async selector=>{await until(`document.querySelector(${JSON.stringify(selector)})&&!document.querySelector(${JSON.stringify(selector)}).disabled`,'enabled '+selector);await evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);};
  const screenshot=async name=>{const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(join(output,name),Buffer.from(data,'base64'));};
  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
  await send('Page.navigate',{url:origin});await until("document.querySelector('.hero')",'landing page');
  await until("[...document.images].filter(i=>!i.loading||i.loading!=='lazy').every(i=>i.complete&&i.naturalWidth>0)",'landing portraits');
  await screenshot('desktop-files.png');
  const caseId=await evaluate("document.querySelector('button[data-case]').dataset.case"),draft=data.cases.find(item=>item.public.id===caseId),lie=draft.private.key.lie;
- await click('button[data-case]');await until("document.querySelector('#modal').open",'partner dialog');await click('[data-partner]');
+ await keyboardActivate('button[data-case]');await until("document.querySelector('#modal').open",'partner dialog');const xrayPartner=await evaluate("[...document.querySelectorAll('[data-partner]')].find(button=>button.querySelector('small').textContent==='X-ray')?.dataset.partner");assert.ok(xrayPartner);await keyboardActivate(`[data-partner="${xrayPartner}"]`);
  await until("document.querySelector('.witnesses')",'interrogation');
  await click(`[data-witness="${lie.witness}"]`);await click(`[data-card="${lie.card}"]`);await click('[data-action="ask"]');
  await until(`document.querySelector('blockquote')?.textContent.includes(${JSON.stringify(lie.claim)})`,'testimony');
- await click(`[data-power="${lie.ledgerId}"]`);await until("document.querySelector('.proof-open')",'opened evidence');
- await click(`[data-accuse="${lie.witness}"]`);await until("document.querySelector('#proof')",'proof chooser');
+ const wrongProof=draft.public.ledger.find(item=>!item.sealed&&item.id!==lie.ledgerId);assert.ok(wrongProof);
+ await click(`[data-open="${wrongProof.id}"]`);await until("document.querySelector('.proof-open')",'examined record');
+ const playsBefore=await evaluate("Number(document.querySelector('.plays').firstChild.textContent.trim())");
+ await click(`[data-accuse="${lie.witness}"]`);await until("document.querySelector('#proof')",'wrong proof chooser');
+ await evaluate(`document.querySelector('#proof').value=${JSON.stringify(wrongProof.id)}`);await click('[data-confirm-accuse]');
+ await until("document.querySelector('.testimony .closed-note')",'wrong accusation feedback');assert.equal(await evaluate("Number(document.querySelector('.plays').firstChild.textContent.trim())"),playsBefore-1);
+ await click(`[data-power="${lie.ledgerId}"]`);await until("document.querySelectorAll('.proof-open').length===2",'opened evidence');
+ await click(`[data-accuse="${lie.witness}"]`);await until("document.querySelector('#modal').open&&document.querySelector('#proof')",'proof chooser');
  await evaluate(`document.querySelector('#proof').value=${JSON.stringify(lie.ledgerId)}`);await click('[data-confirm-accuse]');
  await until("document.querySelector('.caught')",'lie caught');
  await screenshot('desktop-room.png');
@@ -68,12 +76,30 @@ try{
  assert.equal(await evaluate("document.querySelector('.grade').textContent"),'A');
  assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth'),'Reveal overflows 360px viewport');
  await screenshot('mobile-reveal.png');
+ const downloads=[];
+ for(const [path,width,height] of [['/api/session/share',1200,630],['/api/session/comic',1080,1350],['/api/session/comic?format=landscape',1600,900]]){
+  const result=await evaluate(`(async()=>{const response=await fetch(${JSON.stringify(path)}),bytes=await response.arrayBuffer(),view=new DataView(bytes);return {status:response.status,type:response.headers.get('content-type'),disposition:response.headers.get('content-disposition'),bytes:bytes.byteLength,width:view.getUint32(16),height:view.getUint32(20)};})()`);
+  assert.equal(result.status,200);assert.equal(result.type,'image/png');assert.ok(result.disposition.startsWith('attachment'));assert.equal(result.width,width);assert.equal(result.height,height);if(path.endsWith('/share'))assert.ok(result.bytes<=300000);downloads.push({path,...result});
+ }
+ await send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});assert.ok(await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches"));
  await click('[data-nav="casebook"]');await until("document.querySelector('.record')",'casebook');
  await click('[data-nav="cases"]');await until("document.querySelector('.case-grid')",'case drawer navigation after mutations');
  assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth'),'Case drawer overflows 360px viewport');
  await screenshot('mobile-files.png');
+ await click('[data-nav="partners"]');await until("document.querySelector('[data-chog]')",'partner collection');
+ assert.ok((await evaluate("document.querySelector('.eyebrow').textContent")).includes('1,969'));
+ const profileId=await evaluate("document.querySelector('[data-chog]').dataset.chog");await click('[data-chog]');await until("document.querySelector('.profile-head')",'Chog profile');
+ assert.equal(await evaluate('location.pathname'),'/chog/'+profileId);
+ await send('Page.reload');await until("document.querySelector('.profile-head')",'direct profile reload');
+ await click('[data-nav="cases"]');await until("document.querySelector('.desk-nav')",'home before report');await click('[data-nav="report"]');await until("document.querySelector('#report-date')",'precinct report');
+ await click('[data-nav="cases"]');await until("document.querySelector('.desk-nav')",'home before desk');await click('[data-nav="desk"]');await until("document.querySelector('#desk-search')",'Scam Desk');
+ const auditedWallet=data.context.desk?.findings.find(item=>item.result.status==='SYNTHETIC_RECORD')?.result.sender;assert.ok(auditedWallet,'Saved proof audit must be available for this acceptance run');
+ await evaluate(`document.querySelector('#desk-search input').value=${JSON.stringify(auditedWallet)}`);await click('#desk-search button');await until("document.querySelector('.truth')",'proof-backed desk findings');
+ await click('[data-nav="cases"]');await until("document.querySelector('.desk-nav')",'home before verify');await click('[data-nav="verify"]');await until("document.querySelector('#verify-case')",'verification page');
+ await evaluate(`document.querySelector('#verify-case input').value=${JSON.stringify(caseId)}`);await click('#verify-case button');await until("document.querySelector('.helper b')?.textContent==='LOCAL_ONLY'",'honest archive verification');
+ assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth'),'Utility pages overflow 360px viewport');
  assert.deepEqual(exceptions,[],'Browser raised JavaScript errors');
- const report={checkedAt:new Date().toISOString(),status:'PASS',browser:'Chromium 1234 cached on VPS',caseId,widths:[1440,360],checks:['landing and original artwork','partner selection','question witness','free partner unseal','evidence-backed lie accusation','refresh resumes caught lie','answer three questions','server-scored A reveal','browser casebook','navigation after mutations','no horizontal overflow at 360px','no JavaScript exceptions'],screenshots:['desktop-files.png','desktop-room.png','mobile-room.png','mobile-questions.png','mobile-reveal.png','mobile-files.png']};
+ const report={checkedAt:new Date().toISOString(),status:'PASS',browser:'Chromium 1234 cached on VPS',caseId,widths:[1440,360],downloads,checks:['keyboard landing and partner selection','portrait, landscape and share downloads','reduced-motion preference','landing and original artwork','partner selection','question witness','free partner unseal','wrong accusation deducts one play','evidence-backed lie accusation','refresh resumes caught lie','answer three questions','server-scored A reveal','browser casebook','partner collection and profile reload','precinct report','proof-backed Scam Desk','honest archive verification','navigation after mutations','no horizontal overflow at 360px','no JavaScript exceptions'],screenshots:['desktop-files.png','desktop-room.png','mobile-room.png','mobile-questions.png','mobile-reveal.png','mobile-files.png']};
  await writeFile(join(root,'docs/audit/evidence/game-preview-browser.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
 }finally{
  socket?.close();chrome.kill('SIGTERM');
