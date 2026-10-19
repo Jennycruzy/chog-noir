@@ -1,8 +1,8 @@
 {
-  "checkedAt": "2026-10-17T21:54:25.910Z",
+  "checkedAt": "2026-10-19T11:39:49.343Z",
   "status": "DRAFT_ARCHIVE_VALIDATED",
   "inputHash": "1aad33961e9d91d0f62f9ce10d7ca8c80a82208f1bb38be5a31073000c1760fb",
-  "replayVerified": true,
+  "replayVerified": false,
   "cases": 14,
   "days": [
     "2026-09-30",
@@ -33,6 +33,12 @@
   "questions": 42,
   "testimonySource": "VALIDATED_TEMPLATES",
   "plannedLies": 14,
+  "lieCards": [
+    "LAST_NIGHT",
+    "LONGEST_HOLD",
+    "OWNER_COUNT"
+  ],
+  "subjectLiars": 7,
   "sourceWindowEndExclusive": "2026-10-14T00:00:00.000Z",
   "publicGamePublished": false,
   "onchainCommitment": "NOT_SUBMITTED",

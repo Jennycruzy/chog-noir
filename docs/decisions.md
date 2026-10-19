@@ -39,3 +39,8 @@
 
 - Preserve the original public RPC’s 294 unavailable traces and recover historical execution proofs through Goldsky’s public Monad RPC on the VPS. Save the second provider’s successful receipts separately and compare every accepted record against them.
 - Apply A12 to accepted findings from the tightened proof-only detector over the saved 30-day corpus. All 410 accepted records have matching execution and receipt evidence; 166 unresolved candidates remain REVIEW. A12’s zero-false-positive requirement does not imply complete recall. This does not complete the M8 Scam Desk product.
+
+
+## 19 October 2026 — Witness variation
+
+When no cast member has a trait associated with a shifty witness, the lie planner selects a cast member deterministically from the case salt. Count lies vary by one or two in either direction and stay non-negative. These choices replace the original subject-only fallback and fixed increment so archive practice does not teach a predictable answer pattern. Facts and contradictions still come from the saved source records.

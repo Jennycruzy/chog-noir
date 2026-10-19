@@ -11,11 +11,11 @@ import {loadGame,gameServer} from '../apps/api/src/game.mts';
 const root=fileURLToPath(new URL('../',import.meta.url)),output=join(root,'runs/game-preview/browser');
 await mkdir(output,{recursive:true});
 const data=await loadGame(root),temporary=await mkdtemp(join(tmpdir(),'chog-browser-'));
-const game=gameServer({root:temporary,...data,secure:false});
+const game=gameServer({root:temporary,assetsRoot:root,...data,secure:false});
 const csp="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
 const server=createServer(async(req,res)=>{
  if(req.url.startsWith('/api/')||req.url==='/health'){game.emit('request',req,res);return;}
- const path=req.url.split('?')[0],file=path==='/'?'apps/web/index.html':path==='/app.js'?'apps/web/app.js':path==='/style.css'?'apps/web/style.css':/^\/art\/\d+\.webp$/.test(path)?`data/images/${path.split('/').at(-1)}`:null;
+ const path=req.url.split('?')[0],file=(path==='/'||/^\/(verify|archive|partners|casebook|report|scam-desk|how|about|arc|breaking)$/.test(path)||/^\/chog\/\d+$/.test(path))?'apps/web/index.html':path==='/app.js'?'apps/web/app.js':path==='/style.css'?'apps/web/style.css':/^\/art\/\d+\.webp$/.test(path)?`data/images/${path.split('/').at(-1)}`:null;
  if(!file){res.writeHead(404);res.end();return;}
  try{const bytes=await readFile(join(root,file));res.writeHead(200,{'content-type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.webp')?'image/webp':'text/html','content-security-policy':csp});res.end(bytes);}catch{res.writeHead(404);res.end();}
 });
@@ -48,7 +48,7 @@ try{
  const caseId=await evaluate("document.querySelector('button[data-case]').dataset.case"),draft=data.cases.find(item=>item.public.id===caseId),lie=draft.private.key.lie;
  await click('button[data-case]');await until("document.querySelector('#modal').open",'partner dialog');await click('[data-partner]');
  await until("document.querySelector('.witnesses')",'interrogation');
- await click(`[data-witness="${lie.witness}"]`);await click('[data-action="ask"]');
+ await click(`[data-witness="${lie.witness}"]`);await click(`[data-card="${lie.card}"]`);await click('[data-action="ask"]');
  await until(`document.querySelector('blockquote')?.textContent.includes(${JSON.stringify(lie.claim)})`,'testimony');
  await click(`[data-power="${lie.ledgerId}"]`);await until("document.querySelector('.proof-open')",'opened evidence');
  await click(`[data-accuse="${lie.witness}"]`);await until("document.querySelector('#proof')",'proof chooser');
