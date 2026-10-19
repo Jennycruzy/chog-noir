@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-10-19T12:38:38.139127+00:00",
+  "status": "PASS",
+  "base": "https://chognoir.54-154-121-30.sslip.io",
+  "checks": [
+    {
+      "path": "/",
+      "status": 200,
+      "securityHeadersPresent": true
+    },
+    {
+      "path": "/verify",
+      "status": 200,
+      "securityHeadersPresent": true
+    },
+    {
+      "path": "/chog/12",
+      "status": 200,
+      "securityHeadersPresent": true
+    },
+    {
+      "path": "/archive",
+      "status": 200,
+      "securityHeadersPresent": true
+    },
+    {
+      "path": "/api/x",
+      "status": 404,
+      "securityHeadersPresent": true
+    },
+    {
+      "path": "/runs/case-engine/archive.json",
+      "status": 404,
+      "securityHeadersPresent": true
+    },
+    {
+      "path": "/.env",
+      "status": 404,
+      "securityHeadersPresent": true
+    }
+  ],
+  "applicationRelease": "Existing archive deployment; route configuration checked independently"
+}

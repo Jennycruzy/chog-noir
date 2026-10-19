@@ -1,8 +1,22 @@
 {
-  "checkedAt": "2026-10-19T11:43:32.213Z",
+  "checkedAt": "2026-10-19T18:55:17.424Z",
   "status": "PASS",
   "cases": 14,
   "partners": 1969,
+  "partnerCounts": {
+    "powers": {
+      "XRAY": 278,
+      "ANALYST": 369,
+      "TAKES_ONE": 234,
+      "EMPATH": 1088
+    },
+    "moneyTalk": 236,
+    "special": 100,
+    "sides": {
+      "BUYER": 1309,
+      "SELLER": 660
+    }
+  },
   "cardVariantsValidated": 880,
   "cleanTraitValues": 327,
   "traitReview": "PENDING_USER_REVIEW",
@@ -24,7 +38,7 @@
       "sourceCase": "sale-109373326-191-cold_case-v2",
       "witnesses": 4,
       "cards": 10,
-      "plannedLieCard": "OWNER_COUNT",
+      "plannedLieCard": "LONGEST_HOLD",
       "contentBound": true,
       "score": 570
     },
@@ -40,7 +54,7 @@
       "sourceCase": "sale-109925729-112-big_spender-v2",
       "witnesses": 2,
       "cards": 10,
-      "plannedLieCard": "OWNER_COUNT",
+      "plannedLieCard": "LONGEST_HOLD",
       "contentBound": true,
       "score": 580
     },
@@ -48,7 +62,7 @@
       "sourceCase": "sale-110190554-30-cold_case-v2",
       "witnesses": 2,
       "cards": 10,
-      "plannedLieCard": "OWNER_COUNT",
+      "plannedLieCard": "LONGEST_HOLD",
       "contentBound": true,
       "score": 580
     },
@@ -64,7 +78,7 @@
       "sourceCase": "sale-110849070-72-big_spender-v2",
       "witnesses": 3,
       "cards": 10,
-      "plannedLieCard": "LAST_NIGHT",
+      "plannedLieCard": "LONGEST_HOLD",
       "contentBound": true,
       "score": 570
     },
@@ -72,7 +86,7 @@
       "sourceCase": "sale-111001059-194-big_spender-v2",
       "witnesses": 6,
       "cards": 10,
-      "plannedLieCard": "LONGEST_HOLD",
+      "plannedLieCard": "OWNER_COUNT",
       "contentBound": true,
       "score": 580
     },
@@ -88,7 +102,7 @@
       "sourceCase": "sale-111572238-54-big_spender-v2",
       "witnesses": 3,
       "cards": 10,
-      "plannedLieCard": "OWNER_COUNT",
+      "plannedLieCard": "LAST_NIGHT",
       "contentBound": true,
       "score": 570
     },
@@ -98,7 +112,7 @@
       "cards": 10,
       "plannedLieCard": "OWNER_COUNT",
       "contentBound": true,
-      "score": 570
+      "score": 580
     },
     {
       "sourceCase": "sale-112087737-170-quick_exit-v2",
@@ -120,7 +134,7 @@
       "sourceCase": "sale-112806207-259-quick_exit-v2",
       "witnesses": 2,
       "cards": 10,
-      "plannedLieCard": "LONGEST_HOLD",
+      "plannedLieCard": "OWNER_COUNT",
       "contentBound": true,
       "score": 580
     },
@@ -128,7 +142,7 @@
       "sourceCase": "sale-113158098-40-quick_exit-v2",
       "witnesses": 2,
       "cards": 10,
-      "plannedLieCard": "OWNER_COUNT",
+      "plannedLieCard": "LONGEST_HOLD",
       "contentBound": true,
       "score": 570
     }

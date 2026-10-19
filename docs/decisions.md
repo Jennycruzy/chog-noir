@@ -44,3 +44,30 @@
 ## 19 October 2026 — Witness variation
 
 When no cast member has a trait associated with a shifty witness, the lie planner selects a cast member deterministically from the case salt. Count lies vary by one or two in either direction and stay non-negative. These choices replace the original subject-only fallback and fixed increment so archive practice does not teach a predictable answer pattern. Facts and contradictions still come from the saved source records.
+
+
+## 19 October 2026 — Quiet-day source rotation
+
+Keep fourteen public archive cases and a separate fallback pool with at least
+sixteen distinct source events. MAIN and COLD consume two slots per day; excluding
+seven complete prior plans uses fourteen events, leaving two unused events for
+the next day. Fourteen source events alone cannot satisfy that exclusion window.
+Fallback selection starts at disjoint daily slots and skips every source used in
+the previous seven plans. Source outages after 00:10 UTC persist a degraded plan
+from saved history; an RPC outage still prevents commitment and publication.
+
+## 19 October 2026 — Runtime storage and transaction recovery
+
+The runtime uses private files, so DATABASE_URL is not an activation prerequisite.
+Keep the vault master key outside the ciphertext directory, preserve the existing
+key during migration and refuse to generate a replacement when ciphertext
+already exists. Read-only guests receive a stable browser cookie without creating
+a player file. Cleanup shares the player's operating-system lock and preserves
+scored results and pending daily submissions.
+
+A transaction replacement retains the original nonce, destination, calldata,
+value and gas limit. After ten minutes, its gas price rises by 25%, rounded up,
+within the same operation cost cap. Persist every signed attempt before broadcast
+and check all hashes for a receipt. Automatic replacement requires an explicitly
+verified Monad probe. A matching finalized CaseOpened event can recover a lost
+opening receipt without signing again; a conflicting commitment stops recovery.

@@ -1,22 +1,59 @@
 {
-  "checkedAt": "2026-10-18T21:03:13.347Z",
+  "checkedAt": "2026-10-19T18:52:48.385Z",
   "status": "PASS",
   "browser": "Chromium 1234 cached on VPS",
-  "caseId": "sale-111176922-19-quick_exit",
+  "caseId": "sale-111176922-19-quick_exit-v2",
   "widths": [
     1440,
     360
   ],
+  "downloads": [
+    {
+      "path": "/api/session/share",
+      "status": 200,
+      "type": "image/png",
+      "disposition": "attachment; filename=\"chog-noir-result.png\"",
+      "bytes": 243391,
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "path": "/api/session/comic",
+      "status": 200,
+      "type": "image/png",
+      "disposition": "attachment; filename=\"chog-noir-comic.png\"",
+      "bytes": 797835,
+      "width": 1080,
+      "height": 1350
+    },
+    {
+      "path": "/api/session/comic?format=landscape",
+      "status": 200,
+      "type": "image/png",
+      "disposition": "attachment; filename=\"chog-noir-comic.png\"",
+      "bytes": 740974,
+      "width": 1600,
+      "height": 900
+    }
+  ],
   "checks": [
+    "keyboard landing and partner selection",
+    "portrait, landscape and share downloads",
+    "reduced-motion preference",
     "landing and original artwork",
     "partner selection",
     "question witness",
     "free partner unseal",
+    "wrong accusation deducts one play",
     "evidence-backed lie accusation",
     "refresh resumes caught lie",
     "answer three questions",
     "server-scored A reveal",
     "browser casebook",
+    "partner collection and profile reload",
+    "precinct report",
+    "proof-backed Scam Desk",
+    "honest archive verification",
     "navigation after mutations",
     "no horizontal overflow at 360px",
     "no JavaScript exceptions"

@@ -1,78 +1,96 @@
-# Completion work in progress
+# Implementation and activation status
 
-The user requested finishing the implementation before returning to the Claude
-API key and their evidence/tone audit. Those reviews remain deferred; do not ask
-for them as a prerequisite for implementation or describe them as passed.
+Updated 19 October 2026. The last verified public application is commit
+`3f221ad`: fourteen archive cases with the original Arrival-card game. The full
+witness implementation below has not yet been deployed. HTTPS direct routes
+were repaired independently; that does not constitute an application release.
 
-The public deployment at the start of this work is commit `3f221ad`: fourteen
-archive cases and one Arrival card. It remains the last verified deployment.
-Current uncommitted source is being extended and must be tested on the VPS before
-deployment. The VPS has substantial shared CPU contention. Keep long checks and
-jobs under systemd and preserve source data and evidence.
+## Implemented and checked on the VPS
 
-## Written, awaiting integrated verification
+The game has ten source-backed witness cards, cutoff-aware ownership and sale
+memories, explicit unknown answers, banded/exact prices and varied planned lies.
+All 1,969 partners have trait-derived powers, tier uses and passive benefits:
+278 X-ray, 369 Analyst, 234 Takes One and 1,088 Empath. Money Talk applies to
+236 partners; 100 have the special bonus. Sides are 1,309 Buyer and 660 Seller.
+Guest progress includes deterministic starters, recruitment, a casebook, daily
+streaks, alibis and ranks. The API serves collection/profile pages, reports and
+the proof-backed Scam Desk.
 
-- Ten source-backed witness cards, event/log cutoffs, owner/sale/roommate memories,
-  fixed unknown responses, banded/exact prices and template validation.
-- Trait-derived powers, tier uses, side discount, Money Talk, special-card bonus,
-  clean trait labels and all four Eyes groups.
-- Guest progress, deterministic starter selection, collection unlocks, unique
-  casebook results, UTC daily streaks, alibis and ranks.
-- API/player/collection/profile/report/Scam Desk screens and data endpoints.
-- CaseBook Solidity contract and twenty-five Foundry tests.
-- Encrypted authenticated case vault, publication state machine, durable signed
-  transaction journal and gas cap, deploy/status/source-verification commands.
-- Daily finalized-history collection, source/receipt checks, fresh-case selection,
-  cold fallback, main/cold plans, confirmed-open publication and scheduled close.
-- Public commitment verifier and API publication loading.
+Daily submissions retain pending results and MAIN streak credit while keeping
+scores, keys, proof records and sealed facts private until a confirmed close.
+Locked downloads and open-case restarts are refused. Practice replays cannot
+improve a saved daily score or earn extra streak credit. Read-only new guests
+receive a stable cookie without creating a player file. Cleanup shares player
+locks and preserves results and pending submissions.
 
-## Still required before calling the work finished
+Publication records are loaded independently, with corruption reported in health
+and valid cases retained. Saved source history refreshes within thirty seconds.
+The vault master key migrates outside ciphertext storage without changing the
+key; missing keys never silently replace keys for existing ciphertext.
 
-- Finish and validate the live sale worker/feed and its operational service.
-- Finish comic/share downloads and the remaining frontend wiring and clear status
-  copy. Check real browser flows, keyboard, mobile and restored sessions.
-- Run type checking and appropriate old/new regressions on the VPS. The 19 October VPS run passed TypeScript checking, JavaScript syntax checking and
-  all 25 Foundry tests. The broader Vitest run was stopped before producing a
-  result; focused regressions and the complete expanded run remain required.
-- Test all real archive memories and powers, publishing retries, encryption,
-  premature reveal protection, streaks, proof-only Scam Desk, and contract behavior.
-- Run the daily builder without writes and verify its persisted output; install
-  timers/services with honest health state. Never publish without a confirmed open.
-- Commit/push substantial completed pieces on main, synchronize and deploy tested
-  source, verify public HTTPS and preserve rollback artifacts.
+Daily source recovery waits until 00:10 UTC before using a labelled degraded
+fallback. A private pool of sixteen distinct events supports disjoint MAIN/COLD
+slots without reusing the previous seven plans. Ranking applies recent published
+subject and wallet penalties. Selected ledger and witness sources are checked
+against successful canonical transaction receipts.
 
-## External activation prerequisites
+The chain writer persists signed bytes before broadcast, retains all replacement
+hashes, preserves nonce and intent, and caps a 25% gas-price increase after ten
+minutes. Automatic replacement remains disabled until a funded Monad probe is
+verified. A matching finalized CaseOpened event recovers a lost opening receipt
+without another signature. Conflicting commitments stop recovery.
 
-On the VPS, `SERVER_PRIVATE_KEY`, `CASEBOOK_ADDRESS`,
-`EXECUTION_WRITES_ENABLED` and `DATABASE_URL` were not configured. HyperSync is
-configured and Foundry binaries exist under `/home/ubuntu/.foundry/bin/`.
-No private signing key has been generated or requested in chat. No mainnet write
-has occurred. Mainnet deployment/activation needs a locally configured, funded
-server signer and the explicit write switch. Finish the implementation first;
-report that activation boundary concretely, without confusing it with Claude or
-the deferred human audit. A seven-day operational record cannot be claimed from
-offline tests or a short smoke run.
+Evidence collected on the VPS:
 
+- All 25 Foundry contract tests passed.
+- The focused recovery suite passed all 63 tests across thirteen files, including
+  five isolated local-chain transaction/recovery tests. Short test epochs reduce
+  waiting; production finality checks are unchanged.
+- All 22 database assertions passed with a bounded shared-host startup allowance.
+- Daily source/ranking checks, archive replay and all fourteen rebuilt archive
+  smoke cases passed.
+- Real-data checks validated 880 card variants, 1,969 partners and 410 proof-backed
+  forged records. The fourteen `-v2` archive cases use three lie cards; the subject
+  is the liar in seven cases.
+- Comic rendering passed at 1080×1350; the 1200×630 share card was 226,111 bytes.
+- The focused private-file scan passed for 237 repository files.
 
-## Current correctness work
+Reports are under `docs/audit/evidence/`; detailed persistent job logs are under
+`runs/game-preview/` on the VPS. A prior full release run passed 258 tests with
+22 skipped but stopped at a database startup timeout before browser checks or
+activation. That timeout allowance is now fixed. The corrected desktop and 360px browser run passed, including keyboard entry,
+wrong accusation, X-ray unsealing, restored session, scored reveal, PNG downloads,
+collection/profile reload, report, Scam Desk and honest archive verification.
+Screenshots were visually reviewed. Final integrated release checks remain required.
 
-Daily submissions now keep scores, answer keys, proof records and unopened sealed
-facts private until a confirmed close. Player results remain pending; MAIN streak
-credit is recorded at submission, while scores and unlocks wait for reveal. Comic
-and share endpoints reject locked cases, and existing open daily sessions cannot
-be restarted. The HTTP regression passed on 19 October, including pending results, locked downloads, restart refusal and one-time finalization after close. This is not a deployment claim.
+## Remaining implementation and release work
 
-The archive builder now uses full source memories and varied lies, assigns new
-case identifiers ending in `-v2`, and checks the false line against its selected
-contradiction. All 14 rebuilt real cases passed the smoke test on 19 October. The archive has three lie cards, with the subject as liar in 7 of 14 cases.
-Release worktree scripts are prepared but have not been activated.
+Complete a fully keyboard-only solve, cold/daily replay and live-feed recovery
+acceptance. The core desktop/mobile browser flow and downloads have passed.
+The live worker now logs source failures, stops on canonical conflicts and retries
+lost connections, but its installed service still needs a genuine thirty-minute
+observation. Run the daily builder without writes and verify its persisted output.
+Install cleanup, daily and monitoring services with honest health states.
 
+Release worktrees use an immutable archive snapshot and shared private runtime
+data. A release must pass all specified checks before the current-source and
+public-static symlinks switch. After activation, check external HTTPS routes,
+private-path denials, rollback artifacts and source-edit/restart isolation.
 
-The focused run covered 89 tests: 88 passed initially, then the archive-identifier
-validation fix passed a seven-test API rerun. The 25 contract tests and three
-local-chain transaction-journal tests passed. The final real-data check validated
-880 card variants, all 1,969 partners, and 410 proof-backed forged records. Comic
-rendering passed at 1080×1350; the share card passed at 1200×630 and 226,111 bytes.
-The private-file scan passed for 223 repository files. Full-suite and release
-browser checks remain required before deployment. Reports are in
-`docs/audit/evidence/full-game.json`, `game-preview.json`, and `case-archive.json`.
+Claude budget/cache/batch/resume/exhaustion plumbing and its offline proofs remain
+unfinished. No Claude credit has been spent during this work. Human voice and
+clean-label reviews remain pending, as requested by the user.
+
+## Activation requiring the user
+
+No server signing key has been generated and no mainnet write has occurred.
+Signer generation requires approval, followed by MON funding, contract deployment
+and source verification, the replacement probe and explicit write activation.
+Claude needs a locally configured key and approval for each concrete spending
+command after offline budget proofs. Telegram alerts need user credentials.
+Human audits, the demo video and final submission remain user tasks. Never claim
+observation days that have not actually elapsed.
+
+DATABASE_URL is not required: the runtime uses private files. HyperSync and the
+source-provider configuration already exist on the VPS. Keep keys, private specs,
+source data and execution evidence out of Git and public bundles.
