@@ -17,6 +17,7 @@ for shared in data runs .env; do
  if [[ ! -e "$release/$shared" && ! -L "$release/$shared" ]]; then ln -s "$repository/$shared" "$release/$shared"; fi
 done
 cd "$release"
+if [[ ! -f release-archive.json ]]; then install -m 600 "$repository/runs/case-engine/archive.json" release-archive.json; fi
 corepack pnpm install --frozen-lockfile
 bash scripts/check-release.sh > "runs/game-preview/release-$short.log" 2>&1
 static="/var/www/chog-noir-releases/$short"

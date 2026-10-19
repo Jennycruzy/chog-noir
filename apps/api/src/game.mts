@@ -21,7 +21,8 @@ import {comic,shareCard} from '../../../packages/art/src/render.mts';
 import {safeError} from '../../../scripts/errors.mts';
 
 export async function loadGame(root:string){
- const archive=JSON.parse(await readFile(resolve(root,'runs/case-engine/archive.json'),'utf8')) as {cases:CaseDraft[]};
+ const archiveText=await readFile(resolve(root,'release-archive.json'),'utf8').catch(error=>{if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;return readFile(resolve(root,'runs/case-engine/archive.json'),'utf8');});
+ const archive=JSON.parse(archiveText) as {cases:CaseDraft[]};
  if(!Array.isArray(archive.cases)||!archive.cases.length||archive.cases.some(draft=>validateCase(draft).length))throw new Error('GAME_ARCHIVE: Invalid case archive');
  const metadata=new Map<number,Metadata>();
  // Bound startup I/O, rather than serializing nearly two thousand file reads.

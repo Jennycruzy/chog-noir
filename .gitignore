@@ -14,3 +14,5 @@ chognoir-private/
 *.key
 out/
 cache/
+
+/release-archive.json

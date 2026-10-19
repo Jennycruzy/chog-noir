@@ -27,7 +27,9 @@ The earlier local run at `runs/reliability/2026-10-16T19-49-04-806Z/` was delibe
 
 The API, daily builder and live feed run from
 `/home/ubuntu/chog-noir-release/current`. Each release is a detached Git worktree
-named for its commit, with shared `data`, `runs` and `.env` symlinks. Editing the
+named for its commit, with shared `data`, `runs` and `.env` symlinks. Each release
+keeps a private, fixed `release-archive.json` snapshot, so rebuilding the working
+archive cannot change existing released cases. Editing the
 main checkout does not change the running release's source.
 
 After committing and synchronizing a tested commit, run
