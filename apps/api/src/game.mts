@@ -265,5 +265,5 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  await loadEnv();
  const data=await loadGame(root);const server=gameServer({root,...data,vaultKeyPath:privateVaultKeyFile()});
  server.listen(port,'127.0.0.1',()=>console.log(`Chog Noir listening on 127.0.0.1:${port}`));
- for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>server.close());
+ for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>{server.close();server.closeAllConnections();});
 }
