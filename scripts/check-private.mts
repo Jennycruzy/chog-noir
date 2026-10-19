@@ -7,7 +7,7 @@ await loadEnv();
 const run = promisify(execFile);
 const { stdout } = await run('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], { cwd: new URL('../', import.meta.url) });
 const files = [...new Set(stdout.split('\0').filter(Boolean))];
-const knownSecrets = ['ETHERSCAN_API_KEY', 'HYPERSYNC_TOKEN', 'OPENSEA_API_KEY', 'ANTHROPIC_API_KEY', 'SERVER_PRIVATE_KEY', 'VERCEL_TOKEN', 'ALERT_TELEGRAM_TOKEN'].map(name => process.env[name]).filter((value): value is string => typeof value === 'string' && value.length >= 12);
+const knownSecrets = ['ETHERSCAN_API_KEY', 'HYPERSYNC_TOKEN', 'OPENSEA_API_KEY', 'ANTHROPIC_API_KEY', 'SERVER_PRIVATE_KEY', 'CASE_VAULT_KEY', 'VERCEL_TOKEN', 'ALERT_TELEGRAM_TOKEN'].map(name => process.env[name]).filter((value): value is string => typeof value === 'string' && value.length >= 12);
 const patterns = [
   { name: 'GitHub token', expression: /\bgh[pousr]_[A-Za-z0-9]{20,}\b/ },
   { name: 'Anthropic key', expression: /\bsk-ant-[A-Za-z0-9_-]{20,}\b/ },
@@ -15,7 +15,7 @@ const patterns = [
 ];
 const findings = [];
 for (const file of files) {
-  if (/(^|\/)(?:chognoir-private|SPEC-ITEMS\.md)(?:\/|$)/i.test(file) || /(^|\/)[^/]*SPEC[^/]*\.md$/i.test(file) || /(^|\/)\.env(?:\..+)?$/.test(file) && !file.endsWith('.env.example') || /\.(?:pem|key)$/.test(file)) {
+  if (/(^|\/)release-archive\.json$/.test(file) || /(^|\/)(?:chognoir-private|SPEC-ITEMS\.md)(?:\/|$)/i.test(file) || /(^|\/)[^/]*SPEC[^/]*\.md$/i.test(file) || /(^|\/)\.env(?:\..+)?$/.test(file) && !file.endsWith('.env.example') || /\.(?:pem|key)$/.test(file)) {
     findings.push({ file, reason: 'Private file is tracked' });
     continue;
   }

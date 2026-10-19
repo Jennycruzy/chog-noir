@@ -52,3 +52,17 @@ test('conflicting publication windows fail instead of overwriting a prepared com
  await publisher.prepare(draft,'2026-10-18','FRESH',200,400);
  await expect(publisher.prepare(draft,'2026-10-18','FRESH',250,400)).rejects.toThrow('differs');
 });
+
+test('moving a legacy vault master preserves encrypted cases and enforces private file permissions',async()=>{
+ const {writeFile,stat,access}=await import('node:fs/promises');
+ const {localVault}=await import('../src/vault.mts');
+ const folder=join(directory,'publication-vault'),keyFile=join(directory,'private/vault.key'),key=randomBytes(32);
+ const vault=new CaseVault(join(folder,'cases'),key);await vault.save(draft);await writeFile(join(folder,'encryption.key'),key,{mode:0o600});
+ const moved=await localVault(folder,keyFile);expect(await moved.load(draft.public.id)).toEqual(draft);expect(await readFile(keyFile)).toEqual(key);expect((await stat(keyFile)).mode&0o777).toBe(0o600);await expect(access(join(folder,'encryption.key'))).rejects.toThrow();
+});
+
+test('a missing master key never causes replacement of existing ciphertext',async()=>{
+ const {access}=await import('node:fs/promises'),{localVault}=await import('../src/vault.mts');
+ const folder=join(directory,'missing-master'),keyFile=join(directory,'private/vault.key');await new CaseVault(join(folder,'cases'),randomBytes(32)).save(draft);
+ await expect(localVault(folder,keyFile)).rejects.toThrow('VAULT_KEY_MISSING');await expect(access(keyFile)).rejects.toThrow();
+});
