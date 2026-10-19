@@ -1,6 +1,8 @@
 [Unit]
 Description=Chog Noir finalized sale feed
 After=network-online.target
+StartLimitIntervalSec=5min
+StartLimitBurst=3
 [Service]
 Type=exec
 User=ubuntu
