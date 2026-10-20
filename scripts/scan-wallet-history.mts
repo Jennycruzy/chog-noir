@@ -6,7 +6,7 @@ import { loadEnv } from './env.mts';
 import { CHOG, TRANSFER_TOPIC, ZERO } from '../packages/core/src/chain.mts';
 await loadEnv();
 if (!process.env.HYPERSYNC_TOKEN) throw new Error('AUDIT_KEY: HyperSync key missing');
-const directory = resolve(process.argv[2] ?? 'runs/wallet-audit');
+const directory = resolve(process.argv[2] ?? 'runs/wallet-records');
 await mkdir(directory, { recursive: true });
 const client = new HypersyncClient({ url: 'https://monad.hypersync.xyz', apiToken: process.env.HYPERSYNC_TOKEN });
 const json = (value: unknown) => JSON.stringify(value, (_, item) => typeof item === 'bigint' ? item.toString() : item);

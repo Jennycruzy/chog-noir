@@ -14,12 +14,12 @@ const server = createServer(async (request, response) => {
   try {
     const report = JSON.parse(await readFile(reportPath, 'utf8'));
     if (report.status !== 'PASS' || !report.fullWindow || !Number.isSafeInteger(report.toBlockExclusive)) throw new Error('Invalid saved reliability report');
-    response.end(JSON.stringify({ service: 'chog-noir', stage: 'M0', gameAvailable: false,
+    response.end(JSON.stringify({ service: 'chog-noir', mode: 'health_only', gameAvailable: false,
       indexer: { state: 'stopped_after_reliability_check', reliability: report.status, completedAt: report.finishedAt,
         toBlockExclusive: report.toBlockExclusive, transfers: report.stored },
       note: 'Hosting readiness check. No live case has been published.' }));
   } catch {
-    response.writeHead(503); response.end(JSON.stringify({ service: 'chog-noir', stage: 'M0', error: 'RELIABILITY_EVIDENCE_UNAVAILABLE' }));
+    response.writeHead(503); response.end(JSON.stringify({ service: 'chog-noir', mode: 'health_only', error: 'RELIABILITY_EVIDENCE_UNAVAILABLE' }));
   }
 });
 server.listen(port, '127.0.0.1', () => console.log(`Chog Noir readiness API listening on 127.0.0.1:${port}`));

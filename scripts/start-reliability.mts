@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const directory = resolve(root, process.argv[2] ?? `runs/reliability/${new Date().toISOString().replace(/[:.]/g, '-')}`);
 await mkdir(resolve(directory, '..'), { recursive: true });
-await mkdir(directory); // Refuse to overwrite or run a second audit in an existing directory.
+await mkdir(directory); // Refuse to overwrite or run a second observation in an existing directory.
 const output = openSync(resolve(directory, 'monitor.log'), 'a');
 try {
   const child = spawn(process.execPath, ['--import', 'tsx', 'scripts/live-indexer.mts', directory, 'now'], {

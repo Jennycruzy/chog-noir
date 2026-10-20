@@ -1,8 +1,9 @@
+import {privateOutput} from './private-output.mts';
 import {readFile,readdir,writeFile} from 'node:fs/promises';
 import {decodeAbiParameters,parseAbiParameters} from 'viem';
 import {assessRecord,assessSymbol,type RecordInput,type CodeProof} from '../packages/detector/src/records.mts';
 import {verifyFindingSources,type RpcEvidence} from '../packages/detector/src/evidence.mts';
-const root=new URL('../data/wallet-audit/',import.meta.url);
+const root=new URL('../data/wallet-records/',import.meta.url);
 const scan=JSON.parse(await readFile(new URL('report.json',root),'utf8'));
 const rows=JSON.parse(await readFile(new URL('candidates.json',root),'utf8')) as RecordInput[];
 const symbols=JSON.parse(await readFile(new URL('all-token-symbols.json',root),'utf8')) as {address:string;count:number;fetchedAt:string;reply:{result?:`0x${string}`;error?:unknown}}[];
@@ -64,5 +65,5 @@ const report={checkedAt:new Date().toISOString(),scope:scan,startTime:scan.start
  registry:{source:registry.source,fetchedAt:registry.fetchedAt},
  note:'Precision is evaluated for the proof-only detector over the collected 30-day corpus: every accepted synthetic-record finding must match a successful second-provider receipt and that transaction’s execution-time code, with no state access or external execution. Unproven candidates remain REVIEW and are never described as forged. This does not claim perfect recall, resolution of every suspicious record, or accuracy beyond the checked window. Six ordinary receiver-side regressions are excluded before sender detection.'};
 await writeFile(new URL('assessments.json',root),JSON.stringify({findings,symbolFindings,sourceChecks}));
-await writeFile(new URL('../docs/audit/evidence/M0-detector-review-20261017.json',import.meta.url),JSON.stringify(report,null,2));
+await writeFile(await privateOutput('checks/detector.json'),JSON.stringify(report,null,2));
 console.log(JSON.stringify({tokens:report.tokens,transfers:total,syntheticRecords:report.syntheticRecords,unproven:report.unprovenCandidates,legitimateRegressions:legitimateRegressions.length,falsePositives,lookalikeTokens:report.lookalikeTokens.length,symbolUnavailable:report.symbolUnavailable,status:report.status},null,2));

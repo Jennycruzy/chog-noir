@@ -1,7 +1,7 @@
 import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {statelessEmitter} from '../packages/detector/src/records.mts';
-const directory=resolve(process.argv[2]??'runs/wallet-audit-20261017');
+const directory=resolve(process.argv[2]??'runs/wallet-records-20261017');
 const rows=JSON.parse(await readFile(join(directory,'candidates.json'),'utf8')) as {log:{address:string;topics:string[]};tx:{hash:string}}[];
 const wallets=new Set<string>(JSON.parse(await readFile(join(directory,'wallets.json'),'utf8')));
 const archive=process.argv.includes('--archive');

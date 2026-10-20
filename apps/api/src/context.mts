@@ -7,7 +7,7 @@ import {traitsFor} from '../../../packages/traits/src/traits.mts';
 export interface PublicContext {profiles:Map<number,ReturnType<typeof traitsFor>>;history:EnrichedEvent[];times:Map<number,number>;toBlockExclusive:number;coverageAt:number;desk:DeskData|null}
 export async function publicContext(root:string,metadata:Map<number,Metadata>,history:EnrichedEvent[],times:Map<number,number>,toBlockExclusive:number,coverageAt=Math.max(...times.values())):Promise<PublicContext>{
  let desk:DeskData|null=null;
- for(const path of ['data/wallet-audit','runs/wallet-audit-20261017']){
+ for(const path of ['data/wallet-records','runs/wallet-records-20261017']){
   try{
    const [assessments,wallets,scope]=await Promise.all(['assessments.json','wallets.json','report.json'].map(file=>readFile(join(root,path,file),'utf8')));
    const parsed=JSON.parse(assessments!);desk={...parsed,wallets:JSON.parse(wallets!),scope:JSON.parse(scope!)};break;

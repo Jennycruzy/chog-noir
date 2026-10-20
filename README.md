@@ -1,27 +1,25 @@
-Every night something real happens to a Chog on Monad. Every morning you get the case. The Chogs are your witnesses. Chogs can lie. The chain can't.
+Every night something real happens to Chogs on Monad. Every morning your Chog takes the case. One witness is lying. The chain never does.
 
-A first playable archive preview is available at
-[Chog Noir](https://chognoir.54-154-121-30.sslip.io/).
+[Open Chog Noir](https://chognoir.54-154-121-30.sslip.io/).
 
-Choose one of fourteen real cases, pick a partner, question witnesses, examine
-the ledger, catch a planned lie and answer three questions. No wallet is needed.
-This preview uses one evidence card, simplified partner powers and template
-dialogue. Daily cases, live AI dialogue, comics and on-chain publication are
-still being built.
+Chog Noir turns real Chog Genesis transactions on Monad into source-backed detective
+cases. Read the witnesses, compare their claims with transaction receipts, and
+uncover what happened. Witness dialogue can contain deliberately false claims;
+the underlying chain records remain unchanged.
+
+The deployed archive edition offers fourteen real historical cases with template
+witness dialogue. Archive play is labelled practice and does not earn daily streaks
+or on-chain records. Consult the application's health response for its publication
+mode and chain status.
 
 | Part | What it uses |
 | --- | --- |
-| Cases and ledger | Real Monad transactions, with links to the records |
-| Answers | Server-held key and saved cryptographic commitment; on-chain publication pending |
-| Witness voice | Lines written from selected facts, with planned in-game lies |
+| Cases and receipts | Stored real Monad transactions, with explorer links |
+| Answers | Server-held keys and saved cryptographic commitments; archive commitments are local |
+| Witness voice | Templates built from selected facts and planned in-game false statements |
 | Art | Original Chog Genesis art with a noir treatment |
 
+Read about [case construction](docs/cases/README.md), [transfer ingestion](docs/indexer.md),
+[Scam Desk](docs/detector.md), and [VPS operations](docs/vps.md).
+
 Chog Genesis by CHOGLABS. Unofficial Chogathon entry.
-
-Development: [source-backed case builder](docs/cases/README.md),
-[archive case review](docs/cases/archive-review.md), and
-[VPS operations](docs/vps.md).
-
-See [preview behavior and verification](docs/game-preview.md) for the implemented
-flow, session boundaries, checks and remaining work. Archive practice does not
-earn daily streaks or on-chain records.

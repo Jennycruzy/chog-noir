@@ -1,3 +1,4 @@
+import {privateOutput} from './private-output.mts';
 import Anthropic from '@anthropic-ai/sdk';
 import { createHash } from 'node:crypto';
 import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
@@ -64,11 +65,11 @@ if(state.pending.length){
   const report={checkedAt:new Date().toISOString(),model,corpusDigest:digest,rows:corpus.rows.length,firstTryPass:firstPass,firstTryRate:firstPass/corpus.rows.length,
     finalPass:validFinal,fallbacks:results.filter(result=>result.fallback).length,refusals:refusalCount,
     automaticStatus:firstPass/corpus.rows.length>=0.98&&validFinal===corpus.rows.length&&refusalCount===0?'PASS':'FAIL',humanReview:'PENDING',status:'HUMAN_REVIEW_REQUIRED',reservedDollars:state.reservedDollars};
-  await mkdir(new URL('../docs/evals/',import.meta.url),{recursive:true});
-  await writeFile(new URL('../docs/evals/witness-eval.json',import.meta.url),JSON.stringify(report,null,2));
+
+  await writeFile(await privateOutput('evals/witness-eval.json'),JSON.stringify(report,null,2));
   const review=Array.from({length:60},(_,index)=>{const row=corpus.rows[Math.floor(index*corpus.rows.length/60)]!;return {id:row.id,card:row.card,voice:row.voice,isPlannedLie:row.isLie,line:state.results[row.id]!.final!.line,displayFacts:row.displayFacts,good:null,offensive:null,comment:''};});
   // Never overwrite the human's ratings on a repeated collection command.
-  try{await readFile(new URL('../docs/evals/witness-review.json',import.meta.url));}
-  catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;await writeFile(new URL('../docs/evals/witness-review.json',import.meta.url),JSON.stringify({instructions:'Human review: set good and offensive to true/false for all 60 lines. Planned lies are intentional testimony for evaluation only. Target: at least 54 good, zero offensive.',rows:review},null,2));}
+  try{await readFile(await privateOutput('evals/witness-review.json'));}
+  catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;await writeFile(await privateOutput('evals/witness-review.json'),JSON.stringify({instructions:'Human review: set good and offensive to true/false for all 60 lines. Planned lies are intentional testimony for evaluation only. Target: at least 54 good, zero offensive.',rows:review},null,2));}
   console.log(JSON.stringify(report,null,2));
 }

@@ -210,7 +210,7 @@ export function gameServer({root,cases,partners,allPartners,context,assetsRoot=r
     try{return json(response,200,{...precinctReport(day,context.history,context.times),toBlockExclusive:context.toBlockExclusive});}catch{throw new GameError(400,'Choose a valid UTC date.');}
    }
    if(request.method==='GET'&&url.pathname==='/api/scam-desk'){
-    if(!context?.desk)throw new GameError(503,'The saved proof-backed audit is not available yet.');
+    if(!context?.desk)throw new GameError(503,'The saved proof-backed records is not available yet.');
     try{return json(response,200,lookupDesk(url.searchParams.get('wallet')??'',context.desk));}catch{throw new GameError(400,'Enter a full Monad wallet address.');}
    }
    if(request.method!=='POST'||!['/api/session','/api/session/action','/api/player/delete'].includes(url.pathname))throw new GameError(404,'Not found.');

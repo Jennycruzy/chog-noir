@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-const rows=JSON.parse(await readFile(new URL('../data/wallet-audit/candidates.json',import.meta.url),'utf8')) as {log:{address:string;blockNumber:number};tx:{hash:string}}[];
-const root=new URL('../data/wallet-audit/proofs/',import.meta.url);await mkdir(root,{recursive:true});
+const rows=JSON.parse(await readFile(new URL('../data/wallet-records/candidates.json',import.meta.url),'utf8')) as {log:{address:string;blockNumber:number};tx:{hash:string}}[];
+const root=new URL('../data/wallet-records/proofs/',import.meta.url);await mkdir(root,{recursive:true});
 for(const address of [...new Set(rows.map(row=>row.log.address.toLowerCase()))]){
  const example=rows.filter(row=>row.log.address.toLowerCase()===address).sort((a,b)=>b.log.blockNumber-a.log.blockNumber)[0]!;
  const requests=[{jsonrpc:'2.0',id:1,method:'debug_traceTransaction',params:[example.tx.hash,{tracer:'prestateTracer'}]},

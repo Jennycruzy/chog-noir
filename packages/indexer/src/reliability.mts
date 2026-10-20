@@ -30,5 +30,5 @@ export function compareReliability(input: {
   return { startedAt, finishedAt, durationSeconds, elapsedSeconds, fromBlock, toBlockExclusive, fullWindow,
     status: !fullWindow ? 'INTERRUPTED' : status !== 'PASS' || stored.duplicates || reference.duplicates || missing.length || unexpected.length || conflicting.length ? 'FAIL' : reference.map.size === 0 ? 'INCONCLUSIVE' : 'PASS',
     expected: reference.map.size, stored: stored.map.size, storedDuplicates: stored.duplicates, referenceDuplicates: reference.duplicates, missing, unexpected, conflicting,
-    note: 'Fresh full-range HyperSync comparison against saved incremental ingestion; not an independent-provider or chain-finality check. Does not pass other M0 checks.' };
+    note: 'Fresh full-range HyperSync comparison against saved incremental ingestion; not an independent-provider or chain-finality check.' };
 }

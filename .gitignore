@@ -5,8 +5,8 @@ node_modules/
 .next/
 dist/
 coverage/
-data/
-runs/
+/data
+/runs
 SPEC-ITEMS.md
 *SPEC*.md
 chognoir-private/
@@ -16,3 +16,18 @@ out/
 cache/
 
 /release-archive.json
+
+/docs/audit/
+/docs/evals/
+/docs/decisions.md
+/docs/implementation-status.md
+/docs/game-preview.md
+/docs/cases/archive-review.md
+/playtests.md
+/decisions.md
+/status.md
+
+/audit/
+/evals/
+/reviews/
+/docs/reviews/

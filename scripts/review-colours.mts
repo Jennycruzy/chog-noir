@@ -4,14 +4,14 @@ import { required, type StoredMetadata } from './data-types.mts';
 
 interface ColourSample { tokenId: number; flatCorners: boolean; corners: number[][] }
 interface ArtAudit { imagesChecked: number; allImagesPresent: boolean; backgrounds: Record<string, ColourSample[]>; traitExceptions: Array<{ tokenId: number; missingBackground: boolean }> }
-const audit = JSON.parse(await readFile(new URL('../runs/checks/art-check.json', import.meta.url), 'utf8')) as ArtAudit;
-if (!audit.allImagesPresent || audit.imagesChecked !== 1969) throw new Error('DATA_ART_CHECK: Complete the artwork check before colour review');
+const artReport = JSON.parse(await readFile(new URL('../runs/checks/art-check.json', import.meta.url), 'utf8')) as ArtAudit;
+if (!artReport.allImagesPresent || artReport.imagesChecked !== 1969) throw new Error('DATA_ART_CHECK: Complete the artwork check before colour review');
 const output = new URL('../runs/colour-review/', import.meta.url);
 await mkdir(output, { recursive: true });
 const xml = (value: string) => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&apos;');
 const spread = (sample: ColourSample) => [0, 1, 2].reduce((total, channel) => total + Math.max(...sample.corners.map(pixel => required(pixel[channel], 'DATA_IMAGE: Missing channel'))) - Math.min(...sample.corners.map(pixel => required(pixel[channel], 'DATA_IMAGE: Missing channel'))), 0);
-const backgrounds = Object.entries(audit.backgrounds).sort(([left], [right]) => left.localeCompare(right)).map(([label, samples]) => ({ label, tokenId: required([...samples].sort((left, right) => spread(left) - spread(right) || left.tokenId - right.tokenId)[0], 'DATA_ART_CHECK: Empty background group').tokenId }));
-const specials = audit.traitExceptions.filter(record => record.missingBackground).map(record => ({ label: 'No Background trait', tokenId: record.tokenId }));
+const backgrounds = Object.entries(artReport.backgrounds).sort(([left], [right]) => left.localeCompare(right)).map(([label, samples]) => ({ label, tokenId: required([...samples].sort((left, right) => spread(left) - spread(right) || left.tokenId - right.tokenId)[0], 'DATA_ART_CHECK: Empty background group').tokenId }));
+const specials = artReport.traitExceptions.filter(record => record.missingBackground).map(record => ({ label: 'No Background trait', tokenId: record.tokenId }));
 async function sheet(records: Array<{ label: string; tokenId: number }>, name: string) {
   const width = 240;
   const height = 292;

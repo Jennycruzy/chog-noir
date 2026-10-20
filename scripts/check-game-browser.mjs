@@ -1,3 +1,4 @@
+import {privateOutput} from './private-output.mts';
 import {createServer} from 'node:http';
 import {spawn} from 'node:child_process';
 import {mkdtemp,mkdir,readFile,writeFile,rm} from 'node:fs/promises';
@@ -8,7 +9,8 @@ import {setTimeout as pause} from 'node:timers/promises';
 import assert from 'node:assert/strict';
 import WebSocket from 'ws';
 import {loadGame,gameServer} from '../apps/api/src/game.mts';
-const root=fileURLToPath(new URL('../',import.meta.url)),output=join(root,'runs/game-preview/browser');
+const keyboardOnly=process.env.CHOG_BROWSER_KEYBOARD_ONLY==='true';
+const root=fileURLToPath(new URL('../',import.meta.url)),output=await privateOutput(keyboardOnly?'checks/browser-keyboard':'checks/browser');
 await mkdir(output,{recursive:true});
 const data=await loadGame(root),temporary=await mkdtemp(join(tmpdir(),'chog-browser-'));
 const game=gameServer({root:temporary,assetsRoot:root,...data,secure:false});
@@ -39,9 +41,12 @@ try{
  await send('Runtime.enable');await send('Page.enable');
  const evaluate=async expression=>{const value=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(value.exceptionDetails)throw new Error(value.exceptionDetails.exception?.description??value.exceptionDetails.text);return value.result.value;};
  const until=async(expression,label)=>{const start=Date.now();while(Date.now()-start<90000){if(await evaluate(expression))return;await pause(300);}throw new Error(`Browser condition timed out: ${label}; ${await evaluate("JSON.stringify({notice:document.querySelector('#notice')?.textContent,heading:document.querySelector('h1')?.textContent,modal:document.querySelector('#modal')?.open})")}`);};
- const key=async value=>{const keyCode={Enter:13,Tab:9,ArrowDown:40,ArrowRight:39,Home:36,' ':32}[value];await send('Input.dispatchKeyEvent',{type:'keyDown',key:value,code:value,windowsVirtualKeyCode:keyCode,nativeVirtualKeyCode:keyCode,...(value==='Enter'?{text:'\r'}:{})});await send('Input.dispatchKeyEvent',{type:'keyUp',key:value,code:value,windowsVirtualKeyCode:keyCode,nativeVirtualKeyCode:keyCode});};
- const keyboardActivate=async selector=>{for(let attempt=0;attempt<150;attempt++){if(await evaluate(`document.activeElement?.matches(${JSON.stringify(selector)})`)){await key('Enter');return;}await key('Tab');}throw new Error('Keyboard could not reach '+selector);};
- const click=async selector=>{await until(`document.querySelector(${JSON.stringify(selector)})&&!document.querySelector(${JSON.stringify(selector)}).disabled`,'enabled '+selector);await evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);};
+ const key=async value=>{const keyCode={Enter:13,Tab:9,ArrowDown:40,ArrowRight:39,Home:36,' ':32}[value];await send('Input.dispatchKeyEvent',{type:'keyDown',key:value,code:value===' '?'Space':value,windowsVirtualKeyCode:keyCode,nativeVirtualKeyCode:keyCode,...(value==='Enter'?{text:'\r'}:{})});await send('Input.dispatchKeyEvent',{type:'keyUp',key:value,code:value===' '?'Space':value,windowsVirtualKeyCode:keyCode,nativeVirtualKeyCode:keyCode});};
+ const keyboardFocus=async selector=>{for(let attempt=0;attempt<150;attempt++){if(await evaluate(`document.activeElement?.matches(${JSON.stringify(selector)})`))return;await key('Tab');}throw new Error('Keyboard could not reach '+selector);};
+ const keyboardActivate=async selector=>{await keyboardFocus(selector);await key('Enter');};
+ const click=async selector=>{await until(`document.querySelector(${JSON.stringify(selector)})&&!document.querySelector(${JSON.stringify(selector)}).disabled`,'enabled '+selector);if(keyboardOnly)await keyboardActivate(selector);else await evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);};
+ const selectValue=async(selector,value)=>{if(!keyboardOnly)return evaluate(`document.querySelector(${JSON.stringify(selector)}).value=${JSON.stringify(value)}`);await keyboardFocus(selector);await key('Home');const index=await evaluate(`[...document.querySelector(${JSON.stringify(selector)}).options].findIndex(option=>option.value===${JSON.stringify(value)})`);assert.ok(index>=0);for(let i=0;i<index;i++)await key('ArrowDown');assert.equal(await evaluate(`document.querySelector(${JSON.stringify(selector)}).value`),value);};
+ const fill=async(selector,value)=>{if(!keyboardOnly)return evaluate(`document.querySelector(${JSON.stringify(selector)}).value=${JSON.stringify(value)}`);await keyboardFocus(selector);await send('Input.insertText',{text:value});};
  const screenshot=async name=>{const {data}=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile(join(output,name),Buffer.from(data,'base64'));};
  await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});
  await send('Page.navigate',{url:origin});await until("document.querySelector('.hero')",'landing page');
@@ -56,11 +61,11 @@ try{
  await click(`[data-open="${wrongProof.id}"]`);await until("document.querySelector('.proof-open')",'examined record');
  const playsBefore=await evaluate("Number(document.querySelector('.plays').firstChild.textContent.trim())");
  await click(`[data-accuse="${lie.witness}"]`);await until("document.querySelector('#proof')",'wrong proof chooser');
- await evaluate(`document.querySelector('#proof').value=${JSON.stringify(wrongProof.id)}`);await click('[data-confirm-accuse]');
+ await selectValue('#proof',wrongProof.id);await click('[data-confirm-accuse]');
  await until("document.querySelector('.testimony .closed-note')",'wrong accusation feedback');assert.equal(await evaluate("Number(document.querySelector('.plays').firstChild.textContent.trim())"),playsBefore-1);
  await click(`[data-power="${lie.ledgerId}"]`);await until("document.querySelectorAll('.proof-open').length===2",'opened evidence');
  await click(`[data-accuse="${lie.witness}"]`);await until("document.querySelector('#modal').open&&document.querySelector('#proof')",'proof chooser');
- await evaluate(`document.querySelector('#proof').value=${JSON.stringify(lie.ledgerId)}`);await click('[data-confirm-accuse]');
+ await selectValue('#proof',lie.ledgerId);await click('[data-confirm-accuse]');
  await until("document.querySelector('.caught')",'lie caught');
  await screenshot('desktop-room.png');
  await send('Page.reload');await until("document.querySelector('.caught')",'refresh restores caught lie');
@@ -70,7 +75,8 @@ try{
  await click('[data-action="questions"]');await until("document.querySelector('#answers')",'case questions');
  await screenshot('mobile-questions.png');
  for(const [questionId,answerId] of Object.entries(draft.private.key.answers)){
-  await evaluate(`(()=>{const input=document.querySelector('input[name="${questionId}"][value="${answerId}"]');input.click();input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
+  if(keyboardOnly){await keyboardFocus(`input[name="${questionId}"]`);await key(' ');for(let attempt=0;attempt<4&&await evaluate('document.activeElement.value')!==answerId;attempt++)await key('ArrowRight');assert.equal(await evaluate('document.activeElement.value'),answerId);}
+  else await evaluate(`(()=>{const input=document.querySelector('input[name="${questionId}"][value="${answerId}"]');input.click();input.dispatchEvent(new Event('change',{bubbles:true}));})()`);
  }
  await click('#submit-case');await until("document.querySelector('.grade')",'scored reveal');
  assert.equal(await evaluate("document.querySelector('.grade').textContent"),'A');
@@ -93,14 +99,14 @@ try{
  await send('Page.reload');await until("document.querySelector('.profile-head')",'direct profile reload');
  await click('[data-nav="cases"]');await until("document.querySelector('.desk-nav')",'home before report');await click('[data-nav="report"]');await until("document.querySelector('#report-date')",'precinct report');
  await click('[data-nav="cases"]');await until("document.querySelector('.desk-nav')",'home before desk');await click('[data-nav="desk"]');await until("document.querySelector('#desk-search')",'Scam Desk');
- const auditedWallet=data.context.desk?.findings.find(item=>item.result.status==='SYNTHETIC_RECORD')?.result.sender;assert.ok(auditedWallet,'Saved proof audit must be available for this acceptance run');
- await evaluate(`document.querySelector('#desk-search input').value=${JSON.stringify(auditedWallet)}`);await click('#desk-search button');await until("document.querySelector('.truth')",'proof-backed desk findings');
+ const auditedWallet=data.context.desk?.findings.find(item=>item.result.status==='SYNTHETIC_RECORD')?.result.sender;assert.ok(auditedWallet,'Saved proof records must be available for this acceptance run');
+ await fill('#desk-search input',auditedWallet);await click('#desk-search button');await until("document.querySelector('.truth')",'proof-backed desk findings');
  await click('[data-nav="cases"]');await until("document.querySelector('.desk-nav')",'home before verify');await click('[data-nav="verify"]');await until("document.querySelector('#verify-case')",'verification page');
- await evaluate(`document.querySelector('#verify-case input').value=${JSON.stringify(caseId)}`);await click('#verify-case button');await until("document.querySelector('.helper b')?.textContent==='LOCAL_ONLY'",'honest archive verification');
+ await fill('#verify-case input',caseId);await click('#verify-case button');await until("document.querySelector('.helper b')?.textContent==='LOCAL_ONLY'",'honest archive verification');
  assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth'),'Utility pages overflow 360px viewport');
  assert.deepEqual(exceptions,[],'Browser raised JavaScript errors');
- const report={checkedAt:new Date().toISOString(),status:'PASS',browser:'Chromium 1234 cached on VPS',caseId,widths:[1440,360],downloads,checks:['keyboard landing and partner selection','portrait, landscape and share downloads','reduced-motion preference','landing and original artwork','partner selection','question witness','free partner unseal','wrong accusation deducts one play','evidence-backed lie accusation','refresh resumes caught lie','answer three questions','server-scored A reveal','browser casebook','partner collection and profile reload','precinct report','proof-backed Scam Desk','honest archive verification','navigation after mutations','no horizontal overflow at 360px','no JavaScript exceptions'],screenshots:['desktop-files.png','desktop-room.png','mobile-room.png','mobile-questions.png','mobile-reveal.png','mobile-files.png']};
- await writeFile(join(root,'docs/audit/evidence/game-preview-browser.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
+ const report={checkedAt:new Date().toISOString(),status:'PASS',keyboardOnly,browser:'Chromium 1234 cached on VPS',caseId,widths:[1440,360],downloads,checks:['keyboard landing and partner selection','portrait, landscape and share downloads','reduced-motion preference','landing and original artwork','partner selection','question witness','free partner unseal','wrong accusation deducts one play','evidence-backed lie accusation','refresh resumes caught lie','answer three questions','server-scored A reveal','browser casebook','partner collection and profile reload','precinct report','proof-backed Scam Desk','honest archive verification','navigation after mutations','no horizontal overflow at 360px','no JavaScript exceptions'],screenshots:['desktop-files.png','desktop-room.png','mobile-room.png','mobile-questions.png','mobile-reveal.png','mobile-files.png']};
+ await writeFile(await privateOutput(keyboardOnly?'checks/game-preview-browser-keyboard.json':'checks/game-preview-browser.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
 }finally{
  socket?.close();chrome.kill('SIGTERM');
  await new Promise(resolve=>server.close(()=>resolve()));

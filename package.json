@@ -26,7 +26,7 @@
     "eval:tone:prepare": "tsx scripts/template-review.mts",
     "eval:tone:grade": "tsx scripts/template-review.mts --grade",
     "cases:build": "node --import tsx scripts/build-case-archive.mts",
-    "audit:wallet-history": "tsx scripts/audit-wallet-history.mts",
+    "data:wallet-history": "tsx scripts/scan-wallet-history.mts",
     "data:art": "tsx scripts/check-art.mts",
     "data:owners": "tsx scripts/check-owners.mts",
     "data:escrow": "tsx scripts/check-escrow.mts",

@@ -1,3 +1,4 @@
+import {privateOutput} from './private-output.mts';
 import {mkdtemp,rm,mkdir,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -40,8 +41,8 @@ try{
   results.push({caseId:draft.public.id,partnerPower:partner.power,score:state.result.score,grade:state.result.grade,commitmentVerified:true});
  }
  const report={checkedAt:new Date().toISOString(),status:'PASS',mode:'ARCHIVE_PREVIEW',cases:results.length,checks:['initial response hides key, salt and sealed fact text','partner ability and card accounting','evidence-backed lie accusation','all three answers and server score','revealed commitment matches saved archive'],results};
- await mkdir(new URL('../docs/audit/evidence/',import.meta.url),{recursive:true});
- await writeFile(new URL('../docs/audit/evidence/game-preview.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
+
+ await writeFile(await privateOutput('checks/game-preview.json'),JSON.stringify(report,null,2)+'\n');
  console.log(JSON.stringify(report,null,2));
 }finally{
  await new Promise<void>(resolve=>server.close(()=>resolve()));

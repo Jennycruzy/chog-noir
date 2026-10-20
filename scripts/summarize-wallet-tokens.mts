@@ -1,6 +1,6 @@
 import {readFile,readdir,writeFile} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
-const directory=resolve(process.argv[2]??'runs/wallet-audit-20261017');
+const directory=resolve(process.argv[2]??'runs/wallet-records-20261017');
 const seen=new Set<string>(),tokens=new Map<string,number>();
 for(const file of await readdir(directory)){
  if(!/^[0-9a-f]{64}\.json$/.test(file))continue;

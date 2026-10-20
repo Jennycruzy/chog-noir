@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { openLiveIndexer } from '../src/live.mts';
 import type { RecoveryPage } from '../src/recovery.mts';
 const source: RecoveryPage = JSON.parse(await readFile(new URL('fixtures/subscription-recovery.json', import.meta.url), 'utf8'));
-const comparison = JSON.parse(await readFile(new URL('../../../docs/audit/evidence/M0-subscription-comparison.json', import.meta.url), 'utf8'));
+const comparison = JSON.parse(await readFile(new URL('fixtures/disconnected-transfers.json', import.meta.url), 'utf8'));
 const start = source.query.fromBlock, end = source.query.toBlock;
 const log = source.reply.data.logs[0]!;
 const identity = (item: typeof log) => `${item.transactionHash.toLowerCase()}:${item.logIndex}`;

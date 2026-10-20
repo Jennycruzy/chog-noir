@@ -1,6 +1,0 @@
-{
-  "fetchedAt": "2026-10-17T07:27:03.313Z",
-  "path": "/api/v2/collections/chog-genesis/stats",
-  "status": 200,
-  "body": "{\n  \"total\" : {\n    \"volume\" : 146.5444611986728,\n    \"volume_symbol\" : \"ETH\",\n    \"sales\" : 1565,\n    \"num_owners\" : 982,\n    \"floor_price\" : 5996.9999,\n    \"floor_price_symbol\" : \"MON\"\n  },\n  \"intervals\" : [ {\n    \"interval\" : \"one_day\",\n    \"volume\" : 0.10496489492981739,\n    \"volume_symbol\" : \"ETH\",\n    \"sales\" : 2\n  }, {\n    \"interval\" : \"seven_day\",\n    \"volume\" : 2.2900557857264543,\n    \"volume_symbol\" : \"ETH\",\n    \"sales\" : 46\n  }, {\n    \"interval\" : \"thirty_day\",\n    \"volume\" : 22.706889339942183,\n    \"volume_symbol\" : \"ETH\",\n    \"sales\" : 364\n  } ]\n}"
-}

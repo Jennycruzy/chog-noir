@@ -1,3 +1,4 @@
+import {privateOutput} from './private-output.mts';
 import {mkdir,readFile,writeFile,rename} from 'node:fs/promises';
 import {createHash,randomBytes} from 'node:crypto';
 import type {EnrichedEvent} from '../packages/core/src/enrich.mts';
@@ -77,7 +78,7 @@ await writeFile(new URL('fallback.json.tmp',directory),JSON.stringify({inputHash
 await rename(new URL('fallback.json.tmp',directory),new URL('fallback.json',directory));
 await writeFile(new URL('inputs.json',directory),JSON.stringify({inputHash,config:rules,historyEvents:rows.length,coverageEndExclusive:new Date(end*1000).toISOString(),rejected},null,2));
 const report={checkedAt:new Date().toISOString(),status:'DRAFT_ARCHIVE_VALIDATED',fallbackCases:fallback.length,inputHash,replayVerified:verifyReplay,cases:cases.length,days:selections.map(item=>item.day),candidateCounts:Object.fromEntries([...new Set(candidates.map(item=>item.type))].sort().map(type=>[type,candidates.filter(item=>item.type===type).length])),selectedTypes:Object.fromEntries([...new Set(cases.map(item=>item.public.type))].sort().map(type=>[type,cases.filter(item=>item.public.type===type).length])),questions:cases.reduce((sum,item)=>sum+item.public.questions.length,0),testimonySource:'VALIDATED_TEMPLATES',plannedLies:cases.length,lieCards:[...lieCards].sort(),subjectLiars,sourceWindowEndExclusive:new Date(end*1000).toISOString(),publicGamePublished:false,onchainCommitment:'NOT_SUBMITTED',humanReview:'PENDING',rejectedCandidates:rejected.length};
-await mkdir(new URL('docs/cases/',root),{recursive:true});
+
 const lines=['# Archive case review','','These are source-backed drafts for review, with answer spoilers below each case. They are not live daily cases. Dialogue uses deterministic templates; no Claude generation or human approval is claimed. Prices are gross payments including fees. MON and WMON use the same native-unit bands. The recent reference is a seven-sale median, not a historical floor quote.','','Only the sale-based Quick Exit, Big Spender, Long Goodbye and general archive builders are implemented here. Other case families, final partner-group approval, interactive play and on-chain publication remain separate work.',''];
 for(const [index,draft] of cases.entries()){
  const pub=draft.public;
@@ -95,6 +96,6 @@ for(const [index,draft] of cases.entries()){
  for(const question of pub.questions){const index=question.options.findIndex(option=>option.id===draft.private.key.answers[question.id]);lines.push(`- ${question.id}: ${String.fromCharCode(65+index)} — ${question.options[index]!.label}. Ledger: ${question.ledgerId}.`);}
  lines.push(`- Planned lie: ${metadata.get(draft.private.key.lie.witness)!.name} claims “${draft.private.key.lie.claim}” on ${draft.private.key.lie.card}. The source-linked ledger proves ${draft.private.key.lie.truth}.`,'','</details>','');
 }
-await writeFile(new URL('docs/cases/archive-review.md',root),lines.join('\n'));
-await writeFile(new URL('docs/audit/evidence/case-archive.json',root),JSON.stringify(report,null,2)+'\n');
+await writeFile(await privateOutput('reviews/archive-review.md'),lines.join('\n'));
+await writeFile(await privateOutput('checks/case-archive.json'),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));

@@ -69,7 +69,7 @@ test('prevents concurrent writers', () => temporary(async directory => {
 }));
 test('recovers all four transfers missed in the real six-hour run and resumes without refetching', () => temporary(async directory => {
   const source: RecoveryPage = JSON.parse(await readFile(new URL('fixtures/subscription-recovery.json', import.meta.url), 'utf8'));
-  const comparison = JSON.parse(await readFile(new URL('../../../docs/audit/evidence/M0-subscription-comparison.json', import.meta.url), 'utf8'));
+  const comparison = JSON.parse(await readFile(new URL('fixtures/disconnected-transfers.json', import.meta.url), 'utf8'));
   const options = { directory, fromBlock: source.query.fromBlock, toBlock: source.query.toBlock };
   const recovered = await recoverTransfers({ ...options, fetchPage: async () => source });
   expect(recovered.transfers).toBe(10);

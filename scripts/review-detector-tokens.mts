@@ -3,9 +3,9 @@ import { loadEnv } from './env.mts';
 import { decodeAbiParameters, parseAbiParameters, toFunctionSelector } from 'viem';
 await loadEnv();
 if (!process.env.ETHERSCAN_API_KEY) throw new Error('AUDIT_KEY: Etherscan key missing');
-const rows=JSON.parse(await readFile(new URL('../data/wallet-audit/candidates.json',import.meta.url),'utf8')) as {log:{address:string;blockNumber:number};tx:{input:string}}[];
+const rows=JSON.parse(await readFile(new URL('../data/wallet-records/candidates.json',import.meta.url),'utf8')) as {log:{address:string;blockNumber:number};tx:{input:string}}[];
 const tokens=[...new Set(rows.map(row=>row.log.address.toLowerCase()))];
-const root=new URL('../data/wallet-audit/tokens/',import.meta.url);await mkdir(root,{recursive:true});
+const root=new URL('../data/wallet-records/tokens/',import.meta.url);await mkdir(root,{recursive:true});
 async function rpc(method:string,params:unknown[]){const request={jsonrpc:'2.0',id:1,method,params};const fetchedAt=new Date().toISOString();const response=await fetch('https://rpc.monad.xyz',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(request),signal:AbortSignal.timeout(30000)});const reply=await response.json();return {fetchedAt,request,reply};}
 for(const address of tokens){
   const request={chainid:'143',module:'contract',action:'getsourcecode',address};

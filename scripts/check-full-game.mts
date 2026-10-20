@@ -1,3 +1,4 @@
+import {privateOutput} from './private-output.mts';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
@@ -42,4 +43,4 @@ const dictionary=traitDictionary(metadata),reviewPath=join(root,'runs/game-compl
 // Raw metadata is retained in this private review packet; the public API receives only clean labels.
 await writeFile(reviewPath,JSON.stringify(dictionary,null,2),{mode:0o600});
 const report={checkedAt:new Date().toISOString(),status:'PASS',cases:summaries.length,partners:data.allPartners.length,partnerCounts:{powers:Object.fromEntries(['XRAY','ANALYST','TAKES_ONE','EMPATH'].map(power=>[power,data.allPartners.filter(item=>item.power===power).length])),moneyTalk:data.allPartners.filter(item=>item.moneyTalk).length,special:data.allPartners.filter(item=>item.special).length,sides:Object.fromEntries(['BUYER','SELLER'].map(side=>[side,data.allPartners.filter(item=>item.side===side).length]))},cardVariantsValidated:testimony,cleanTraitValues:dictionary.values.length,traitReview:'PENDING_USER_REVIEW',claudeEvaluation:'DEFERRED',provenRecords,comic:{width:comicMetadata.width,height:comicMetadata.height},share:{width:shareMetadata.width,height:shareMetadata.height,bytes:share.length,limitBytes:300_000},onchainWrites:0,summaries};
-await writeFile(join(root,'docs/audit/evidence/full-game.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));
+await writeFile(await privateOutput('checks/full-game.json'),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));

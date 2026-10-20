@@ -1,6 +1,6 @@
 import {readFile,readdir,writeFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
-const root=join(resolve(process.argv[2]??'runs/wallet-audit-20261017'),'transaction-proofs-goldsky');
+const root=join(resolve(process.argv[2]??'runs/wallet-records-20261017'),'transaction-proofs-goldsky');
 const files=(await readdir(root)).filter(file=>/^0x[0-9a-f]{64}\.json$/.test(file));
 const hashes=[];
 for(const file of files){const saved=JSON.parse(await readFile(join(root,file),'utf8'));if(saved.reply.result)hashes.push(file.slice(0,-5));}
