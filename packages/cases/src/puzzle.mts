@@ -7,7 +7,7 @@ import {validateLine} from '../../witness/src/lines.mts';
 
 export type LieKind='D1'|'D2'|'D3'|'D4'|'D5'|'D6'|'I1'|'I2'|'I3'|'I4'|'I5'|'I6';
 export type LieId='A'|'B'|'C';
-export interface PuzzleReceipt {id:string;text:string;exactText:string;at:number;sources:Source[];sealed:boolean;facts:{id:string;value:string}[]}
+export interface PuzzleReceipt {id:string;text:string;exactText:string;at:number;sources:Source[];sealed:boolean;facts:{id:string;value:string}[];tokenIds?:number[]}
 export interface PuzzleStatement {id:string;witness:number;slot:'opening'|'followup';line:string;claim:{factId:string;value:string};requiresCaught:LieId[]}
 export interface PuzzleLie {id:LieId;witness:number;statementId:string;kind:LieKind;trueValue:string;falseValue:string;receiptId:string;inference:string;unlock:{receiptId:string|null;line:string}}
 export interface PuzzlePlan {statements:PuzzleStatement[];lies:PuzzleLie[]}
@@ -16,7 +16,7 @@ export interface PuzzleFile {
  opensAt:number;closesAt:number;cutoff:Source;cast:{tokenId:number;name:string;nickname:string;side:'BUYER'|'SELLER'|null}[];
  receipts:PuzzleReceipt[];tiles:{id:string;label:string;sources:Source[]}[];blanks:{id:string;label:string}[];
 }
-export interface PuzzleCase {file:PuzzleFile;key:{v:2;caseId:string;salt:string;contentHash:string;receiptIds:string[];answers:Record<string,string>;plans:Record<string,PuzzlePlan>};answerHash:string}
+export interface PuzzleCase {file:PuzzleFile;key:{v:2;caseId:string;salt:string;contentHash:string;receiptIds:string[];answers:Record<string,string>;plans:Record<string,PuzzlePlan>;claimIds?:Partial<Record<LieId,string>>};answerHash:string}
 export class PuzzleError extends Error {constructor(public readonly code:string,message:string){super(message);}}
 const fail=(code:string,message:string):never=>{throw new PuzzleError(code,message);};
 export function dailyDifficulty(day:string){

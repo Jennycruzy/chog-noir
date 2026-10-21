@@ -46,3 +46,17 @@ engine is not proof that a career or an on-chain record has been written.
 
 The Rookie desk uses the same action engine inside its temporary store. It has no
 holder Side or friendship bonuses and labels the result `ROOKIE DESK`.
+
+`ClaimCatalog` derives direct contradictions and inferences from continuous token
+histories. It compares those histories with independently indexed transfers, so
+an omitted round trip cannot reduce an owner count or manufacture a first move.
+Payment claims require a positive, source-backed seller payout; $CHOG receipts
+also check the official token, escrow sender, seller recipient and exact amount.
+A shared signed bulk action proves that transfers travelled together, without
+asserting common wallet ownership or a relationship between people.
+
+`selectClaimPuzzle` composes eligible claims into four to six receipt cards and
+runs the solver for every skill and own-Chog alternative. Related facts share a
+card when separate cards would prove the same contradiction. Unsupported claims
+remain unavailable. `verifyComposedPuzzleSources` reconstructs the selected facts,
+receipts and plans from the saved sources and committed claim identifiers.
