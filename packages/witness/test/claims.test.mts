@@ -51,6 +51,8 @@ test('bulk links need a real shared sender-signed action and never assert common
 });
 test('CHOG evidence requires the official token and the exact seller payout',()=>{
  const example=fixture.examples.find(row=>row.kind==='I6')!;
+ const original=book.forToken(example.tokenId,peers).claims.find(row=>row.kind==='I6')!;
+ expect(original.receipt.text).toBe(original.receipt.exactText);expect(original.receipt.text).not.toContain('about ');
  const changed=structuredClone(fixture.rows);
  for(const row of changed)if(row.event.escrow?.paymentToken===CHOG_TOKEN&&row.event.escrow.paymentProof.kind==='ERC20')row.event.escrow.paymentProof.log.address=WMON;
  const claims=new ClaimCatalog({...input,history:changed}).forToken(example.tokenId,peers);

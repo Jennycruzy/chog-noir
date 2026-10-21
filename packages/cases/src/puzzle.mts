@@ -1,6 +1,6 @@
 import {keccak256,toBytes,formatEther} from 'viem';
 import config from '../../../config/cases.json' with {type:'json'};
-import {buildCast,canonicalJSON,type Metadata} from './build.mts';
+import {buildLinkedCast,canonicalJSON,type Metadata} from './build.mts';
 import type {Candidate} from './select.mts';
 import type {EnrichedEvent,Source} from '../../core/src/enrich.mts';
 import {validateLine} from '../../witness/src/lines.mts';
@@ -47,7 +47,7 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
  if(!saved||canonicalJSON(saved)!==canonicalJSON(candidate.row)||times.get(event.block)!==candidate.at||event.class!=='SALE'||event.price?.status!=='EXACT'||!event.price.grossWei||BigInt(event.price.grossWei)<=0n||!['MON','WMON'].includes(event.price.asset)||!['offer_accepted','listing_bought'].includes(event.route??'')||event.evidence.orderLogIndices.length===0)return fail('CASE_SOURCE_INVALID','An exact source-backed sale is required.');
  const opensAt=Date.parse(day+'T00:20:00Z')/1000;
  if(candidate.at>=opensAt)return fail('CASE_SOURCE_FUTURE','Case evidence must predate opening.');
- const cast=buildCast(candidate,history,times,metadata).filter(member=>{
+ const cast=buildLinkedCast(candidate,history,times,metadata).filter(member=>{
   const arrival=history.find(row=>identity(source(row))===identity(member.arrival));
   return arrival&&arrival.event.class!=='UNCLASSIFIED'&&arrival.event.from!==arrival.event.to;
  }).slice(0,difficulty.witnesses);
@@ -90,7 +90,7 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
  };
  const tileInputs=[{label:subject.name,sources:[cutoff]},{label:route,sources:paymentSources},{label:price,sources:paymentSources},...cast.filter(member=>member.tokenId!==event.tokenId).map(member=>({label:member.name,sources:[member.arrival]}))];
  const tiles=tileInputs.map(row=>({id:hash(salt+':tile:'+row.label).slice(0,18),...row})).sort((a,b)=>hash(salt+a.id).localeCompare(hash(salt+b.id)));
- const file:PuzzleFile={v:2,id:'case-'+hash(candidate.id+':'+day).slice(2,26),day,mode,title:'The rain kept the receipt',setup:'A real sale moved '+subject.name+' to a new wallet. Find what the receipts say about the move.',type:candidate.type,subject:{tokenId:event.tokenId,name:subject.name},ruleLine:puzzleRule(day),opensAt,closesAt:opensAt+86400,cutoff,cast:castRows,receipts,tiles,blanks:[{id:'subject',label:'Chog'},{id:'move',label:'moved in a'},{id:'price',label:'for'}]};
+ const file:PuzzleFile={v:2,id:'case-'+hash(candidate.id+':'+day).slice(2,26),day,mode,title:({QUICK_EXIT:'The short stay',BIG_SPENDER:'The heavy envelope',LONG_GOODBYE:'The long goodbye',COLD_CASE:'The ink still holds'} as const)[candidate.type],setup:'A real sale moved '+subject.name+' to a new wallet. Find what the receipts say about the move.',type:candidate.type,subject:{tokenId:event.tokenId,name:subject.name},ruleLine:puzzleRule(day),opensAt,closesAt:opensAt+86400,cutoff,cast:castRows,receipts,tiles,blanks:[{id:'subject',label:'Chog'},{id:'move',label:'moved in a'},{id:'price',label:'for'}]};
  const plans:Record<string,PuzzlePlan>={default:makePlan(null)};for(const id of [primary,secondary])if(id!==null)plans[id]=makePlan(id);
  const puzzle:PuzzleCase={file,key:{v:2,caseId:file.id,salt,contentHash:hash(canonicalJSON(file)),receiptIds:receipts.map(row=>row.id),answers:{subject:tiles.find(row=>row.label===subject.name)!.id,move:tiles.find(row=>row.label===route)!.id,price:tiles.find(row=>row.label===price)!.id},plans},answerHash:''};
  puzzle.answerHash=puzzleHash(puzzle);

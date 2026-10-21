@@ -9,7 +9,7 @@ export interface Metadata {name:string;attributes:{trait_type:string;value:strin
 export interface LedgerFact {id:string;text:string;sources:Source[];sealed:boolean;answerValue?:string}
 export interface Option {id:string;value:string;label:string;sources:Source[]}
 export interface Question {id:string;prompt:string;options:Option[];ledgerId:string}
-export interface CastMember {tokenId:number;name:string;role:'SUBJECT'|'SELLER_ROOMMATE'|'BUYER_ROOMMATE'|'RECENT_SALE'|'NEIGHBOUR';arrival:Source;arrivedAt:number}
+export interface CastMember {tokenId:number;name:string;role:'SUBJECT'|'SELLER_ROOMMATE'|'BUYER_ROOMMATE'|'RECENT_SALE'|'NEIGHBOUR'|'PREVIOUS_ROOMMATE';arrival:Source;arrivedAt:number}
 export interface AnswerKey {answers:Record<string,string>;lie:{witness:number;card:Card;ledgerId:string;truth:string;claim:string};contentHash?:string}
 export interface CaseDraft {
  public:{v:1;id:string;status:'DRAFT';type:Candidate['type'];occurredAt:string;subject:{tokenId:number;name:string};trigger:string;priceBasis:'GROSS_PAYMENT';cast:CastMember[];ledger:LedgerFact[];questions:Question[];testimony:{tokenId:number;card:'ARRIVAL';line:string}[];answerHash:string;publication?:{kind:'MAIN'|'COLD';day:string;opensAt:number;closesAt:number;openTx:string;closeTx:string|null;contract:string;closed:boolean}};
@@ -58,6 +58,29 @@ export function buildCast(candidate:Candidate,history:readonly EnrichedEvent[],t
  for(const row of [...rows].reverse().filter(row=>row.event.class==='SALE'&&times.get(row.event.block)!>=candidate.at-6*3600).slice(0,2))add(row,'RECENT_SALE');
  if(result.length<2)for(const row of [...held.values()].sort((a,b)=>Math.abs(a.event.tokenId-candidate.row.event.tokenId)-Math.abs(b.event.tokenId-candidate.row.event.tokenId)||a.event.tokenId-b.event.tokenId)){add(row,'NEIGHBOUR');if(result.length>=2)break;}
  if(result.length<2)throw new Error('CASE_CAST: Fewer than two source-backed witnesses');
+ return result;
+}
+/** Witnesses must have a recorded connection to the event, never a nearby token number. */
+export function buildLinkedCast(candidate:Candidate,history:readonly EnrichedEvent[],times:ReadonlyMap<number,number>,metadata:ReadonlyMap<number,Metadata>):CastMember[]{
+ const rows=pastRows(candidate,history),held=new Map<number,EnrichedEvent>();
+ for(const row of rows)if(row.event.from!==row.event.to){if(row.event.to===ZERO)held.delete(row.event.tokenId);else held.set(row.event.tokenId,row);}
+ const result:CastMember[]=[],ids=new Set<number>();
+ const add=(id:number,role:CastMember['role'])=>{
+  if(ids.has(id))return;
+  const arrival=held.get(id);if(!arrival||arrival.event.class==='UNCLASSIFIED')return;
+  const name=metadata.get(id)?.name,at=times.get(arrival.event.block);
+  if(!name||at===undefined)throw new Error('CASE_CAST_SOURCE: Missing name or arrival time');
+  result.push({tokenId:id,name,role,arrival:source(arrival),arrivedAt:at});ids.add(id);
+ };
+ add(candidate.row.event.tokenId,'SUBJECT');
+ for(const [wallet,role] of [[candidate.row.event.from,'SELLER_ROOMMATE'],[candidate.row.event.to,'BUYER_ROOMMATE']] as const)
+  for(const row of [...held.values()].filter(row=>row.event.to===wallet).sort((a,b)=>a.event.tokenId-b.event.tokenId))add(row.event.tokenId,role);
+ for(const row of [...rows].reverse())if(row.event.class==='SALE'&&times.get(row.event.block)!>=candidate.at-6*3600)add(row.event.tokenId,'RECENT_SALE');
+ const earlier=new Set(rows.filter(row=>row.event.to===candidate.row.event.from).map(row=>row.event.tokenId));
+ for(const id of [...earlier].sort((a,b)=>a-b))add(id,'PREVIOUS_ROOMMATE');
+ const previousOwners=new Set(rows.filter(row=>row.event.tokenId===candidate.row.event.tokenId&&row.event.from!==ZERO).map(row=>row.event.from));
+ for(const row of [...held.values()].sort((a,b)=>a.event.tokenId-b.event.tokenId))
+  if(previousOwners.has(row.event.to))add(row.event.tokenId,'PREVIOUS_ROOMMATE');
  return result;
 }
 export function castQuality(cast:readonly CastMember[],metadata:ReadonlyMap<number,Metadata>):number{

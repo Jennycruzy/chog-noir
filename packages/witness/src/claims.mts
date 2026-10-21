@@ -20,7 +20,7 @@ const source=(row:EnrichedEvent):Source=>({tx:row.event.tx,block:row.event.block
 const key=(row:Source)=>row.tx.toLowerCase()+':'+row.logIndex;
 const compare=(a:Source,b:Source)=>a.block-b.block||a.logIndex-b.logIndex;
 const timeText=(at:number)=>new Intl.DateTimeFormat('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'UTC',hour12:false}).format(new Date(at*1000))+' UTC';
-const amountText=(wei:string,asset:string,exact=false)=>exact?formatEther(BigInt(wei))+' '+asset:'about '+((BigInt(wei)+25n*10n**18n)/(50n*10n**18n)*50n).toLocaleString('en-US')+' '+asset;
+const amountText=(wei:string,asset:string,exact=false)=>(exact||asset==='$CHOG')?formatEther(BigInt(wei))+' '+asset:'about '+((BigInt(wei)+25n*10n**18n)/(50n*10n**18n)*50n).toLocaleString('en-US')+' '+asset;
 const unique=(rows:Source[])=>[...new Map(rows.map(row=>[key(row),row])).values()].sort(compare);
 const problem=(code:string,message:string):never=>{throw new ClaimSourceError(code,message);};
 

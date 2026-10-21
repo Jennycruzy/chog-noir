@@ -4,7 +4,7 @@ import {keccak256,toBytes} from 'viem';
 import config from '../../../config/cases.json' with {type:'json'};
 import type {EnrichedEvent} from '../../core/src/enrich.mts';
 import type {OwnerSnapshot} from '../../auth/src/holders.mts';
-import {buildCast,canonicalJSON,type Metadata} from '../src/build.mts';
+import {buildCast,buildLinkedCast,canonicalJSON,type Metadata} from '../src/build.mts';
 import {saleCandidates} from '../src/select.mts';
 import {buildSalePuzzle,validatePuzzle,puzzleHash,planFor} from '../src/puzzle.mts';
 import {catalogForPuzzle,composePuzzle,selectClaimPuzzle,verifyComposedPuzzleSources} from '../src/compose.mts';
@@ -53,4 +53,23 @@ test('unproven selections and changed receipt text cannot pass source verificati
 test('a catalogue from another cutoff cannot supply the case claims',()=>{
  const {base,catalog}=build();base.file.cutoff.logIndex++;
  expect(()=>selectClaimPuzzle(base,catalog)).toThrow('case cutoff');
+});
+
+test('witness cast contains recorded event connections and never fills gaps with nearby token numbers',()=>{
+ const source=input(),cast=buildLinkedCast(candidate,source.history,times,metadata);
+ expect(cast.length).toBeGreaterThanOrEqual(3);expect(cast.some(row=>row.role==='NEIGHBOUR')).toBe(false);
+ const before=source.history.filter(row=>row.event.block<candidate.row.event.block||row.event.block===candidate.row.event.block&&row.event.logIndex<=candidate.row.event.logIndex);
+ for(const member of cast){
+  if(member.role==='SUBJECT')expect(member.tokenId).toBe(candidate.row.event.tokenId);
+  else if(member.role==='PREVIOUS_ROOMMATE'){
+   const formerOwners=new Set(before.filter(row=>row.event.tokenId===candidate.row.event.tokenId).map(row=>row.event.from));
+   const arrival=before.find(row=>row.event.tx===member.arrival.tx&&row.event.logIndex===member.arrival.logIndex)!;
+   expect(before.some(row=>row.event.tokenId===member.tokenId&&row.event.to===candidate.row.event.from)||formerOwners.has(arrival.event.to)).toBe(true);
+  }
+  else if(member.role==='RECENT_SALE')expect(before.some(row=>row.event.tokenId===member.tokenId&&row.event.class==='SALE'&&times.get(row.event.block)!>=candidate.at-6*3600)).toBe(true);
+  else{const arrival=before.find(row=>row.event.tx===member.arrival.tx&&row.event.logIndex===member.arrival.logIndex)!;expect(arrival.event.to).toBe(member.role==='SELLER_ROOMMATE'?candidate.row.event.from:candidate.row.event.to);}
+ }
+ const isolated=source.history.filter(row=>row.event.tokenId===candidate.row.event.tokenId);
+ expect(buildLinkedCast(candidate,isolated,times,metadata)).toHaveLength(1);
+ expect(()=>buildSalePuzzle({...source,history:isolated})).toThrow('eligible witnesses');
 });
