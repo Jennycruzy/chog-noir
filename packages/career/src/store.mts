@@ -15,7 +15,7 @@ export interface Career {
 const validToken=(id:number)=>Number.isSafeInteger(id)&&id>=1&&id<=1969;
 function dayTime(day:string){const time=Date.parse(day+'T00:00:00Z');if(!/^\d{4}-\d\d-\d\d$/.test(day)||!Number.isFinite(time)||new Date(time).toISOString().slice(0,10)!==day)throw new CareerError('CAREER_DAY_INVALID','The case day is invalid.');return time;}
 function blank(tokenId:number):Career{return {v:2,tokenId,duties:[],solves:0,grades:{A:0,B:0,C:0,D:0},liesCaught:0,perfectCases:0,streak:0,bestStreak:0,freezes:0,lastDay:null,lastFounderWeek:null,gallery:[]};}
-function creditDay(career:Career,day:string,founder:boolean){
+function prepareDay(career:Career,day:string,founder:boolean){
  const current=dayTime(day),previous=career.lastDay===null?null:dayTime(career.lastDay);
  if(previous!==null&&current<=previous)throw new CareerError('CAREER_DAY_ORDER','A newer case is already recorded.');
  // Accrue weekly Founder freezes before consuming missed days in that week.
@@ -25,8 +25,15 @@ function creditDay(career:Career,day:string,founder:boolean){
   if(founder&&career.lastFounderWeek!==week){career.freezes=Math.min(2,career.freezes+1);career.lastFounderWeek=week;}
   if(at<current&&career.streak>0){if(career.freezes>0)career.freezes--;else career.streak=0;}
  }
+}
+function creditDay(career:Career,day:string,founder:boolean){
+ prepareDay(career,day,founder);
  career.streak++;career.bestStreak=Math.max(career.bestStreak,career.streak);career.lastDay=day;
  if(career.streak%7===0)career.freezes=Math.min(2,career.freezes+1);
+}
+export function careerStatus(career:Career,day:string,founder:boolean){
+ dayTime(day);const next=structuredClone(career);if(career.lastDay!==day)prepareDay(next,day,founder);
+ return {solves:next.solves,rank:careerRank(next.solves),streak:next.streak,bestStreak:next.bestStreak,freezes:next.freezes};
 }
 export function careerRank(solves:number){return solves>=50?'Chief':solves>=25?'Inspector':solves>=10?'Detective':solves>=3?'Gumshoe':'Rookie';}
 export class CareerStore {

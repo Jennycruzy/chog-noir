@@ -35,16 +35,18 @@ export function ownerDirectory(snapshot:OwnerSnapshot):Map<number,HeldChog>{
  return owners;
 }
 export class HolderDirectory {
+ private cached:{snapshot:OwnerSnapshot;directory:Map<number,HeldChog>}|undefined;
  constructor(private readonly options:{snapshot:()=>Promise<OwnerSnapshot>;ownerOf:(tokenId:number)=>Promise<string>;now?:()=>number}){}
  private async fresh(){
-  const now=(this.options.now??Date.now)();
   let snapshot:OwnerSnapshot;try{snapshot=await this.options.snapshot();}catch{throw new AuthError('HOLDER_INDEX_UNAVAILABLE','Chog ownership is unavailable. Try again.',503);}
+  const now=(this.options.now??Date.now)();
   if(!timeValid(now)||!timeValid(snapshot.indexedAt)||now<snapshot.indexedAt||now-snapshot.indexedAt>=60_000)throw new AuthError('HOLDER_INDEX_STALE','Chog ownership is updating. Try again.',503);
-  return ownerDirectory(snapshot);
+  const cached=this.cached;if(cached&&cached.snapshot===snapshot)return cached.directory;
+  const directory=ownerDirectory(snapshot);this.cached={snapshot,directory};return directory;
  }
  async held(address:string){
   let owner:Address;try{owner=getAddress(address);}catch{throw new AuthError('AUTH_ADDRESS_INVALID','Connect a valid wallet.',400);}
-  return [...(await this.fresh()).values()].filter(row=>row.owner===owner).sort((a,b)=>a.tokenId-b.tokenId);
+  return [...(await this.fresh()).values()].filter(row=>row.owner===owner).sort((a,b)=>a.tokenId-b.tokenId).map(row=>structuredClone(row));
  }
  async owns(address:string,tokenId:number){
   if(!tokenValid(tokenId))throw new AuthError('HOLDER_TOKEN_INVALID','Choose a Chog from the collection.',400);

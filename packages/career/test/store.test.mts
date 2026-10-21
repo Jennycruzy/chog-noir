@@ -2,7 +2,7 @@ import {mkdtemp,readdir,rm,writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {test,expect} from 'vitest';
-import {CareerStore,careerRank,type DetectiveResult} from '../src/store.mts';
+import {CareerStore,careerRank,careerStatus,type DetectiveResult} from '../src/store.mts';
 const wallet='0x285074ee7a7ae5e0a2188949fe6bd71de25492b7';
 const buyer='0x8041113dd804725e235d32aa2e85920d6af32428';
 const result=(day:string):DetectiveResult=>({caseId:'daily-'+day,day,grade:'A',score:600,perfect:true,caught:[11,11],transferredMidCase:false});
@@ -31,6 +31,9 @@ test('rookie calls leave storage completely empty',async()=>sandbox(async(root,s
 test('seven-day streak earns a freeze, a missed day consumes it, another missed day breaks the streak',async()=>sandbox(async(_root,store)=>{
  for(let day=1;day<=7;day++)await complete(store,`2026-10-0${day}`);
  expect(await store.profile(1)).toMatchObject({streak:7,bestStreak:7,freezes:1});
+ const before=await store.profile(1);
+ expect(careerStatus(before,'2026-10-09',false)).toMatchObject({streak:7,freezes:0});
+ expect(await store.profile(1)).toEqual(before);
  expect(await complete(store,'2026-10-09')).toMatchObject({streak:8,bestStreak:8,freezes:0});
  expect(await complete(store,'2026-10-11')).toMatchObject({streak:1,bestStreak:8,freezes:0});
 }));

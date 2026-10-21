@@ -33,7 +33,7 @@ test('rookie badges have only base, skill and first-case questions',()=>{
 });
 test('missing or inconsistent detective facts fail instead of assigning defaults',()=>{
  const row=collection.tokens.find(row=>row.metadata.attributes.some(a=>a.trait_type==='Base'&&a.value==='Origin'))!;
- for(const type of ['Base','Tier','Eyes']){
+ for(const type of ['Base','Tier','Eyes','Side']){
   const metadata=structuredClone(row.metadata);metadata.attributes=metadata.attributes.filter(a=>a.trait_type!==type);
   expect(()=>detectiveFor(row.tokenId,metadata)).toThrow();
  }

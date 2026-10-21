@@ -9,10 +9,10 @@ export class DetectiveDataError extends Error {
 }
 export function detectiveFor(tokenId:number,metadata:Metadata){
  if(!Number.isSafeInteger(tokenId)||tokenId<1||tokenId>1969)throw new DetectiveDataError('DETECTIVE_TOKEN_INVALID','Chog token id is outside the collection.');
- if(!metadata?.name||!Array.isArray(metadata.attributes))throw new DetectiveDataError('DETECTIVE_METADATA_MISSING','Chog name or attributes are missing.');
+ if(typeof metadata?.name!=='string'||!metadata.name.trim()||metadata.name.length>80||!Array.isArray(metadata.attributes)||metadata.attributes.length<2||metadata.attributes.length>32)throw new DetectiveDataError('DETECTIVE_METADATA_MISSING','Chog name or attributes are missing or invalid.');
  const attributes=new Map<string,string>();
  for(const item of metadata.attributes){
-  if(typeof item.trait_type!=='string'||typeof item.value!=='string'||attributes.has(item.trait_type))throw new DetectiveDataError('DETECTIVE_TRAIT_INVALID','Chog traits are malformed or repeated.');
+  if(!item||typeof item.trait_type!=='string'||!item.trait_type.trim()||item.trait_type.length>32||typeof item.value!=='string'||!item.value.trim()||item.value.length>128||attributes.has(item.trait_type))throw new DetectiveDataError('DETECTIVE_TRAIT_INVALID','Chog traits are malformed or repeated.');
   attributes.set(item.trait_type,item.value.toLowerCase());
  }
  const base=attributes.get('Base'),tier=attributes.get('Tier');
@@ -22,6 +22,7 @@ export function detectiveFor(tokenId:number,metadata:Metadata){
  if(base!=='1:1'&&!attributes.has('Eyes'))throw new DetectiveDataError('DETECTIVE_EYES_MISSING','A Chog without a Legend skill is missing its Eyes trait.');
  const existing=traitsFor(tokenId,metadata),skill:DetectiveSkill=base==='1:1'?'LEGEND':existing.power;
  const rawSide=attributes.get('Side');
+ if(base!=='1:1'&&rawSide===undefined)throw new DetectiveDataError('DETECTIVE_SIDE_MISSING','Chog Side is missing.');
  if(rawSide!==undefined&&!['right','left'].includes(rawSide))throw new DetectiveDataError('DETECTIVE_SIDE_INVALID','Chog Side is unsupported.');
  const side=rawSide==='right'?'BUYER' as const:rawSide==='left'?'SELLER' as const:null;
  return {tokenId,name:metadata.name,skill,skillName:skillNames[skill],uses:tierUses[tier]!,

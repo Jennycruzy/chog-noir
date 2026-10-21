@@ -5,6 +5,7 @@
   "packageManager": "pnpm@10.33.4",
   "scripts": {
     "game:serve": "node --import tsx apps/api/src/game.mts",
+    "bureau:serve": "node --import tsx apps/api/src/bureau.mts",
     "game:smoke": "node --import tsx scripts/check-game.mts",
     "game:browser": "node --import tsx scripts/check-game-browser.mjs",
     "game:web": "node --import tsx scripts/prepare-game-web.mts",
@@ -20,6 +21,7 @@
     "data:subscription-check": "tsx scripts/reconcile-subscription.mts",
     "data:subscription-recover": "tsx scripts/recover-subscription.mts",
     "indexer:live": "tsx scripts/live-indexer.mts",
+    "owners:run": "node --import tsx scripts/owner-index.mts",
     "indexer:reliability": "node --import tsx scripts/start-reliability.mts",
     "eval:prepare": "tsx scripts/build-witness-eval.mts",
     "eval:witness": "tsx scripts/run-witness-eval.mts",

@@ -1,5 +1,27 @@
 # Live transfer indexer
 
+The holder directory uses a separate finalized ownership snapshot. Run `corepack pnpm owners:run`
+to keep it current, or add `--once` for one refresh. The source defaults to
+`https://rpc2.monad.xyz`; `MONAD_OWNER_RPC_HTTP` overrides it. Requests are read-only.
+The worker accepts an optional `--seed path` containing an independently verified complete
+`OwnerSnapshot`; without one it fetches from the first collection mint. Imported history
+must include all collection mints, transfer records and source block times. A seed is used
+only to initialize an empty directory and is never a substitute for catching up to finality.
+
+Ownership state lives in `runs/owners/`: the immutable imported base, contiguous source
+pages, block headers and `snapshot.json`. Each refresh checks chain 143, the canonical hash
+of the previous finalized block, and the final head again before publishing. A frozen
+provider cannot make a snapshot fresh: `indexedAt` uses the source block time. Consumers
+reject ownership snapshots aged sixty seconds or more. Source failures leave the last
+good snapshot unchanged. Catch-up that takes longer than sixty seconds saves its source
+pages but publishes no stale snapshot; the next attempt resumes from those pages.
+
+The ownership worker polls every fifteen seconds without overlapping refreshes. It uses
+an operating-system lock that releases on process exit. The underlying history recovery
+also uses a directory lock; after a forced kill, confirm there is no writer before removing
+that stale empty lock. A changed finalized block requires investigation and a clean rebuild.
+Starting and submitting a holder case additionally require a fresh `ownerOf` read.
+
 Run `pnpm indexer:live runs/live-indexer <inclusive-start-block>` with the existing local `HYPERSYNC_TOKEN`. Use the same directory and start block to resume. `MONAD_RPC_WS` optionally overrides the public subscription endpoint. `INDEXER_RUN_SECONDS=25` limits a smoke check; otherwise the process runs until SIGINT or SIGTERM.
 
 Run `pnpm indexer:reliability` to launch a detached six-hour check in a new timestamped directory under `runs/reliability/`. It uses the history service's current exclusive height as its inclusive starting point. `launch.json` records its process ID; `monitor.log` records subscription and catch-up activity. `run-summary.json` records progress and the planned end time. Keep the host awake and connected for the observation window. The launcher returning successfully means the child was spawned; confirm the summary and log before treating it as running.

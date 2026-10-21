@@ -18,7 +18,9 @@ test('a fresh index lists held tokens, but starting also needs an independent ow
  const chosen=fixture.checkedOwners[0]!,other=fixture.checkedOwners.find(row=>row.owner!==chosen.owner)!;
  const ownerOf=vi.fn(async()=>chosen.owner);
  const directory=new HolderDirectory({snapshot:async()=>fixture.snapshot,now:()=>fixture.snapshot.indexedAt+59_999,ownerOf});
- expect((await directory.held(chosen.owner)).some(row=>row.tokenId===chosen.tokenId)).toBe(true);
+ const listed=await directory.held(chosen.owner);expect(listed.some(row=>row.tokenId===chosen.tokenId)).toBe(true);
+ listed.find(row=>row.tokenId===chosen.tokenId)!.heldSince=0;
+ expect((await directory.held(chosen.owner)).find(row=>row.tokenId===chosen.tokenId)?.heldSince).toBe(chosen.arrivalTimestamp);
  expect((await directory.start(chosen.owner,chosen.tokenId)).tokenId).toBe(chosen.tokenId);
  expect(ownerOf).toHaveBeenCalledWith(chosen.tokenId);
  ownerOf.mockResolvedValue(other.owner);
