@@ -4,5 +4,17 @@
   "bigSpenderPremiumBps": 2000,
   "longGoodbyeHoldDays": 90,
   "priceBandUpperMon": [4000, 5000, 6000, 8000],
-  "archiveQueueSize": 14
+  "archiveQueueSize": 14,
+  "weekly": [
+    {"day":"Mon","witnesses":3,"lies":2,"liars":1,"sealed":0,"chained":false},
+    {"day":"Tue","witnesses":3,"lies":2,"liars":1,"sealed":0,"chained":false},
+    {"day":"Wed","witnesses":3,"lies":2,"liars":1,"sealed":1,"chained":false},
+    {"day":"Thu","witnesses":3,"lies":2,"liars":1,"sealed":1,"chained":false},
+    {"day":"Fri","witnesses":3,"lies":2,"liars":1,"sealed":1,"chained":false},
+    {"day":"Sat","witnesses":4,"lies":3,"liars":2,"sealed":1,"chained":false},
+    {"day":"Sun","witnesses":4,"lies":3,"liars":2,"sealed":1,"chained":true}
+  ],
+  "detectiveBudget":{"base":4,"holdSevenDays":1,"holdThirtyDays":1,"founder":1,"empath":2,"firstCase":2},
+  "burnQuestions":{"amountChog":"100","maximum":2},
+  "solutionTileLimit":8
 }

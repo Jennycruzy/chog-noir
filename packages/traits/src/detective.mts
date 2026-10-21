@@ -1,5 +1,6 @@
 import type {Metadata} from '../../cases/src/build.mts';
 import {traitsFor} from './traits.mts';
+import config from '../../../config/cases.json' with {type:'json'};
 
 export type DetectiveSkill='XRAY'|'ANALYST'|'TAKES_ONE'|'EMPATH'|'LEGEND';
 const skillNames:Record<DetectiveSkill,string>={XRAY:'X-ray',ANALYST:'Analyst',TAKES_ONE:'Takes One',EMPATH:'Empath',LEGEND:'Legend'};
@@ -33,11 +34,12 @@ export function detectiveFor(tokenId:number,metadata:Metadata){
 export function questionBudget(input:{skill:DetectiveSkill;heldSince:number;now:number;founder:boolean;firstCase:boolean}){
  const {skill,heldSince,now,founder,firstCase}=input;
  if(!Object.hasOwn(skillNames,skill)||!Number.isSafeInteger(heldSince)||!Number.isSafeInteger(now)||heldSince<0||now<heldSince||typeof founder!=='boolean'||typeof firstCase!=='boolean')throw new DetectiveDataError('DETECTIVE_BUDGET_INPUT','Question budget inputs are missing or invalid.');
- const holdSeconds=now-heldSince,holdBonus=Number(holdSeconds>=7*86400)+Number(holdSeconds>=30*86400);
- const founderBonus=Number(founder),empathBonus=skill==='EMPATH'?2:0,firstCaseBonus=firstCase?2:0;
- return {total:4+holdBonus+founderBonus+empathBonus+firstCaseBonus,base:4,holdBonus,founderBonus,empathBonus,firstCaseBonus,holdSeconds};
+ const rules=config.detectiveBudget,holdSeconds=now-heldSince,holdBonus=(holdSeconds>=7*86400?rules.holdSevenDays:0)+(holdSeconds>=30*86400?rules.holdThirtyDays:0);
+ const founderBonus=founder?rules.founder:0,empathBonus=skill==='EMPATH'?rules.empath:0,firstCaseBonus=firstCase?rules.firstCase:0;
+ return {total:rules.base+holdBonus+founderBonus+empathBonus+firstCaseBonus,base:rules.base,holdBonus,founderBonus,empathBonus,firstCaseBonus,holdSeconds};
 }
 export function rookieQuestionBudget(skill:DetectiveSkill){
  if(!Object.hasOwn(skillNames,skill))throw new DetectiveDataError('DETECTIVE_SKILL_INVALID','The bureau badge skill is missing or unsupported.');
- return {total:skill==='EMPATH'?8:6,base:4,empathBonus:skill==='EMPATH'?2:0,firstCaseBonus:2,holdBonus:0,founderBonus:0};
+ const rules=config.detectiveBudget,empathBonus=skill==='EMPATH'?rules.empath:0;
+ return {total:rules.base+empathBonus+rules.firstCase,base:rules.base,empathBonus,firstCaseBonus:rules.firstCase,holdBonus:0,founderBonus:0};
 }
