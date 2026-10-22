@@ -29,9 +29,15 @@ export function composePuzzle(base:PuzzleCase,candidates:readonly ClaimCandidate
  arrival.tokenIds=[subject];payment.tokenIds=[subject];
  const group=(receipt:PuzzleReceipt,dates:number[]=[],owners:number[]=[],payments:number[]=[]):ReceiptGroup=>({receipt,dates:new Set(dates),owners:new Set(owners),payments:new Set(payments)});
  const groups:ReceiptGroup[]=[group(arrival,[subject]),group(payment,[],[],[subject])];
+ /** Adds another receipt's sentences, skipping any whose every part ("CHOG #1 · Paid: …") the receipt already states. */
+ const combine=(base:string,addition:string)=>{
+  let text=base;
+  for(const sentence of addition.split(/(?<=\.)\s+/)){if(!sentence.replace(/\.$/,'').split(' · ').every(part=>text.includes(part)))text+=' '+sentence;}
+  return text;
+ };
  const merge=(target:ReceiptGroup,incoming:ReceiptGroup)=>{
   const receipt=target.receipt,other=incoming.receipt;
-  if(!receipt.text.includes(other.text))receipt.text+=' '+other.text;if(!receipt.exactText.includes(other.exactText))receipt.exactText+=' '+other.exactText;
+  receipt.text=combine(receipt.text,other.text);receipt.exactText=combine(receipt.exactText,other.exactText);
   receipt.sources=[...new Map([...receipt.sources,...other.sources].map(row=>[sourceKey(row),row])).values()].sort((a,b)=>a.block-b.block||a.logIndex-b.logIndex);
   for(const fact of other.facts){const known=receipt.facts.find(row=>row.id===fact.id);if(known&&known.value!==fact.value)throw new PuzzleError('CASE_FACT_CONFLICT','Receipt facts disagree.');if(!known)receipt.facts.push(fact);}
   receipt.tokenIds=[...new Set([...(receipt.tokenIds??[]),...(other.tokenIds??[])])];receipt.at=Math.max(receipt.at,other.at);

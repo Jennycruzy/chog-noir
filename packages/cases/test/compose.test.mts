@@ -16,12 +16,15 @@ const {tokens}=JSON.parse(readFileSync(new URL('../../traits/test/fixtures/detec
 const metadata=new Map(tokens.map(row=>[row.tokenId,row.metadata])),times=new Map(fixture.times),candidate=saleCandidates(fixture.rows,times,config).reverse().find(row=>buildLinkedCast(row,fixture.rows,times,metadata).length>=4)!;
 const after=new Date((candidate.at+7*86400)*1000);after.setUTCDate(after.getUTCDate()+(8-after.getUTCDay())%7);const monday=Date.parse(after.toISOString().slice(0,10)+'T00:00:00Z');
 const input=(offset=0)=>({candidate,history:fixture.rows,times,metadata,day:new Date(monday+offset*86400000).toISOString().slice(0,10),salt:'0x'+'b4'.repeat(32),mode:'REPLAY' as const});
+/** A receipt never says the same thing twice, such as a price repeated when two payment facts share it. */
+const noRepeats=(puzzle:{file:{receipts:{text:string}[]}})=>{for(const row of puzzle.file.receipts){const parts=row.text.split(/\. | · /).map(part=>part.replace(/\.$/,'')).filter(part=>part.length>=12);expect(new Set(parts).size,row.text).toBe(parts.length);}};
 const build=(offset=0)=>{const source=input(offset),base=buildSalePuzzle(source),catalog=catalogForPuzzle(base,{history:source.history,times,metadata,ownership});return {source,base,catalog};};
 
 test('varied claims preserve every weekday pattern, own-Chog alternate and minimum-budget solver result',()=>{
  for(let day=0;day<7;day++){
   const {source,base,catalog}=build(day),{puzzle,proof}=selectClaimPuzzle(base,catalog);
   expect(validatePuzzle(puzzle)).toEqual([]);expect(verifyComposedPuzzleSources(puzzle,source,catalog)).toBe(true);expect(proof).toHaveLength((base.file.cast.length+1)*5);expect(proof.every(row=>row.questionsSpent<=3&&row.questionsLeft>=1)).toBe(true);
+  noRepeats(puzzle);
   expect(puzzle.file.receipts.length).toBeGreaterThanOrEqual(4);expect(puzzle.file.receipts.length).toBeLessThanOrEqual(6);
   for(const member of puzzle.file.cast)expect(puzzle.file.receipts.some(row=>row.tokenIds?.includes(member.tokenId))).toBe(true);
   expect(planFor(puzzle,null).lies[0]!.kind.startsWith('D')).toBe(true);expect(planFor(puzzle,null).lies[1]!.kind.startsWith('I')).toBe(true);
@@ -29,7 +32,7 @@ test('varied claims preserve every weekday pattern, own-Chog alternate and minim
  }
 });
 test('specified owner-count and paid-purchase claims become one precise breaking receipt each',()=>{
- const {base,catalog}=build(2),{puzzle}=selectClaimPuzzle(base,catalog,{A:'D3',B:'I1'});
+ const {base,catalog}=build(2),{puzzle}=selectClaimPuzzle(base,catalog,{A:'D3',B:'I1'});noRepeats(puzzle);
  expect(planFor(puzzle,null).lies.map(row=>row.kind)).toEqual(['D3','I1']);
  for(const lie of planFor(puzzle,null).lies){const statement=planFor(puzzle,null).statements.find(row=>row.id===lie.statementId)!;const proofs=puzzle.file.receipts.filter(row=>row.facts.some(fact=>fact.id===statement.claim.factId));expect(proofs).toHaveLength(1);expect(proofs[0]!.id).toBe(lie.receiptId);}
 });
