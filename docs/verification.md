@@ -1,9 +1,18 @@
 # Checking a case yourself
 
-Every daily case is locked on chain before it opens. The lock is the hash of the case's
-answer key: which witnesses lie, what they claim, which receipt breaks each lie, the
-solution, the alternate plans for players whose own Chog is in the case, the id of every
-receipt, a hash of the public case file, and a random salt.
+Chog Noir cannot change a case's answer after people start playing, and anyone can check that.
+
+Before a case opens, a fingerprint of its answer is written to the CaseBook contract on Monad
+([0xf433…31ef](https://monadscan.com/address/0xf433f63d50ebc5ccb956f6ac915381f0bb0331ef)).
+When the case closes, the full answer is published on chain. The contract accepts it only if it
+matches the fingerprint exactly.
+
+The fingerprint is the `keccak256` hash of the case's answer key. The key holds which
+witnesses lie, what they claim, which receipt breaks each lie, the solution, the alternate
+plans for players whose own Chog is in the case, the id of every receipt, a hash of the public
+case file, and a random value so the answer cannot be guessed from the fingerprint.
+
+## What happens on chain
 
 1. **Before the case opens**, the daily worker calls `openCase(caseId, answerHash, opensAt, closesAt)`
    on the CaseBook contract. The case is published only after that transaction is final.

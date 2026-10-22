@@ -1,83 +1,145 @@
-Every night something real happens to Chogs on Monad. Every morning your Chog takes the case. One witness is lying. The chain never does.
+# Chog Noir
 
-[Play Chog Noir](https://chognoir.54-154-121-30.sslip.io/)
+**A daily detective game where Chog NFTs are the witnesses, and the blockchain is the lie detector.**
 
-Chog Noir is a daily detective game played with a Chog Genesis NFT. Each case is a real
-Chog sale from the night before. Three witnesses, real Chogs from that sale, tell you
-what happened. One of them is lying about its own life on chain. You catch the lie by
-presenting the real transaction receipt that breaks it, then say what really happened.
+Every night something real happens to Chogs on Monad: a sale, a trade, a first move after
+mint. Every morning that event becomes a case. Three Chogs involved in it tell you what
+happened, and one of them is lying about its own history. You catch the lie by presenting the
+real transaction that proves it wrong.
 
-## Try it in three minutes
+## Try it
 
-1. Open the site and tap **Play as a rookie**. No wallet, no sign-up: you get a real Chog
-   as a bureau badge for today and play today's real case. Nothing you do there is kept.
-2. Or **Connect wallet** with the wallet that holds your Chog (one signature, no gas).
-   Your Chog becomes the detective.
-3. Read the statements. **Press** a witness for its follow-up. **Present** the receipt that
-   contradicts a statement: CAUGHT. Each catch unlocks the next truth.
-4. **Solve** the sentence with the phrase tiles. You get partial feedback and a second try.
-5. See what really happened, with a link for every number, and share a spoiler-free grid.
+| | |
+| --- | --- |
+| **Play today's case** (no wallet, about 3 minutes) | [chognoir.54-154-121-30.sslip.io](https://chognoir.54-154-121-30.sslip.io/) → **Play as a rookie** |
+| **See how answers are locked before anyone plays** | [Verify case #1](https://chognoir.54-154-121-30.sslip.io/verify/case-56bb0a9ab0a2e08b8cb47ce9) |
+| **The contract that holds every answer** | [CaseBook on Monadscan](https://monadscan.com/address/0xf433f63d50ebc5ccb956f6ac915381f0bb0331ef) (source verified) |
+| **Case #1 sealed on chain** | [Transaction](https://monadscan.com/tx/0xf1e38433e5fd061d09bd3a62ee21bec8b089a055eed971c561bc3db6af090969) |
+| **Today's detectives** | [Precinct board](https://chognoir.54-154-121-30.sslip.io/precinct) |
+| **A Chog's detective record** | [CHOG #1025](https://chognoir.54-154-121-30.sslip.io/chog/1533) |
+| **What is real, and the sources** | [What's real](https://chognoir.54-154-121-30.sslip.io/about) |
 
-Answers are locked in the CaseBook contract on Monad mainnet,
-[`0xf433f63d50ebc5ccb956f6ac915381f0bb0331ef`](https://monadscan.com/address/0xf433f63d50ebc5ccb956f6ac915381f0bb0331ef) (source verified).
+Chog Noir runs on Monad mainnet with real Chog Genesis NFTs. Nothing in a case is invented.
 
-Every closed case is a numbered issue at `/issues`. Every Chog's detective record is at
-`/chog/<token id>`. Today's detectives are on the Precinct board at `/precinct`. Any case's
-on-chain lock can be checked at `/verify`.
+## How a case plays
 
-## Why the Chog is the game
+1. **Read the witnesses.** Each Chog in the case gives a statement about what happened. You can
+   press a witness to make it say more; that costs one of your questions.
+2. **Present the receipt.** Every receipt is one true fact from a real transaction, with a link
+   to the explorer. Hold the right receipt against the false statement and the witness is
+   **CAUGHT**. Each catch reveals the next true fact, and the lying Chog changes its story.
+3. **Say what happened.** Fill in a short sentence with phrase tiles. You get feedback and a
+   second try.
+4. **See the reveal.** Every lie is shown next to the receipt that broke it, followed by the true
+   story. You get a grade and a spoiler-free result grid to share.
 
-- Only a Chog in your wallet can be your detective. Without one you can work today's case
-  at the Rookie desk, but nothing is kept.
-- Its traits are its skill: laser eyes open a sealed receipt, glasses highlight the
-  receipts that matter, shifty eyes point out the liar, other eyes add questions, and the
-  ten one-of-ones do two of those at once.
-- The time you have held it sets your questions. Founders, Chogs that never left their
-  minter, get one more.
-- Witnesses that share a rare look, a past wallet or a mint slot with your Chog know it,
-  and talk to it for free.
-- The record is written to the token: solves, rank, streak, and the rogues' gallery of
-  every Chog it caught lying. Sell the Chog and its career goes with it.
-- The cases are the Chogs' own lives. Without the NFTs there is no case at all.
+Weekdays have one lying Chog. Weekends have two. Cases get harder through the week.
 
-## What's real
+## Why the Chog matters
 
-| Part | What it is | Rule |
-| --- | --- | --- |
-| Cases | Real Chog sales on Monad mainnet, read from the chain | Nothing invented; a quiet day uses an older real sale |
-| Statements | Witness lines in character | Lies exist only inside statements during play, planned by code |
-| Receipts | One true fact from a real transaction each, with an explorer link | Never edited |
-| Answers | Locked on chain before the case opens, revealed after it closes | Anyone can verify |
-| Rookie desk | Today's real case with a borrowed bureau badge | Nothing is kept |
-| Training case | A real archived case reduced to one lie | Marked REPLAY; counts for nothing |
+The NFTs are not decoration. Without them there is no game.
 
-After play, a false statement appears only on the same panel as the label
-“CAUGHT — false statement” and the real receipt that breaks it. True stories, share
-grids and records contain facts only.
+- **The cases are the Chogs' own lives.** Every case is a real event in a Chog's history on Monad,
+  and the witnesses are the Chogs connected to it.
+- **Your Chog is your detective.** Connect the wallet that holds it (one signature, no gas fee). Its
+  traits decide its skill: laser eyes open a sealed receipt, glasses highlight the receipts that
+  matter, shifty eyes point to the liar, and other eyes earn extra questions. The ten one-of-one
+  Chogs combine two skills.
+- **How long you have held it sets your questions.** A Chog that has never left the wallet it was
+  minted to is a Founder and gets one more.
+- **Witnesses may recognise your Chog.** If a witness shares a rare look, a past wallet or a nearby
+  mint number with your Chog, it talks to you for free.
+- **The record belongs to the token.** Cases solved, rank, streak and every liar your Chog has
+  caught stay with that Chog. Sell it and its career goes with it. After each case closes, every
+  holder's result is written to the CaseBook contract.
+
+No Chog? The **Rookie desk** lets anyone play today's real case with a borrowed Chog badge.
+Nothing played there is kept.
+
+## $CHOG
+
+- **It is evidence.** "Follow the $CHOG" cases come from real deals paid in $CHOG.
+- **It buys a question.** A holder can burn 100 $CHOG to bribe the informant for one extra question,
+  up to twice per case. The burn is checked on chain before it counts, and it never adds points.
+- **It earns a stamp.** Wallets that hold $CHOG get a $CHOG stamp on their detective's record.
+
+Nothing is paid out to anyone.
+
+## How you can check it
+
+Before a case opens, a fingerprint of its answer (a hash) is written to the CaseBook contract.
+Once the case closes, the full answer is published on chain, and the contract rejects any
+answer that does not match the fingerprint. So the answer cannot be changed after anyone
+has played.
+
+To check any case, open `/verify/<case id>` on the site, or run:
+
+```
+corepack pnpm verify case-56bb0a9ab0a2e08b8cb47ce9
+```
+
+While a case is open, it reports `COMMITMENT_VERIFIED`. After it closes, it reports `PASS`.
+Details are in [docs/verification.md](docs/verification.md).
+
+Each receipt in a case names its transaction, block and log entry, and links to Monadscan.
+
+## The daily rhythm
+
+- **00:20 UTC:** yesterday's case closes and its answer is revealed on chain. Today's case is
+  built from last night's real events, sealed on chain, and opened.
+- **During the day:** players work the case. The front page shows Chog sales as they happen, and
+  a "story" follows any Chog that keeps moving, with a free daily hunch about its next move.
+- **After each close:** the case becomes a numbered issue, a comic page made from the real Chog
+  art, at [/issues](https://chognoir.54-154-121-30.sslip.io/issues).
+
+Players can opt in to browser alerts when a new case opens, or when their own Chog is in one.
+
+## What it is built from
+
+- 5,130 Chog Genesis transfers across all 1,969 tokens and 2,302 wallets, read from Monad mainnet
+  and kept up to date as new blocks arrive.
+- Sale prices read from the marketplace's own payment records (Seaport `OrderFulfilled` events).
+- Chog art and traits from the collection's own metadata on IPFS, as published by the Chog
+  Genesis contract `0xc96d31f8626c6d03fae5dcd3d61e3fb9f4a73763`.
 
 ## How it is built
 
-- `packages/core`, `packages/indexer`: transfer history from HyperSync with an RPC cross-check,
-  sale classification from Seaport `OrderFulfilled` payments, and the live owner index.
-- `packages/cases`, `packages/witness`, `packages/solver`: the case builder. It picks the
-  event, the witnesses, the receipts, the lies and the solution, and refuses any case a
-  scripted perfect player cannot solve with every skill at four questions.
-- `packages/game`, `packages/career`, `packages/auth`: the server-side case engine, the Rookie
-  desk, wallet sign-in and the per-token career.
-- `packages/chain`, `packages/publishing`, `contracts/`: the CaseBook contract that locks each
-  answer before the case opens, reveals it at close, and records the cast and every
-  detective's result.
-- `workers/daily`: builds, checks, locks and publishes the case every night.
-- `apps/api`, `apps/web`: the game API and site.
+| Part | Where | What it does |
+| --- | --- | --- |
+| Chain reader | `packages/core`, `packages/indexer` | Reads every Chog transfer and sale, and keeps the list of current owners up to date |
+| Case builder | `packages/cases`, `packages/witness`, `packages/solver` | Picks the event, witnesses, receipts and lies; refuses any case a perfect player could not solve with every detective skill |
+| Game | `packages/game`, `packages/career`, `packages/auth` | Runs each case on the server, the Rookie desk, wallet sign-in and each Chog's career |
+| On chain | `contracts/`, `packages/chain`, `packages/publishing` | The CaseBook contract that seals answers, reveals them and records results |
+| Daily job | `workers/daily` | Builds, checks, seals and publishes the case every night |
+| Site | `apps/api`, `apps/web` | The game server and the website (plain HTML, CSS and JavaScript) |
 
-How a case is built: [docs/cases/README.md](docs/cases/README.md). How to check a case
-yourself: [docs/verification.md](docs/verification.md). Running the service:
-[docs/runbook.md](docs/runbook.md) and [docs/vps.md](docs/vps.md).
+The server decides every catch, score and answer. The browser only shows the case and sends
+the player's moves, so the answer never reaches the browser while a case is open.
 
-## Run it
+More detail:
+[how a case is made](docs/cases/README.md) ·
+[checking a case](docs/verification.md) ·
+[running the service](docs/runbook.md) ·
+[server setup](docs/vps.md)
 
-Node 22.23 or 24.22 and `corepack pnpm install --frozen-lockfile`, then
-`corepack pnpm typecheck`, `corepack pnpm test` and, in `contracts/`, `forge test`.
-`corepack pnpm game:browser` plays the site end to end in headless Chromium.
+## Run it yourself
+
+You need Node 22.23 (or 24.22) and Foundry.
+
+```
+corepack pnpm install --frozen-lockfile
+corepack pnpm typecheck
+corepack pnpm test
+cd contracts && forge test
+```
+
+`corepack pnpm game:browser` plays the whole site in a headless browser (phone touch,
+keyboard only, and holder paths).
+
+## Current state
+
+- Live on Monad mainnet since 22 October 2026. Case #1 opened that day.
+- Holders can play only with a Chog in the wallet they sign in with. Delegated wallets are not
+  supported yet.
 
 Chog Genesis by CHOGLABS. Unofficial Chogathon entry.
