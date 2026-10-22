@@ -1,6 +1,7 @@
 import {keccak256,toBytes,formatEther} from 'viem';
 import config from '../../../config/cases.json' with {type:'json'};
 import {buildLinkedCast,canonicalJSON,type Metadata} from './build.mts';
+import {CHOG_TOKEN} from '../../core/src/chain.mts';
 import type {Candidate} from './select.mts';
 import type {EnrichedEvent,Source} from '../../core/src/enrich.mts';
 import {validateLine,witnessStatement,voices} from '../../witness/src/lines.mts';
@@ -40,6 +41,24 @@ const differentPriceBand=(wei:string)=>{
  return (band===0?bounds[0]!+500n:bounds[band-1]!-500n)*10n**18n;
 };
 const statementId=(id:number,slot:string)=>'w'+id+'-'+slot;
+/**
+ * The paid move a case is built on: a marketplace sale priced by its OrderFulfilled event, or an escrow deal paid in
+ * $CHOG, proven by the token's own Transfer log. Anything else is not a case subject.
+ */
+export function paidMove(row:EnrichedEvent){
+ const event=row.event,anchor=source(row);
+ if(event.class==='SALE'&&event.price?.status==='EXACT'&&event.price.grossWei&&BigInt(event.price.grossWei)>0n&&['MON','WMON'].includes(event.price.asset)&&(event.route==='offer_accepted'||event.route==='listing_bought')&&event.evidence.orderLogIndices.length)
+  return {seller:event.from,buyer:event.to,route:event.route==='offer_accepted'?'an accepted offer':'a listing purchase',grossWei:event.price.grossWei,asset:event.price.asset,exact:false,
+   paymentSources:[anchor,...event.evidence.orderLogIndices.map(logIndex=>({tx:event.tx,block:event.block,logIndex}))]};
+ const escrow=event.escrow;
+ if(event.class==='ESCROW_DEPOSIT'&&escrow&&escrow.role==='deposit'&&escrow.paymentAtThisTransfer&&escrow.paymentToken===CHOG_TOKEN&&escrow.seller===event.from&&/^\d+$/.test(escrow.amountWei)&&BigInt(escrow.amountWei)>0n&&escrow.paymentProof.kind==='ERC20'&&escrow.paymentProof.log.transactionHash===event.tx){
+  const log=escrow.paymentProof.log;
+  return {seller:event.from,buyer:escrow.buyer,route:'an escrow deal',grossWei:escrow.amountWei,asset:'$CHOG',exact:true,paymentSources:[anchor,{tx:log.transactionHash,block:log.blockNumber,logIndex:log.logIndex}]};
+ }
+ return null;
+}
+/** Prices read "about N MON" to the nearest 50; $CHOG deals are small and exact. */
+const amount=(wei:string,asset:string,exact:boolean)=>exact?formatEther(BigInt(wei))+' '+asset:rounded(wei,asset);
 /** A witness speaks one exact fact in its own voice; the same seed always picks the same template. */
 export function speak(file:Pick<PuzzleFile,'cast'>,salt:string,witness:number,fact:string,purpose:'opening'|'followup'|'retraction',id:string){
  const member=file.cast.find(row=>row.tokenId===witness);if(!member)throw new PuzzleError('CASE_STATEMENT_WITNESS','Every statement needs a witness in the cast.');
@@ -72,7 +91,8 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
  const {candidate,history,times,metadata,day,salt,mode}=input,difficulty=dailyDifficulty(day),event=candidate.row.event,anchor=source(candidate.row);
  if(!/^0x[a-f0-9]{64}$/i.test(salt))return fail('CASE_SALT_INVALID','A complete case salt is required.');
  const saved=history.find(row=>identity(source(row))===identity(anchor));
- if(!saved||canonicalJSON(saved)!==canonicalJSON(candidate.row)||times.get(event.block)!==candidate.at||event.class!=='SALE'||event.price?.status!=='EXACT'||!event.price.grossWei||BigInt(event.price.grossWei)<=0n||!['MON','WMON'].includes(event.price.asset)||!['offer_accepted','listing_bought'].includes(event.route??'')||event.evidence.orderLogIndices.length===0)return fail('CASE_SOURCE_INVALID','An exact source-backed sale is required.');
+ const move=paidMove(candidate.row);
+ if(!saved||canonicalJSON(saved)!==canonicalJSON(candidate.row)||times.get(event.block)!==candidate.at||!move)return fail('CASE_SOURCE_INVALID','An exact source-backed sale is required.');
  const opensAt=Date.parse(day+'T00:20:00Z')/1000;
  if(candidate.at>=opensAt)return fail('CASE_SOURCE_FUTURE','Case evidence must predate opening.');
  const {cutoff,cast:linked}=witnessCutoff({candidate,history,times,metadata,opensAt,witnesses:difficulty.witnesses}),cast=linked.slice(0,difficulty.witnesses);
@@ -88,9 +108,9 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
   const value=arrivalValue(member.name,member.arrivedAt);
   return {id:'arrival-'+member.tokenId,text:value+'.',exactText:value+'.',at:member.arrivedAt,sources:[member.arrival],sealed:false,facts:[{id:'arrival-'+member.tokenId,value}]};
  });
- const route=event.route==='offer_accepted'?'accepted offer':'bought listing',price=rounded(event.price.grossWei,event.price.asset),paymentSources=[anchor,...event.evidence.orderLogIndices.map(logIndex=>({tx:event.tx,block:event.block,logIndex}))];
- const paidValue=subject.name+' changed wallets through '+(event.route==='offer_accepted'?'an accepted offer':'a listing purchase'),priceValue=subject.name+' was paid for with '+price;
- receipts.push({id:'payment',text:subject.name+' · '+route+' · Paid: '+price+'.',exactText:subject.name+' · '+route+' · Paid: '+formatEther(BigInt(event.price.grossWei))+' '+event.price.asset+'.',at:candidate.at,sources:paymentSources,sealed:difficulty.sealed===1,facts:[{id:'move-kind',value:paidValue},{id:'price',value:priceValue}]});
+ const {route,paymentSources}=move,price=amount(move.grossWei,move.asset,move.exact);
+ const paidValue=subject.name+' changed wallets through '+route,priceValue=subject.name+' was paid for with '+price;
+ receipts.push({id:'payment',text:subject.name+' · '+route+' · Paid: '+price+'.',exactText:subject.name+' · '+route+' · Paid: '+formatEther(BigInt(move.grossWei))+' '+move.asset+'.',at:candidate.at,sources:paymentSources,sealed:difficulty.sealed===1,facts:[{id:'move-kind',value:paidValue},{id:'price',value:priceValue}]});
  const castRows=cast.map(member=>({tokenId:member.tokenId,name:member.name,nickname:nicknames.get(owners.get(member.tokenId)!)!,side:member.role==='SUBJECT'||member.role==='BUYER_ROOMMATE'?'BUYER' as const:member.role==='SELLER_ROOMMATE'?'SELLER' as const:null,voice:traitsFor(member.tokenId,metadata.get(member.tokenId)!).voice}));
  const ranked=[...cast].sort((a,b)=>{
   const weight=(id:number)=>{const attributes=metadata.get(id)!.attributes,attr=(name:string)=>attributes.find(row=>row.trait_type===name)?.value.toLowerCase();return (['side eye','smirk','thug','mog','clown eye','clown eye mix'].includes(attr('Eyes')??'')?3:0)+(['clown','clown mouth'].includes(attr('Mouth')??'')?1:0)+(attr('Form')==='skull'?1:0);};
@@ -107,15 +127,18 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
   const arrivalTruth=arrivalValue(subject.name,candidate.at),falseArrival=arrivalValue(subject.name,candidate.at-86400);
   const lies:PuzzleLie[]=[
    {id:'A',witness:first,statementId:statementId(first,'opening'),kind:'D1',trueValue:arrivalTruth,falseValue:falseArrival,receiptId:'arrival-'+event.tokenId,inference:'The arrival receipt puts the move on a different day.',unlock:{receiptId:difficulty.sealed?'payment':null,line:'The arrival record fixes the time of the move.'},retraction:''},
-   {id:'B',witness:first,statementId:statementId(first,'followup'),kind:'I1',trueValue:paidValue,falseValue:subject.name+' moved as a gift',receiptId:'payment',inference:'Verified payment in the same transaction makes this a purchase.',unlock:{receiptId:null,line:'The payment record shows a '+route+'.'},retraction:''},
+   {id:'B',witness:first,statementId:statementId(first,'followup'),kind:'I1',trueValue:paidValue,falseValue:subject.name+' moved as a gift',receiptId:'payment',inference:'Verified payment in the same transaction makes this a purchase.',unlock:{receiptId:null,line:'The payment record shows '+route+'.'},retraction:''},
   ];
-  if(second!==null)lies.push({id:'C',witness:second,statementId:statementId(second,'followup'),kind:'D5',trueValue:priceValue,falseValue:subject.name+' was paid for with '+rounded(differentPriceBand(event.price!.grossWei!).toString(),event.price!.asset),receiptId:'payment',inference:'The payment receipt records a different amount.',unlock:{receiptId:null,line:'The price is recorded in the payment receipt.'},retraction:''});
+  // A false price is always clearly different: another MON band, or double the $CHOG amount.
+  const falsePrice=move.exact?amount((BigInt(move.grossWei)*2n).toString(),move.asset,true):rounded(differentPriceBand(move.grossWei).toString(),move.asset);
+  if(second!==null)lies.push({id:'C',witness:second,statementId:statementId(second,'followup'),kind:'D5',trueValue:priceValue,falseValue:subject.name+' was paid for with '+falsePrice,receiptId:'payment',inference:'The payment receipt records a different amount.',unlock:{receiptId:null,line:'The price is recorded in the payment receipt.'},retraction:''});
   for(const lie of lies){const statement=statements.find(row=>row.id===lie.statementId)!;statement.line=speak({cast:castRows},salt,lie.witness,lie.falseValue,statement.slot,statement.id);lie.retraction=speak({cast:castRows},salt,lie.witness,lie.trueValue,'retraction',statement.id);statement.claim={factId:lie.id==='A'?'arrival-'+event.tokenId:lie.id==='B'?'move-kind':'price',value:lie.falseValue};if(lie.id==='C'&&difficulty.chained)statement.requiresCaught=['B'];}
   return {statements,lies};
  };
  const tileInputs=[{label:subject.name,sources:[anchor]},{label:route,sources:paymentSources},{label:price,sources:paymentSources},...cast.filter(member=>member.tokenId!==event.tokenId).map(member=>({label:member.name,sources:[member.arrival]}))];
  const tiles=tileInputs.map(row=>({id:hash(salt+':tile:'+row.label).slice(0,18),...row})).sort((a,b)=>hash(salt+a.id).localeCompare(hash(salt+b.id)));
- const file:PuzzleFile={v:2,id:'case-'+hash(candidate.id+':'+day).slice(2,26),day,mode,title:({QUICK_EXIT:'The short stay',BIG_SPENDER:'The heavy envelope',LONG_GOODBYE:'The long goodbye',COLD_CASE:'The ink still holds'} as const)[candidate.type],setup:'A real sale moved '+subject.name+' to a new wallet. Find what the receipts say about the move.',type:candidate.type,subject:{tokenId:event.tokenId,name:subject.name},ruleLine:puzzleRule(day),opensAt,closesAt:opensAt+86400,cutoff,cast:castRows,receipts,tiles,blanks:[{id:'subject',label:'Chog'},{id:'move',label:'moved in a'},{id:'price',label:'for'}]};
+ const file:PuzzleFile={v:2,id:'case-'+hash(candidate.id+':'+day).slice(2,26),day,mode,title:({QUICK_EXIT:'The short stay',BIG_SPENDER:'The heavy envelope',LONG_GOODBYE:'The long goodbye',FIRST_MOVE:'The first step',CHOG_TRAIL:'Follow the $CHOG',COLD_CASE:'The ink still holds'} as const)[candidate.type],
+  setup:candidate.type==='CHOG_TRAIL'?'A real escrow deal paid in $CHOG moved '+subject.name+' out of its wallet. Find what the receipts say about the deal.':candidate.type==='FIRST_MOVE'?'For the first time since mint, a real sale moved '+subject.name+' to a new wallet. Find what the receipts say about the move.':'A real sale moved '+subject.name+' to a new wallet. Find what the receipts say about the move.',type:candidate.type,subject:{tokenId:event.tokenId,name:subject.name},ruleLine:puzzleRule(day),opensAt,closesAt:opensAt+86400,cutoff,cast:castRows,receipts,tiles,blanks:[{id:'subject',label:'Chog'},{id:'move',label:'moved in'},{id:'price',label:'for'}]};
  const plans:Record<string,PuzzlePlan>={default:makePlan(null)};for(const id of [primary,secondary])if(id!==null)plans[id]=makePlan(id);
  const puzzle:PuzzleCase={file,key:{v:2,caseId:file.id,salt,contentHash:hash(canonicalJSON(file)),receiptIds:receipts.map(row=>row.id),answers:{subject:tiles.find(row=>row.label===subject.name)!.id,move:tiles.find(row=>row.label===route)!.id,price:tiles.find(row=>row.label===price)!.id},plans},answerHash:''};
  puzzle.answerHash=puzzleHash(puzzle);

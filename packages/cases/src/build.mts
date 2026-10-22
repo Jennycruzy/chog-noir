@@ -73,7 +73,9 @@ export function buildLinkedCast(candidate:Candidate,history:readonly EnrichedEve
   result.push({tokenId:id,name,role,arrival:source(arrival),arrivedAt:at});ids.add(id);
  };
  add(candidate.row.event.tokenId,'SUBJECT');
- for(const [wallet,role] of [[candidate.row.event.from,'SELLER_ROOMMATE'],[candidate.row.event.to,'BUYER_ROOMMATE']] as const)
+ // An escrow deposit moves the Chog to the escrow contract; the buyer is the deal's buyer.
+ const buyer=candidate.row.event.class==='ESCROW_DEPOSIT'&&candidate.row.event.escrow?candidate.row.event.escrow.buyer:candidate.row.event.to;
+ for(const [wallet,role] of [[candidate.row.event.from,'SELLER_ROOMMATE'],[buyer,'BUYER_ROOMMATE']] as const)
   for(const row of [...held.values()].filter(row=>row.event.to===wallet).sort((a,b)=>a.event.tokenId-b.event.tokenId))add(row.event.tokenId,role);
  for(const row of [...rows].reverse())if(row.event.class==='SALE'&&Math.abs(times.get(row.event.block)!-candidate.at)<=6*3600)add(row.event.tokenId,'RECENT_SALE');
  const earlier=new Set(rows.filter(row=>row.event.to===candidate.row.event.from).map(row=>row.event.tokenId));

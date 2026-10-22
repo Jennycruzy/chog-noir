@@ -24,6 +24,7 @@ import {buildDailyPuzzle} from '../../../workers/daily/build.mts';
 import {holderRoutes} from '../src/auth.mts';
 import {playRoutes,type CaseSource} from '../src/play.mts';
 import {gameServer} from '../src/game.mts';
+import {issueImage,shareImage} from '../../../packages/art/src/render.mts';
 
 // Real data only: the owner index of 20 Oct 12:44 UTC, all 1,969 metadata records, and cases built from stored chain records.
 const repository=fileURLToPath(new URL('../../../',import.meta.url));
@@ -64,6 +65,7 @@ export async function fixtureServer(root:string,options:{web?:boolean}={}){
  const wallet=new WalletAuth({root,origin,now:()=>now,verify:()=>Promise.resolve(true)});
  const play=playRoutes({origin,auth:wallet,holders,career,metadata:records,connectionsAt:async atBlock=>new WitnessConnections({snapshot,metadata:records,atBlock}),cases,plays:new HolderPlays(root),
   rookies:new RookieDesk<PuzzleSession>({root,metadata,now:()=>now,secure:false}),now:()=>now,training:new TrainingDesk(randomBytes(32),()=>training),
+  render:{issue:(value,issue,landscape)=>issueImage(repository,value,issue,landscape),share:facts=>shareImage(repository,facts)},
   replay:async()=>({label:'REPLAY',caseLine:'A real sale, replayed.',witness:{tokenId:training.cast[0]!.tokenId,name:training.cast[0]!.name},statement:training.statements[0]!.line,receipt:training.receipts[0]!,inference:training.lie.inference})});
  routes.push(holderRoutes({origin,auth:wallet,roster:new DetectiveRoster({holders,career,metadata:records,now:()=>now}),now:()=>now}),play);
  return {server,origin,

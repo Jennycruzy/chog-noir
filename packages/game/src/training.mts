@@ -22,7 +22,7 @@ export function trainingFromPuzzle(puzzle:PuzzleCase):TrainingCase{
  const other=puzzle.file.cast.find(row=>row.tokenId!==liar.tokenId&&row.tokenId===subject.tokenId)??puzzle.file.cast.find(row=>row.tokenId!==liar.tokenId)!;
  const truthful=plan.statements.find(row=>row.witness===other.tokenId&&row.slot==='opening'&&!plan.lies.some(item=>item.statementId===row.id))!;
  const extra=puzzle.file.receipts.find(row=>row.id!==breaking.id&&row.id!==payment.id&&row.facts.some(fact=>fact.id===truthful.claim.factId))??puzzle.file.receipts.find(row=>row.id!==breaking.id&&row.id!==payment.id)!;
- const route=puzzle.file.tiles.find(row=>row.id===puzzle.key.answers.move)!.label,otherRoute=route==='accepted offer'?'bought listing':'accepted offer';
+ const route=puzzle.file.tiles.find(row=>row.id===puzzle.key.answers.move)!.label,otherRoute=route==='an accepted offer'?'a listing purchase':'an accepted offer';
  const tile=(label:string)=>({id:keccak256(toBytes(puzzle.file.id+':training:'+label)).slice(0,18),label});
  const subjectTile=tile(subject.name),routeTile=tile(route),tiles=[subjectTile,routeTile,tile(other.tokenId===subject.tokenId?liar.name:other.name),tile(otherRoute)].sort((a,b)=>a.id.localeCompare(b.id));
  if(new Set(tiles.map(row=>row.label)).size!==tiles.length)throw new TrainingError('TRAINING_SOURCE_INVALID','Training tiles must be distinct.',503);
@@ -31,7 +31,7 @@ export function trainingFromPuzzle(puzzle:PuzzleCase):TrainingCase{
   statements:[{id:statement.id,witness:liar.tokenId,line:statement.line+' '+COACH},{id:truthful.id,witness:other.tokenId,line:truthful.line}],
   receipts:[breaking,payment,extra].map(row=>({id:row.id,text:row.text,sources:row.sources})),
   lie:{statementId:statement.id,receiptId:breaking.id,inference:lie.inference,unlockedTruth:lie.unlock.line},
-  blanks:[{id:'subject',label:'Chog'},{id:'move',label:'moved in a'}],tiles,answers:{subject:subjectTile.id,move:routeTile.id}};
+  blanks:[{id:'subject',label:'Chog'},{id:'move',label:'moved in'}],tiles,answers:{subject:subjectTile.id,move:routeTile.id}};
 }
 
 /** Stateless sessions: progress travels with the player in a server-signed token, and the server still decides every catch. */

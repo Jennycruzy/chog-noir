@@ -14,6 +14,7 @@ import {PlayerBusy} from '../../../packages/game/src/player-lock.mts';
 import {detectiveFor,questionBudget,DetectiveDataError} from '../../../packages/traits/src/detective.mts';
 import type {PuzzlePublication} from '../../../packages/publishing/src/puzzles.mts';
 import {TrainingError,type TrainingDesk} from '../../../packages/game/src/training.mts';
+import type {ShareFacts} from '../../../packages/art/src/render.mts';
 
 export interface CaseSource {
  list():Promise<PuzzlePublication[]>;
@@ -25,6 +26,7 @@ export interface PlayOptions {
  connectionsAt:(atBlock:number)=>Promise<WitnessConnections>;cases:CaseSource;plays:HolderPlays;rookies:RookieDesk<PuzzleSession>;
  trustProxy?:boolean;now?:()=>number;verify?:(record:PuzzlePublication,file:PuzzleCase['file']|null)=>Promise<unknown>;
  training?:TrainingDesk;replay?:()=>Promise<ReplayPanel|null>;optOut?:(address:string)=>Promise<{recordedAt:string}>;
+ render?:{issue:(puzzle:PuzzleCase,issue:{number:number;openTx:string;closeTx:string},landscape:boolean)=>Promise<Buffer>;share:(facts:ShareFacts)=>Promise<Buffer>};
 }
 /** A real caught lie for the front door: the false statement, the exact CAUGHT label and the breaking receipt, together. */
 export interface ReplayPanel {label:'REPLAY';caseLine:string;witness:{tokenId:number;name:string};statement:string;receipt:{text:string;sources:unknown[]};inference:string}
@@ -189,12 +191,35 @@ export function playRoutes(options:PlayOptions){
    witness:{called:appeared.length,lied:lied.length},issues:appeared.map(row=>({number:row.record.number,day:row.record.day,title:row.puzzle.file.title,caseId:row.record.id}))};
  }
 
+ const images=new Map<string,Promise<Buffer>>();
+ function png(response:ServerResponse,bytes:Buffer,shared:boolean,name:string){
+  response.writeHead(200,{'content-type':'image/png','cache-control':shared?'public, max-age=86400':'private, no-store','content-disposition':`inline; filename="${name}.png"`,'x-content-type-options':'nosniff'});response.end(bytes);
+ }
+ async function issuePng(number:number,landscape:boolean){
+  const found=(await closedCases()).find(row=>row.record.number===number);if(!found)throw new PlayError('ISSUE_NOT_FOUND','That issue has not been published.',404);
+  if(!options.render)throw new PlayError('RENDER_UNAVAILABLE','Issue images are unavailable.',503);
+  const key=found.record.answerHash+':'+(landscape?'landscape':'portrait');
+  if(!images.has(key))images.set(key,options.render.issue(found.puzzle,{number,openTx:found.record.open!.hash,closeTx:found.record.close!.hash},landscape).catch(error=>{images.delete(key);throw error;}));
+  return images.get(key)!;
+ }
+ /** The player's own finished case only; the image shows the share grid's facts and no answer. */
+ async function sharePng(request:IncomingMessage,url:URL){
+  if(!options.render)throw new PlayError('RENDER_UNAVAILABLE','Share images are unavailable.',503);
+  const {record,puzzle}=await today();let view:ReturnType<typeof holderView>|ReturnType<typeof rookieView>;
+  if(url.searchParams.has('tokenId')){const tokenId=tokenParameter(url.searchParams.get('tokenId')),address=await wallet(request),play=await options.plays.read(puzzle.file.id,tokenId);if(!play||play.wallet!==address)throw new PlayError('CASE_NOT_STARTED','Take the case with this Chog first.',404);view=holderView(puzzle,record,play);}
+  else{const token=cookieValue(request,'chog_noir_rookie'),session=token?await options.rookies.peek(rookieCase(puzzle),token):null;if(!session)throw new RookieError('ROOKIE_SESSION_INVALID','Open the Rookie desk again.',401);view=rookieView(puzzle,record,session);}
+  const state=view.state;if(!state.done||!state.result)throw new PlayError('SHARE_LOCKED','Finish the case to share it.',403);
+  const holder=view.mode==='HOLDER'?(view as ReturnType<typeof holderView>):null;
+  const status=holder?careerStatus(await options.career.profile(holder.detective.tokenId),puzzle.file.day,holder.detective.founder):null;
+  return options.render.share({number:record.number,weekday:caseSummary(record,puzzle).weekday,detective:holder?`${holder.detective.name}${holder.detective.founder?' · Founder':''} · ${status!.rank}`:'ROOKIE DESK',
+   liesCaught:state.caught.length,lies:state.result.panels.length,solved:state.result.solved,questionsLeft:state.questions,streak:status?status.streak:null,subject:puzzle.file.subject.tokenId});
+ }
  const timer=setInterval(()=>{if(!streams.size)return;void precinct().then(value=>{const text='event: precinct\ndata: '+JSON.stringify(value)+'\n\n';for(const stream of streams)stream.write(text);}).catch(()=>{});},5000);timer.unref();
 
  const handler=async(request:IncomingMessage,response:ServerResponse):Promise<boolean>=>{
   // Game routes live only under /api; page addresses such as /chog/11 belong to the site.
   const url=new URL(request.url??'/','http://localhost');if(!url.pathname.startsWith('/api/'))return false;const path=url.pathname.slice(4);
-  const route=path.match(/^\/(case\/today|case\/start|case\/action|case\/state|rookie\/start|precinct|precinct\/stream|issues|replay|training\/start|training\/action|optout)$/)?.[1]??(/^\/case\/case-[a-f0-9]{24}\/(public|stats)$/.test(path)?'case-detail':/^\/chog\/\d+$/.test(path)?'chog':/^\/issues\/\d+$/.test(path)?'issue':/^\/verify\/case-[a-f0-9]{24}$/.test(path)?'verify':null);
+  const route=path.match(/^\/(case\/today|case\/start|case\/action|case\/state|rookie\/start|precinct|precinct\/stream|issues|replay|training\/start|training\/action|optout)$/)?.[1]??(/^\/case\/case-[a-f0-9]{24}\/(public|stats)$/.test(path)?'case-detail':/^\/chog\/\d+$/.test(path)?'chog':/^\/issues\/\d+$/.test(path)?'issue':/^\/issues\/\d+\/image$/.test(path)?'issue-image':path==='/case/share-image'?'share-image':/^\/verify\/case-[a-f0-9]{24}$/.test(path)?'verify':null);
   if(!route)return false;
   try{
    const post=['case/start','case/action','rookie/start','training/start','training/action','optout'].includes(route);
@@ -235,6 +260,8 @@ export function playRoutes(options:PlayOptions){
    if(route==='issues'){const closed=await closedCases();return reply(response,200,{issues:closed.map(({record,puzzle})=>({number:record.number,day:record.day,caseId:record.id,title:puzzle.file.title,subject:puzzle.file.subject,cast:puzzle.file.cast.map(({tokenId,name})=>({tokenId,name})),openTx:record.open!.hash,closeTx:record.close!.hash}))}),true;}
    if(route==='issue'){const number=Number(path.split('/')[2]),found=(await closedCases()).find(row=>row.record.number===number);if(!found)throw new PlayError('ISSUE_NOT_FOUND','That issue has not been published.',404);const {record,puzzle}=found;return reply(response,200,{number,case:caseSummary(record,puzzle),reveal:caseReveal(puzzle),openTx:record.open!.hash,closeTx:record.close!.hash}),true;}
    if(route==='chog')return reply(response,200,await profile(tokenParameter(path.split('/')[2]))),true;
+   if(route==='issue-image'){const number=Number(path.split('/')[2]),landscape=url.searchParams.get('format')==='landscape';return png(response,await issuePng(number,landscape),true,`chog-noir-issue-${number}${landscape?'-landscape':''}`),true;}
+   if(route==='share-image')return png(response,await sharePng(request,url),false,'chog-noir-result'),true;
    if(route==='verify'){
     const found=await options.cases.byId(path.split('/')[2]!);if(!found)throw new PlayError('CASE_NOT_FOUND','No published case has this identifier.',404);
     if(!options.verify)throw new PlayError('VERIFY_UNAVAILABLE','Chain verification is unavailable.',503);

@@ -93,3 +93,22 @@ test('the bureau refuses wallets without that Chog, cross-site writes and early 
  const closed=await (await get('/api/case/'+puzzle.file.id+'/public')).json();expect(closed.key.salt).toBe(puzzle.key.salt);
  const issue=await (await get('/api/issues/1')).json();expect(issue.reveal.panels.every((panel:{label:string;statement:string;receipt:{text:string}})=>panel.label==='CAUGHT — false statement'&&panel.statement&&panel.receipt.text)).toBe(true);
 }),180_000);
+
+test('issue art follows the same-panel rule, and share images are the player’s own facts within size limits',async()=>harness(async({post,get,signIn,closeCase})=>{
+ const {issuePanels}=await import('../../../packages/art/src/render.mts');
+ const panels=issuePanels(puzzle,{number:1,openTx:'0x'+'aa'.repeat(32),closeTx:'0x'+'cc'.repeat(32)}),plan=planFor(puzzle,null);
+ const caught=panels.findIndex(panel=>panel.blocks.some(block=>block.value==='CAUGHT — false statement'));
+ expect(caught).toBe(2);const values=panels[2]!.blocks.map(block=>block.value);
+ expect(values).toContain(plan.statements.find(row=>row.id===plan.lies[0]!.statementId)!.line);expect(values).toContain(puzzle.file.receipts.find(row=>row.id===plan.lies[0]!.receiptId)!.text);
+ for(const [index,panel] of panels.entries())if(index!==2)for(const lie of plan.lies)expect(JSON.stringify(panel)).not.toContain(lie.falseValue);
+ const cookie=await signIn(holder),view=await (await post('/api/case/start',{tokenId:11},cookie)).json();
+ expect((await get('/api/case/share-image?tokenId=11',cookie)).status).toBe(403);
+ await solve(post,cookie,planFor(puzzle,11),view,11);
+ const share=await get('/api/case/share-image?tokenId=11',cookie),bytes=Buffer.from(await share.arrayBuffer());
+ expect(share.headers.get('content-type')).toBe('image/png');expect(bytes.length).toBeLessThanOrEqual(400_000);expect(bytes.readUInt32BE(16)).toBe(1200);expect(bytes.readUInt32BE(20)).toBe(630);
+ expect((await get('/api/issues/1/image')).status).toBe(404);
+ closeCase();
+ for(const [format,width,height] of [['',1080,1350],['?format=landscape',1600,900]] as const){
+  const image=Buffer.from(await (await get('/api/issues/1/image'+format)).arrayBuffer());expect(image.length).toBeLessThanOrEqual(400_000);expect(image.readUInt32BE(16)).toBe(width);expect(image.readUInt32BE(20)).toBe(height);
+ }
+}),300_000);

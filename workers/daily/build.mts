@@ -2,7 +2,7 @@ import {keccak256,toBytes} from 'viem';
 import type {EnrichedEvent} from '../../packages/core/src/enrich.mts';
 import type {OwnerSnapshot} from '../../packages/auth/src/holders.mts';
 import {buildLinkedCast,castQuality,type Metadata} from '../../packages/cases/src/build.mts';
-import {saleCandidates,rankCandidates,type Candidate,type CaseRules} from '../../packages/cases/src/select.mts';
+import {saleCandidates,escrowCandidates,rankCandidates,type Candidate,type CaseRules} from '../../packages/cases/src/select.mts';
 import {buildSalePuzzle,PuzzleError,type PuzzleCase} from '../../packages/cases/src/puzzle.mts';
 import {catalogForPuzzle,selectClaimPuzzle,verifyComposedPuzzleSources} from '../../packages/cases/src/compose.mts';
 import {ClaimSourceError,type BulkSource} from '../../packages/witness/src/claims.mts';
@@ -18,11 +18,11 @@ const eventOf=(candidate:Candidate):CaseEvent=>({sourceId:candidate.row.event.tx
  * when none of them yields a fair, solvable case the builder takes a cold case from an older real sale that none of the
  * previous seven cases used. Nothing is invented: every candidate either passes every check or is skipped with its reason.
  */
-export function buildDailyPuzzle(input:DailySource&{day:string;salt:string;previous:readonly CaseEvent[];optedOut?:ReadonlySet<string>}):DailyBuild{
+export function buildDailyPuzzle(input:DailySource&{day:string;salt:string;previous:readonly CaseEvent[];optedOut?:ReadonlySet<string>;linkCoverage?:(cast:readonly number[])=>number}):DailyBuild{
  const {day,salt,history,times,metadata,ownership,bulkSources,rules}=input,start=Date.parse(day+'T00:00:00Z')/1000;
  if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||!Number.isFinite(start)||new Date(start*1000).toISOString().slice(0,10)!==day)throw new PuzzleError('CASE_DAY_INVALID','Choose a valid UTC case day.');
  const sourceDay=new Date((start-86400)*1000).toISOString().slice(0,10),recent=input.previous.slice(-7),rejected:DailyBuild['rejected']=[];
- const candidates=saleCandidates(history,times,rules),used=new Set<string>();
+ const candidates=[...saleCandidates(history,times,rules),...escrowCandidates(history,times)],used=new Set<string>();
  const attempt=(candidate:Candidate)=>{
   const event=eventOf(candidate);if(used.has(event.sourceId))return null;used.add(event.sourceId);
   try{
@@ -43,7 +43,8 @@ export function buildDailyPuzzle(input:DailySource&{day:string;salt:string;previ
    throw error;
   }
  };
- const fresh=rankCandidates(candidates,{day:sourceDay,previous:recent.map(row=>({tokenId:row.tokenId,wallets:[row.from,row.to]})),castQuality:candidate=>{const cast=buildLinkedCast(candidate,history,times,metadata);return cast.length?castQuality(cast.slice(0,4),metadata):0;}});
+ const fresh=rankCandidates(candidates,{day:sourceDay,previous:recent.map(row=>({tokenId:row.tokenId,wallets:[row.from,row.to]})),castQuality:candidate=>{const cast=buildLinkedCast(candidate,history,times,metadata);return cast.length?castQuality(cast.slice(0,4),metadata):0;},
+  ...(input.linkCoverage?{linkCoverage:(candidate:Candidate)=>input.linkCoverage!(buildLinkedCast(candidate,history,times,metadata).slice(0,4).map(row=>row.tokenId))}:{})});
  for(const {candidate} of fresh){const built=attempt(candidate);if(built)return {...built,source:'FRESH',rejected};}
  // Cold case: an older real sale, in an order fixed by the day so the fallback is reproducible but varies day to day.
  const excluded=new Set(recent.flatMap(row=>[String(row.tokenId),row.from.toLowerCase(),row.to.toLowerCase(),row.sourceId]));

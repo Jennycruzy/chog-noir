@@ -12,6 +12,8 @@ import type {OwnerSnapshot} from '../../packages/auth/src/holders.mts';
 import type {PuzzleCase} from '../../packages/cases/src/puzzle.mts';
 import {CareerStore} from '../../packages/career/src/store.mts';
 import {OptOuts} from '../../packages/auth/src/optout.mts';
+import {WitnessConnections} from '../../packages/auth/src/connections.mts';
+import type {MetadataRecord} from '../../packages/auth/src/roster.mts';
 import {loadEnv} from '../../scripts/env.mts';
 import {collectDaily} from './collect.mts';
 import {recoverDailySource} from './plan.mts';
@@ -53,15 +55,19 @@ try{
   },day);
   const {data}=recovery;
   if(recovery.degraded)console.error('DAILY_DEGRADED',safeError(new Error(recovery.reason!)));
-  const metadata=new Map<number,Metadata>();
-  for(let start=1;start<=1969;start+=64)await Promise.all(Array.from({length:Math.min(64,1970-start)},async(_,offset)=>{const id=start+offset;metadata.set(id,JSON.parse(await readFile(join(root,`data/metadata/${id}.json`),'utf8')).metadata);}));
+  const metadata=new Map<number,Metadata>(),records=new Map<number,MetadataRecord>();
+  for(let start=1;start<=1969;start+=64)await Promise.all(Array.from({length:Math.min(64,1970-start)},async(_,offset)=>{const id=start+offset,record=JSON.parse(await readFile(join(root,`data/metadata/${id}.json`),'utf8')) as MetadataRecord;records.set(id,record);metadata.set(id,record.metadata);}));
   const rules=JSON.parse(await readFile(join(root,'config/cases.json'),'utf8')) as CaseRules;
   const ownership=JSON.parse(await readFile(join(root,'runs/owners/snapshot.json'),'utf8')) as OwnerSnapshot;
   const bulkIds=new Set(data.history.filter(row=>row.event.class==='BULK_MOVE').map(row=>row.event.tx)),fetchedAt=new Date().toISOString();
   const bulkSources=data.data.transactions.filter(row=>bulkIds.has(row.hash)).map(transaction=>({transaction,logs:data.data.logs.filter(log=>log.transactionHash===transaction.hash),fetchedAt}));
   const previous:CaseEvent[]=[];
   for(const file of (await readdir(join(directory,'cases'))).filter(name=>/^\d{4}-\d{2}-\d{2}\.json$/.test(name)&&name.slice(0,10)<day).sort().slice(-7))previous.push((JSON.parse(await readFile(join(directory,'cases',file),'utf8')) as DailyCase).event);
-  const build=buildDailyPuzzle({day,salt:'0x'+randomBytes(32).toString('hex'),previous,optedOut:await new OptOuts(root).wallets(),history:data.history,times:data.times,metadata,ownership,bulkSources,rules});
+  // Link coverage: the share of all Chogs that would see a "Knows your Chog" witness in this cast, as of the source day's end.
+  const dayEnd=Date.parse(day+'T00:00:00Z')/1000,lastBlock=Math.max(...[...data.times].filter(([,at])=>at<dayEnd).map(([block])=>block),0);
+  const links=new WitnessConnections({snapshot:ownership,metadata:records,atBlock:Math.min(lastBlock,ownership.indexedBlock)});
+  const linkCoverage=(cast:readonly number[])=>{let linked=0;for(let id=1;id<=1969;id++)if(cast.some(witness=>links.between(id,witness).length))linked++;return linked/1969;};
+  const build=buildDailyPuzzle({day,salt:'0x'+randomBytes(32).toString('hex'),previous,optedOut:await new OptOuts(root).wallets(),linkCoverage,history:data.history,times:data.times,metadata,ownership,bulkSources,rules});
   await verifySourceReceipts(data.rpc,data.data,puzzleSources(build.puzzle),join(directory,'receipts'));
   // Seal before any chain write, so a retry commits the same key and salt.
   if(publisher)await publisher.prepare(build.puzzle,build.source);else await vault.seal(build.puzzle.file.id,build.puzzle);

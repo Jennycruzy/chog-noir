@@ -1,5 +1,6 @@
 import type {EnrichedEvent} from '../../core/src/enrich.mts';
-export type CaseType='QUICK_EXIT'|'BIG_SPENDER'|'LONG_GOODBYE'|'COLD_CASE';
+import {CHOG_TOKEN} from '../../core/src/chain.mts';
+export type CaseType='QUICK_EXIT'|'BIG_SPENDER'|'LONG_GOODBYE'|'FIRST_MOVE'|'CHOG_TRAIL'|'COLD_CASE';
 export interface CaseRules {quickExitDiscountBps:number;quickExitHoldHours:number;bigSpenderPremiumBps:number;longGoodbyeHoldDays:number;priceBandUpperMon:number[];archiveQueueSize:number}
 export interface Candidate {id:string;type:CaseType;at:number;row:EnrichedEvent;trigger:string}
 export interface ScoreInput {rarity:number;priceGap:number;holdDrama:number;castQuality:number;freshness:number;repeatPenalty:number}
@@ -35,6 +36,8 @@ export function saleCandidates(history:readonly EnrichedEvent[],times:ReadonlyMa
   const shortResale=arrival?.event.class==='SALE'&&row.holdSeconds!==null&&row.holdSeconds>=0&&row.holdSeconds<rules.quickExitHoldHours*3600;
   const discounted=reference!==null&&amount*10000n<=reference*BigInt(10000-rules.quickExitDiscountBps);
   const types:{type:CaseType;trigger:string}[]=[];
+  // A Founder leaving its minter for the first time: the arrival being sold is the mint itself.
+  if(arrival?.event.class==='MINT'&&arrival.event.to===event.from)types.push({type:'FIRST_MOVE',trigger:'First move since mint: the seller is the minter and the Chog never moved before.'});
   if(shortResale||discounted)types.push({type:'QUICK_EXIT',trigger:shortResale?'Resale after a verified purchase within the configured hold window.':'Gross sale price below the seven-prior-sales median by the configured discount; this is not a historical floor quote.'});
   if(event.route==='listing_bought'&&reference!==null&&amount*10000n>=reference*BigInt(10000+rules.bigSpenderPremiumBps))types.push({type:'BIG_SPENDER',trigger:'Verified listing above the seven-prior-sales median by the configured premium; this is not a historical floor quote.'});
   if(row.holdSeconds!==null&&row.holdSeconds>=rules.longGoodbyeHoldDays*86400)types.push({type:'LONG_GOODBYE',trigger:'Sale ends a source-linked hold at least as long as the configured threshold.'});
@@ -43,16 +46,28 @@ export function saleCandidates(history:readonly EnrichedEvent[],times:ReadonlyMa
  }
  return result.sort((a,b)=>a.row.event.block-b.row.event.block||a.row.event.logIndex-b.row.event.logIndex||a.type.localeCompare(b.type));
 }
-export function rankCandidates(candidates:readonly Candidate[],context:{day:string;previous:readonly {tokenId:number;wallets:string[]}[];castQuality:(candidate:Candidate)=>number}):{candidate:Candidate;score:number;components:ScoreInput}[]{
+/** First moves always lead (+40); a cast linked to most detectives earns +15; repeats of the last seven cases are penalised. */
+export function rankCandidates(candidates:readonly Candidate[],context:{day:string;previous:readonly {tokenId:number;wallets:string[]}[];castQuality:(candidate:Candidate)=>number;linkCoverage?:(candidate:Candidate)=>number}):{candidate:Candidate;score:number;components:ScoreInput}[]{
  const start=Date.parse(`${context.day}T00:00:00Z`)/1000;
  if(!Number.isFinite(start)||new Date(start*1000).toISOString().slice(0,10)!==context.day)throw new Error('CASE_DAY: Invalid UTC day');
  const prior=candidates.filter(item=>item.at>=start-14*86400&&item.at<start);
  return candidates.filter(item=>item.at>=start&&item.at<start+86400).map(candidate=>{
   const event=candidate.row.event;
   const components:ScoreInput={rarity:prior.length?1-prior.filter(item=>item.type===candidate.type).length/prior.length:1,
-   priceGap:priceGap(BigInt(event.price!.grossWei!),candidate.row.priorSaleMedianWei===null?null:BigInt(candidate.row.priorSaleMedianWei)),
+   priceGap:event.price?.grossWei?priceGap(BigInt(event.price.grossWei),candidate.row.priorSaleMedianWei===null?null:BigInt(candidate.row.priorSaleMedianWei)):0,
    holdDrama:Math.min((candidate.row.holdSeconds??0)/(180*86400),1),castQuality:context.castQuality(candidate),freshness:1,
    repeatPenalty:context.previous.slice(-7).some(item=>item.tokenId===event.tokenId||item.wallets.some(wallet=>wallet.toLowerCase()===event.from.toLowerCase()||wallet.toLowerCase()===event.to.toLowerCase()))?1:0};
-  return {candidate,score:caseScore(components),components};
+  return {candidate,score:caseScore(components)+(candidate.type==='FIRST_MOVE'?40:0)+((context.linkCoverage?.(candidate)??0)>=0.5?15:0),components};
  }).sort((a,b)=>b.score-a.score||b.candidate.row.event.block-a.candidate.row.event.block||b.candidate.row.event.logIndex-a.candidate.row.event.logIndex||a.candidate.id.localeCompare(b.candidate.id));
+}
+/** $CHOG escrow deals: the seller is paid in $CHOG at deposit, proven by the token's own Transfer log. */
+export function escrowCandidates(history:readonly EnrichedEvent[],times:ReadonlyMap<number,number>):Candidate[]{
+ const result:Candidate[]=[];
+ for(const row of history){
+  const escrow=row.event.escrow;
+  if(row.event.class!=='ESCROW_DEPOSIT'||!escrow||escrow.role!=='deposit'||!escrow.paymentAtThisTransfer||escrow.paymentToken!==CHOG_TOKEN||escrow.seller!==row.event.from||!/^\d+$/.test(escrow.amountWei)||BigInt(escrow.amountWei)<=0n||escrow.paymentProof.kind!=='ERC20')continue;
+  const at=times.get(row.event.block);if(at===undefined||!Number.isSafeInteger(at)||at<0)throw new Error('CASE_TIME: Missing source timestamp');
+  result.push({id:`${identity(row)}:CHOG_TRAIL`,type:'CHOG_TRAIL',trigger:'Escrow deal paid in $CHOG, proven by the token transfer to the seller.',at,row});
+ }
+ return result.sort((a,b)=>a.row.event.block-b.row.event.block||a.row.event.logIndex-b.row.event.logIndex);
 }

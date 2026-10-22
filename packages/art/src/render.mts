@@ -1,41 +1,70 @@
 import sharp from 'sharp';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import type {CaseDraft} from '../../cases/src/build.mts';
-import {memoryLine} from '../../witness/src/facts.mts';
+import {caseReveal} from '../../game/src/puzzle-session.mts';
+import type {PuzzleCase} from '../../cases/src/puzzle.mts';
+
+const INK='#0E0E10',PAPER='#F2EDE4',LAMP='#F5C451',ALARM='#E5484D',FOG='#8A8A94',LIMIT=400_000;
 const escape=(value:string)=>value.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[char]!));
-function lines(value:string,max:number){const result:string[]=[];let current='';for(const word of value.split(/\s+/)){if((current+' '+word).trim().length>max&&current){result.push(current);current=word;}else current=(current+' '+word).trim();}if(current)result.push(current);return result;}
-function text(value:string,x:number,y:number,size=24,max=38,color='#e5dfce'){
- return `<text x="${x}" y="${y}" font-size="${size}" fill="${color}" font-family="DejaVu Sans Mono, monospace">${lines(value,max).map((line,index)=>`<tspan x="${x}" dy="${index===0?0:size*1.4}">${escape(line)}</tspan>`).join('')}</text>`;
+function wrap(value:string,max:number){const result:string[]=[];let current='';for(const word of value.split(/\s+/)){if((current+' '+word).trim().length>max&&current){result.push(current);current=word;}else current=(current+' '+word).trim();}if(current)result.push(current);return result;}
+/** Wrapped text; returns the markup and the height it used, so callers can stack blocks without overlap. */
+function text(value:string,x:number,y:number,options:{size?:number;max?:number;color?:string;weight?:string;strike?:boolean}={}){
+ const {size=24,max=38,color=PAPER,weight='normal',strike=false}=options,rows=wrap(value,max),lead=size*1.35;
+ const markup=`<text x="${x}" y="${y}" font-size="${size}" font-weight="${weight}" fill="${color}" font-family="DejaVu Sans Mono, monospace"${strike?` text-decoration="line-through"`:''}>${rows.map((row,index)=>`<tspan x="${x}" dy="${index===0?0:lead}">${escape(row)}</tspan>`).join('')}</text>`;
+ return {markup,height:rows.length*lead};
 }
 async function portrait(root:string,id:number,width:number,height:number){
  if(!Number.isInteger(id)||id<1||id>1969)throw new Error('ART_TOKEN: Invalid token');
- const source=await readFile(join(root,`data/images/${id}.webp`));
- const image=await sharp(source).resize(width,height,{fit:'cover'}).greyscale().linear(1.12,-8).png().toBuffer();
+ const image=await sharp(await readFile(join(root,`data/images/${id}.webp`))).resize(Math.round(width),Math.round(height),{fit:'cover'}).greyscale().linear(1.12,-8).png().toBuffer();
  return `data:image/png;base64,${image.toString('base64')}`;
 }
-export async function comic(root:string,draft:CaseDraft,landscape=false){
- const width=landscape?1600:1080,height=landscape?900:1350,panelW=width/2,panelH=(height-50)/2;
- const lie=draft.private.key.lie,other=draft.public.cast.find(item=>item.tokenId!==lie.witness)!;
- const proof=draft.public.ledger.find(item=>item.id===lie.ledgerId)!;
- const trueLine=draft.private.facts?draft.private.facts[other.tokenId]!.cards.ARRIVAL.detail:'An arrival is recorded in the ledger.';
- const claim=draft.private.facts?memoryLine(draft,lie.witness,lie.card).line:draft.public.testimony.find(item=>item.tokenId===lie.witness)!.line;
- const panels=[{id:draft.public.subject.tokenId,label:'01 / THE SCENE',caption:`${draft.public.subject.name} changed hands on ${draft.public.occurredAt.slice(0,10)}.`},
-  {id:other.tokenId,label:'02 / THE WITNESS',caption:`${other.name} ${trueLine}.`},
-  {id:lie.witness,label:'03 / PLANNED LIE',caption:claim},
-  {id:draft.public.subject.tokenId,label:'04 / THE RECORD',caption:proof.text}];
- const images=await Promise.all(panels.map(panel=>portrait(root,panel.id,panelW,panelH)));
- const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="#111411"/>${panels.map((panel,index)=>{
-  const x=index%2*panelW,y=Math.floor(index/2)*panelH,overlay=landscape?160:220;
-  return `<image href="${images[index]}" x="${x+5}" y="${y+5}" width="${panelW-10}" height="${panelH-10}"/><rect x="${x+5}" y="${y+panelH-overlay}" width="${panelW-10}" height="${overlay-5}" fill="#111411" fill-opacity=".94"/>${text(panel.label,x+24,y+panelH-overlay+30,16,50,index===2?'#e69982':'#d2dd92')}${text(panel.caption,x+24,y+panelH-overlay+65,landscape?21:20,landscape?54:36)}${index===3?text(`TX ${proof.sources[0]!.tx.slice(0,12)}… / BLOCK ${proof.sources[0]!.block}`,x+24,y+panelH-17,11,75,'#b4b99f'):''}`;
- }).join('')}${text('CHOG NOIR / Original Chog Genesis art by CHOGLABS. Unofficial Chogathon entry.',20,height-18,12,140,'#9a9e8d')}</svg>`;
- return sharp(Buffer.from(svg)).png({compressionLevel:9}).toBuffer();
+async function fit(svg:string,code:string){
+ for(const colours of [256,128,64,32,16]){const png=await sharp(Buffer.from(svg)).png({palette:true,colours,dither:.5,compressionLevel:9}).toBuffer();if(png.length<=LIMIT)return png;}
+ throw new Error(code+': Unable to satisfy the 400 KB image limit');
 }
-export async function shareCard(root:string,draft:CaseDraft,result:{score:number;grade:string},plays:number,initial:number,caught:boolean){
- const image=await portrait(root,draft.public.subject.tokenId,490,630);
- const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#111411"/><image href="${image}" x="710" y="0" width="490" height="630"/><rect x="710" width="490" height="630" fill="#111411" fill-opacity=".2"/>${text('CHOG NOIR',45,70,32,40,'#d2dd92')}${text(draft.public.publication?'DAILY CASE':'ARCHIVE PRACTICE',45,115,15,55,'#9a9e8d')}${text('THE RECORD TELLS THE STORY.',45,175,20,45)}${text(`${result.score} POINTS / GRADE ${result.grade}`,45,260,34,35,'#d2dd92')}${text(caught?'LIE CAUGHT':'LIE MISSED',45,330,23,40)}${text(`${plays}/${initial} CARD PLAYS LEFT`,45,380,20,40)}${text(draft.public.subject.name,45,450,28,35)}${text('Chog Genesis by CHOGLABS. Unofficial Chogathon entry.',45,590,12,83,'#9a9e8d')}</svg>`;
- for(const colours of [128,64,32,16]){
-  const png=await sharp(Buffer.from(svg)).png({palette:true,colours,dither:.4,compressionLevel:9}).toBuffer();if(png.length<=300_000)return png;
- }
- throw new Error('ART_SHARE_SIZE: Unable to satisfy the 300 KB share limit');
+
+/**
+ * Chog Noir Issue #N, four panels from real art. Panel 3 is the only place a false statement appears: the struck
+ * statement, the exact CAUGHT label and the real breaking receipt are drawn together as one panel. Panel 4 is facts only.
+ */
+export function issuePanels(puzzle:PuzzleCase,issue:{number:number;openTx:string;closeTx:string}){
+ const reveal=caseReveal(puzzle),lie=reveal.panels[0]!,subject=puzzle.file.subject,witnesses=puzzle.file.cast.filter(row=>row.tokenId!==subject.tokenId);
+ return [
+  {art:subject.tokenId,label:'01 · THE SCENE',blocks:[{value:`Issue #${issue.number} · ${puzzle.file.title}`,color:LAMP,weight:'bold'},{value:puzzle.file.setup}]},
+  {art:witnesses[0]?.tokenId??subject.tokenId,label:'02 · THE WITNESSES',blocks:[{value:puzzle.file.cast.map(row=>`${row.name}, ${row.nickname}`).join(' · ')}]},
+  {art:lie.witness,label:'03 · CAUGHT',blocks:[{value:lie.statement,strike:true},{value:lie.label,color:ALARM,weight:'bold'},{value:lie.receipt.text,color:LAMP},...(reveal.panels.length>1?[{value:`+${reveal.panels.length-1} more lie${reveal.panels.length>2?'s':''} caught`,color:FOG}]:[])]},
+  {art:subject.tokenId,label:'04 · WHAT REALLY HAPPENED',blocks:[...reveal.truth.slice(0,2).map(row=>({value:row.text})),{value:`Locked ${issue.openTx.slice(0,10)}… · revealed ${issue.closeTx.slice(0,10)}…`,color:FOG}]},
+ ];
+}
+export async function issueImage(root:string,puzzle:PuzzleCase,issue:{number:number;openTx:string;closeTx:string},landscape=false){
+ const width=landscape?1600:1080,height=landscape?900:1350,footer=44,panelW=width/2,panelH=(height-footer)/2,column=landscape?44:30,panels=issuePanels(puzzle,issue);
+ const images=await Promise.all(panels.map(panel=>portrait(root,panel.art,panelW-12,panelH-12)));
+ const body=panels.map((panel,index)=>{
+  const x=index%2*panelW,y=Math.floor(index/2)*panelH,overlay=landscape?panelH*.62:panelH*.58;
+  // Shrink the type until every block sits inside the frame; a comparison is never clipped.
+  let markup='';
+  for(const size of landscape?[18,16,14]:[17,15,13]){
+   let cursor=y+panelH-overlay+34;markup=text(panel.label,x+22,cursor,{size:16,max:60,color:index===2?ALARM:LAMP,weight:'bold'}).markup;cursor+=34;
+   const columns=Math.floor(column*17/size);
+   for(const block of panel.blocks){const piece=text(block.value,x+22,cursor,{size,max:columns,...block});markup+=piece.markup;cursor+=piece.height+10;}
+   if(cursor<=y+panelH-12)break;
+   if(size===(landscape?14:13))throw new Error('ART_PANEL_OVERFLOW: A panel does not fit its frame');
+  }
+  // Each panel, including the CAUGHT comparison, is one framed unit; nothing in panel 3 can be cropped apart.
+  return `<g><image href="${images[index]}" x="${x+6}" y="${y+6}" width="${panelW-12}" height="${panelH-12}" preserveAspectRatio="xMidYMid slice"/><rect x="${x+6}" y="${y+panelH-overlay}" width="${panelW-12}" height="${overlay-6}" fill="${INK}" fill-opacity=".93"/><rect x="${x+6}" y="${y+6}" width="${panelW-12}" height="${panelH-12}" fill="none" stroke="${index===2?ALARM:PAPER}" stroke-width="${index===2?4:2}"/>${markup}</g>`;
+ }).join('');
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="${INK}"/>${body}${text('CHOG NOIR · Original Chog Genesis art by CHOGLABS. Unofficial Chogathon entry.',20,height-16,{size:13,max:140,color:FOG}).markup}</svg>`;
+ return fit(svg,'ART_ISSUE_SIZE');
+}
+
+export interface ShareFacts {number:number;weekday:string;detective:string;liesCaught:number;lies:number;solved:boolean;questionsLeft:number;streak:number|null;subject:number}
+/** The 1200×630 share image: the same facts as the share grid and nothing that reveals the answer. */
+export async function shareImage(root:string,facts:ShareFacts){
+ const image=await portrait(root,facts.subject,490,630);
+ const lines=[text('CHOG NOIR',48,82,{size:44,max:30,color:LAMP,weight:'bold'}),text(`#${facts.number} · ${facts.weekday}`,48,138,{size:26,max:40}),
+  text(facts.detective,48,210,{size:24,max:38}),text(`Lies ${'■'.repeat(facts.liesCaught)}${'□'.repeat(Math.max(0,facts.lies-facts.liesCaught))}  Solution ${facts.solved?'✓':'✗'}`,48,290,{size:28,max:40,color:facts.liesCaught?ALARM:PAPER}),
+  text(`Questions left ${facts.questionsLeft}`,48,350,{size:24,max:40}),...(facts.streak!==null?[text(`Streak ${facts.streak}`,48,405,{size:24,max:40,color:LAMP})]:[]),
+  text('Chog Genesis by CHOGLABS. Unofficial Chogathon entry.',48,594,{size:13,max:83,color:FOG})];
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="${INK}"/><image href="${image}" x="710" y="0" width="490" height="630"/><rect x="710" width="490" height="630" fill="${INK}" fill-opacity=".15"/>${lines.map(row=>row.markup).join('')}</svg>`;
+ return fit(svg,'ART_SHARE_SIZE');
 }

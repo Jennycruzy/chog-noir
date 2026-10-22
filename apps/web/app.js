@@ -268,7 +268,8 @@ async function drawReveal(){
   view.mode==='ROOKIE'?h('p',{class:'banner'},view.invitation,' ',h('a',{href:OPENSEA,target:'_blank',rel:'noopener'},'See Chogs on OpenSea')):null,
   h('h3',{},'Share'),h('pre',{class:'share'},grid),
   h('div',{class:'actions'},h('button',{onclick:async()=>{try{await navigator.clipboard.writeText(grid+'\n'+url);notify('Copied.','clue');}catch{notify('Copy is blocked in this browser. Select the text instead.');}}},'Copy'),
-   h('a',{href:'https://x.com/intent/post?text='+encodeURIComponent(grid+'\n'+url),target:'_blank',rel:'noopener'},'Post on X'),' · ',link(`/case/${encodeURIComponent(view.case.id)}/stats`,'Global results',{onclick:async event=>{event.preventDefault();event.stopPropagation();await showStats();}}))));
+   h('a',{href:'https://x.com/intent/post?text='+encodeURIComponent(grid+'\n'+url),target:'_blank',rel:'noopener'},'Post on X'),' · ',
+   h('a',{href:'/api/case/share-image'+(view.mode==='HOLDER'?'?tokenId='+view.detective.tokenId:''),download:'chog-noir-result.png'},'Download share image'),' · ',link(`/case/${encodeURIComponent(view.case.id)}/stats`,'Global results',{onclick:async event=>{event.preventDefault();event.stopPropagation();await showStats();}}))));
 }
 async function showStats(){
  const view=state.view;
@@ -316,6 +317,7 @@ async function issue(number){
  app.replaceChildren(h('h2',{},`Issue #${data.number} · ${data.case.title}`),caseCard(data.case),
   reveal.panels.map(panel=>h('article',{class:'panel'},h('p',{class:'false'},panel.statement),h('p',{class:'label'},panel.label),h('p',{class:'type'},panel.receipt.text,' ',...sourceLinks(panel.receipt.sources)),h('p',{class:'muted'},panel.inference))),
   h('h3',{},'The true story'),reveal.truth.map(row=>h('p',{class:'truth-line'},row.text,' ',...sourceLinks(row.sources))),
+  h('figure',{},h('img',{src:`/api/issues/${data.number}/image`,alt:`Chog Noir Issue #${data.number}: four panels from real Chog art, ending with what really happened.`,style:'width:100%;max-width:540px;border-radius:8px'}),h('figcaption',{},h('a',{href:`/api/issues/${data.number}/image`,download:`chog-noir-issue-${data.number}.png`},'Portrait'),' · ',h('a',{href:`/api/issues/${data.number}/image?format=landscape`,download:`chog-noir-issue-${data.number}-landscape.png`},'Landscape'))),
   h('p',{},h('a',{href:explorer(data.openTx),target:'_blank',rel:'noopener'},'Answer locked on chain'),' · ',h('a',{href:explorer(data.closeTx),target:'_blank',rel:'noopener'},'Answer revealed on chain'),' · ',link('/verify/'+data.case.id,'Verify')),
   h('p',{},'Witnesses: ',data.case.cast.map((row,index)=>[index?', ':'',link('/chog/'+row.tokenId,row.name)])));
 }
