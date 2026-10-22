@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { recoverTransfers, type RecoveryPage } from '../src/recovery.mts';
@@ -64,8 +64,19 @@ test('prevents concurrent writers', () => temporary(async directory => {
   const wait = new Promise<void>(resolve => { release = resolve; });
   const first = recoverTransfers({ directory, fromBlock: start, toBlock: end, fetchPage: async () => { entered(); await wait; return page(); } });
   await ready;
-  try { await expect(recoverTransfers({ directory, fromBlock: start, toBlock: end, fetchPage: async () => page() })).rejects.toMatchObject({ code: 'EEXIST' }); }
+  try { await expect(recoverTransfers({ directory, fromBlock: start, toBlock: end, fetchPage: async () => page() })).rejects.toMatchObject({ code: 'RECOVERY_BUSY' }); }
   finally { release(); await first; }
+}));
+test('a writer that died holding the lock does not block the next recovery', () => temporary(async directory => {
+  // flock is held by a separate process that is then killed, as when a service is stopped mid-run.
+  const { spawn } = await import('node:child_process');
+  await mkdir(directory, { recursive: true });
+  const holder = spawn('flock', ['-x', join(directory, 'writer.lock'), 'sleep', '30'], { stdio: 'ignore', detached: true });
+  await new Promise(resolve => setTimeout(resolve, 300));
+  await expect(recoverTransfers({ directory, fromBlock: start, toBlock: end, fetchPage: async () => page() })).rejects.toMatchObject({ code: 'RECOVERY_BUSY' });
+  const exited = new Promise(resolve => holder.once('exit', resolve));
+  process.kill(-holder.pid!, 'SIGKILL'); await exited; await new Promise(resolve => setTimeout(resolve, 100));
+  expect((await recoverTransfers({ directory, fromBlock: start, toBlock: end, fetchPage: async () => page() })).transfers).toBe(1);
 }));
 test('recovers all four transfers missed in the real six-hour run and resumes without refetching', () => temporary(async directory => {
   const source: RecoveryPage = JSON.parse(await readFile(new URL('fixtures/subscription-recovery.json', import.meta.url), 'utf8'));
@@ -79,4 +90,17 @@ test('recovers all four transfers missed in the real six-hour run and resumes wi
   const resumed = await recoverTransfers({ ...options, fetchPage: async () => { throw new Error('must not refetch'); } });
   expect(resumed.fetchedPages).toBe(0);
   expect(resumed.logs).toEqual(recovered.logs);
+}));
+test('a resume reads the compact checkpoint instead of every saved page, and upgrades an older checkpoint once', () => temporary(async directory => {
+  const first = await recoverTransfers({ directory, fromBlock: start, toBlock: end, fetchPage: async () => page() });
+  // Saved pages remain as evidence, but the next resume does not parse them again.
+  for (const file of (await readdir(directory)).filter(name => name.startsWith('page-'))) await writeFile(join(directory, file), 'not parsed on resume');
+  const resumed = await recoverTransfers({ directory, fromBlock: start, toBlock: end, fetchPage: async () => { throw new Error('must not fetch'); } });
+  expect(resumed.logs).toEqual(first.logs); expect(resumed.fetchedPages).toBe(0);
+  const legacy = join(directory, 'legacy'); await recoverTransfers({ directory: legacy, fromBlock: start, toBlock: end, fetchPage: async () => page() });
+  const saved = JSON.parse(await readFile(join(legacy, 'checkpoint.json'), 'utf8')); delete saved.logs; saved.version = 1; await writeFile(join(legacy, 'checkpoint.json'), JSON.stringify(saved));
+  expect((await recoverTransfers({ directory: legacy, fromBlock: start, toBlock: end, fetchPage: async () => { throw new Error('must not fetch'); } })).logs).toEqual(first.logs);
+  expect(JSON.parse(await readFile(join(legacy, 'checkpoint.json'), 'utf8')).version).toBe(2);
+  saved.version = 2; saved.logs = []; await writeFile(join(legacy, 'checkpoint.json'), JSON.stringify(saved));
+  await expect(recoverTransfers({ directory: legacy, fromBlock: start, toBlock: end, fetchPage: async () => page() })).rejects.toThrow('RECOVERY_CHECKPOINT');
 }));

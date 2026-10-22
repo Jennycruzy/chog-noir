@@ -16,8 +16,8 @@ const indexer=ownerIndexer({root,source:rpcOwnerSource(process.env.MONAD_OWNER_R
 let stopped=false;process.on('SIGTERM',()=>{stopped=true;});process.on('SIGINT',()=>{stopped=true;});
 do{
  const cycleStarted=Date.now();
- try{const snapshot=await indexer.refresh(seed);console.log(JSON.stringify({kind:'owner_index',indexedBlock:snapshot.indexedBlock,indexedAt:snapshot.indexedAt,checkedAt:snapshot.checkedAt,transfers:snapshot.transfers.length}));}
- catch(error){console.error('OWNER_REFRESH_FAILED',safeError(error));if(args.includes('--once'))process.exitCode=1;}
+ try{const snapshot=await indexer.refresh(seed);console.log(JSON.stringify({kind:'owner_index',indexedBlock:snapshot.indexedBlock,indexedAt:snapshot.indexedAt,checkedAt:snapshot.checkedAt,transfers:snapshot.transfers.length,cycleMs:Date.now()-cycleStarted}));}
+ catch(error){console.error('OWNER_REFRESH_FAILED',safeError(error),JSON.stringify({cycleMs:Date.now()-cycleStarted}));if(args.includes('--once'))process.exitCode=1;}
  if(args.includes('--once')||stopped)break;
  const delay=Math.max(0,15_000-(Date.now()-cycleStarted));
  await new Promise<void>(done=>{const finish=()=>{clearTimeout(timer);process.off('SIGTERM',finish);process.off('SIGINT',finish);done();};const timer=setTimeout(finish,delay);process.once('SIGTERM',finish);process.once('SIGINT',finish);});
