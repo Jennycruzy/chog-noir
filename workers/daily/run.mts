@@ -22,6 +22,8 @@ import {verifySourceReceipts,puzzleSources} from './receipts.mts';
 import {localVault,privateVaultKeyFile,atomicJSON} from '../../packages/publishing/src/vault.mts';
 import {PuzzlePublisher} from '../../packages/publishing/src/puzzles.mts';
 import {PushDesk} from '../../packages/game/src/push.mts';
+import Anthropic from '@anthropic-ai/sdk';
+import {WitnessVoice,applyVoice,caseVoiceRequests,personaOf,VoiceError} from '../../packages/witness/src/voice.mts';
 import {safeError} from '../../scripts/errors.mts';
 await loadEnv();
 if(process.env.CHOG_CHAIN_LOCKED!=='true')throw new Error('DAILY_LOCK: Run through corepack pnpm daily:run or the systemd service');
@@ -30,7 +32,7 @@ const day=new Date().toISOString().slice(0,10);
 const vault=await localVault(join(root,'runs/publication-vault'),privateVaultKeyFile());
 const statusPath=join(directory,'status.json');
 /** The private record of which real event today's case was built from. The case itself is sealed in the vault. */
-interface DailyCase {v:2;day:string;id:string;source:'FRESH'|'COLD_FALLBACK';event:CaseEvent;toBlockExclusive:number;builtAt:string;condition:'DEGRADED'|null;reason:string|null;rejected:number;fallbackPool:number}
+interface DailyCase {v:2;day:string;id:string;source:'FRESH'|'COLD_FALLBACK';event:CaseEvent;toBlockExclusive:number;builtAt:string;condition:'DEGRADED'|null;reason:string|null;rejected:number;fallbackPool:number;personas:[number,string][];voice:{model:string;batch:string|null;voiced:number;total:number;note:string|null}|null}
 const casePath=(date:string)=>join(directory,'cases',date+'.json');
 async function savedCase(date:string):Promise<DailyCase|null>{try{return JSON.parse(await readFile(casePath(date),'utf8'));}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return null;throw error;}}
 try{
@@ -71,9 +73,28 @@ try{
   const build=buildDailyPuzzle({day,salt:'0x'+randomBytes(32).toString('hex'),previous,optedOut:await new OptOuts(root).wallets(),linkCoverage,history:data.history,times:data.times,metadata,ownership,bulkSources,rules});
   await verifySourceReceipts(data.rpc,data.data,puzzleSources(build.puzzle),join(directory,'receipts'));
   // Seal before any chain write, so a retry commits the same key and salt.
-  if(publisher)await publisher.prepare(build.puzzle,build.source);else await vault.seal(build.puzzle.file.id,build.puzzle);
-  plan={v:2,day,id:build.puzzle.file.id,source:build.source,event:build.event,toBlockExclusive:data.toBlockExclusive,builtAt:new Date().toISOString(),condition:recovery.degraded?'DEGRADED':null,reason:recovery.degraded?safeError(new Error(recovery.reason!)):null,rejected:build.rejected.length,fallbackPool:build.fallbackPool};
+  // Sealed with template lines first; voicing (if enabled) replaces only the words before the lock is sent.
+  await vault.seal(build.puzzle.file.id,build.puzzle);
+  plan={v:2,day,id:build.puzzle.file.id,source:build.source,event:build.event,toBlockExclusive:data.toBlockExclusive,builtAt:new Date().toISOString(),condition:recovery.degraded?'DEGRADED':null,reason:recovery.degraded?safeError(new Error(recovery.reason!)):null,rejected:build.rejected.length,fallbackPool:build.fallbackPool,
+   personas:build.puzzle.file.cast.map(row=>[row.tokenId,personaOf(metadata.get(row.tokenId)!)]),voice:null};
   await atomicJSON(casePath(day),plan);
+ }
+ // Witness voice: only with a configured model and key, inside the lifetime budget, and finished by 00:15 UTC so the
+ // lock is never late. Whatever is not voiced by then keeps its human-written template.
+ const voiceModel=process.env.VOICE_MODEL;
+ if(voiceModel&&process.env.ANTHROPIC_API_KEY&&!(publisher&&await publisher.read(day))&&!plan.voice?.note){
+  const voice=new WitnessVoice({root,client:new Anthropic().messages.batches}),personas=new Map(plan.personas);
+  let puzzle=await vault.open<PuzzleCase>(plan.id);const requests=caseVoiceRequests(puzzle,personas).map(row=>row.request);
+  plan.voice??={model:voiceModel,batch:null,voiced:0,total:requests.length,note:null};
+  try{if(!plan.voice.batch)plan.voice.batch=await voice.submit(voiceModel,requests);await voice.collect();}
+  catch(error){if(!(error instanceof VoiceError))throw error;plan.voice.note=error.code;}
+  const voiced=await Promise.all(requests.map(request=>voice.voiced(voiceModel,request)));
+  if(voiced.every(Boolean)||Date.now()>=Date.parse(day+'T00:15:00Z')||plan.voice.note){
+   puzzle=await applyVoice(puzzle,personas,(request,seed)=>voice.line(voiceModel,request,seed));
+   await vault.seal(plan.id,puzzle);plan.voice.voiced=voiced.filter(Boolean).length;plan.voice.note??=voiced.every(Boolean)?'VOICED':'DEADLINE_TEMPLATES';
+  }
+  await atomicJSON(casePath(day),plan);
+  if(!plan.voice.note){await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:'VOICING',day,caseId:plan.id});console.log(JSON.stringify({status:'VOICING',day}));process.exit(0);}
  }
  if(!publisher){
   await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:'READY_TO_COMMIT',day,caseId:plan.id,source:plan.source,condition:plan.condition,toBlockExclusive:plan.toBlockExclusive,reason:'CaseBook deployment, the funded server signer and the explicit write switch are required. No daily case has been published.'});
