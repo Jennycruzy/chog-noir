@@ -1,5 +1,5 @@
 import {readFileSync} from 'node:fs';
-import {readFile} from 'node:fs/promises';
+import {readFile,mkdir,readdir,copyFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {randomBytes} from 'node:crypto';
@@ -49,6 +49,9 @@ export const record:PuzzlePublication={v:2,id:puzzle.file.id,day:puzzle.file.day
  * wallet's check would. `web` also serves the static site so a browser can play it end to end.
  */
 export async function fixtureServer(root:string,options:{web?:boolean}={}){
+ // The renderer draws real Chog art. The portraits this case uses are committed beside the tests, since data/ is not.
+ await mkdir(join(root,'data/images'),{recursive:true});
+ for(const file of await readdir(join(repository,'apps/api/test/fixtures/art')))await copyFile(join(repository,'apps/api/test/fixtures/art',file),join(root,'data/images',file));
  let now=snapshot.indexedAt+5000,published={...record};const moved=new Map<number,string>();
  const holders=new HolderDirectory({snapshot:async()=>snapshot,now:()=>now,ownerOf:async id=>moved.get(id)??owners.get(id)!.owner});
  const career=new CareerStore(root),cases:CaseSource={list:async()=>[published],current:async time=>published.opensAt*1000<=time&&time<published.closesAt*1000?{record:published,puzzle}:null,byId:async id=>id===published.id?{record:published,puzzle}:null};
@@ -68,7 +71,7 @@ export async function fixtureServer(root:string,options:{web?:boolean}={}){
  const wallet=new WalletAuth({root,origin,now:()=>now,verify:()=>Promise.resolve(true)});
  const play=playRoutes({origin,auth:wallet,holders,career,metadata:records,connectionsAt:async atBlock=>new WitnessConnections({snapshot,metadata:records,atBlock}),cases,plays:new HolderPlays(root),
   rookies:new RookieDesk<PuzzleSession>({root,metadata,now:()=>now,secure:false}),now:()=>now,training:new TrainingDesk(randomBytes(32),()=>training),
-  render:{issue:(value,issue,landscape)=>issueImage(repository,value,issue,landscape),share:facts=>shareImage(repository,facts)},
+  render:{issue:(value,issue,landscape)=>issueImage(root,value,issue,landscape),share:facts=>shareImage(root,facts)},
   history:()=>({history:trail.rows,times:new Map(trail.times)}),hunches:new HunchDesk(root),
   replay:async()=>({label:'REPLAY',caseLine:'A real sale, replayed.',witness:{tokenId:training.cast[0]!.tokenId,name:training.cast[0]!.name},statement:training.statements[0]!.line,receipt:training.receipts[0]!,inference:training.lie.inference})});
  routes.push(holderRoutes({origin,auth:wallet,roster:new DetectiveRoster({holders,career,metadata:records,now:()=>now}),now:()=>now}),play);
