@@ -79,9 +79,11 @@ const routes=[
 function closeStreams(){for(const stream of state.streams)stream.close();state.streams=[];sound.rainStop();}
 async function render(){
  closeStreams();const path=location.pathname.replace(/\/+$/,'')||'/';
- for(const [pattern,page] of routes){const match=path.match(pattern);if(match){try{await page(...match.slice(1));watchReveals();}catch(error){fill(app,h('h2',{},'The bureau is unavailable'),h('p',{},error.message||'Try again shortly.'),link('/','Back to the front door'));}renderBadge();return;}}
+ for(const [pattern,page] of routes){const match=path.match(pattern);if(match){try{await page(...match.slice(1));enter();watchReveals();}catch(error){fill(app,h('h2',{},'The bureau is unavailable'),h('p',{},error.message||'Try again shortly.'),link('/','Back to the front door'));}renderBadge();return;}}
  fill(app,h('h2',{},'Page not found'),link('/','Back to the front door'));
 }
+/** Fades the next page in. In-page redraws (a selection, a catch, a tile) never fade. */
+function enter(){app.classList.remove('enter');void app.offsetWidth;app.classList.add('enter');setTimeout(()=>app.classList.remove('enter'),300);}
 function go(path){history.pushState({},'',path);void render();app.focus({preventScroll:false});window.scrollTo(0,0);}
 document.addEventListener('click',event=>{const anchor=event.target.closest('a[data-link]');if(!anchor||event.metaKey||event.ctrlKey||event.shiftKey||anchor.target==='_blank')return;event.preventDefault();go(anchor.getAttribute('href'));});
 addEventListener('popstate',()=>void render());

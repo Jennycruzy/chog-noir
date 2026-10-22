@@ -32,7 +32,7 @@ h1{font-size:clamp(40px,7.2vw,84px)}h2{font-size:clamp(26px,4vw,40px)}h3{font-si
 .controls{display:flex;gap:6px}.controls button{padding:6px 10px;min-height:36px;font-size:13px}
 main{max-width:1200px;margin:auto;padding:28px 16px 72px;outline:none;min-height:100vh}
 main:focus,main:focus-visible{outline:none}
-main>*{animation:fade .25s ease-out both}
+main.enter>*{animation:fade .25s ease-out both}
 footer{border-top:1px solid var(--line);padding:20px 16px;max-width:1200px;margin:auto;font-size:13px;color:var(--muted)}
 footer nav{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px}.loading{font-family:var(--type);color:var(--muted)}
 #notice{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);max-width:min(560px,calc(100% - 32px));background:var(--panel-2);border:1px solid var(--line);border-left-width:4px;padding:12px 16px;border-radius:6px;font-family:var(--type);display:none;z-index:25;box-shadow:0 18px 40px -12px #000a}
