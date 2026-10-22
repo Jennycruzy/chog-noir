@@ -21,8 +21,13 @@ export class ChogBurns {
   const data=encodeFunctionData({abi:tokenAbi,functionName:'transfer',args:[DEAD,amount()]})+ChogBurns.memo(caseId,tokenId,nonce).slice(2);
   return {to:getAddress(CHOG_TOKEN),data:data as Hex,amountChog:config.burnQuestions.amountChog};
  }
- /** Any $CHOG at all earns the stamp; the balance is read from the token itself. */
- async holds(wallet:string){return (await this.options.client.readContract({address:getAddress(CHOG_TOKEN),abi:tokenAbi,functionName:'balanceOf',args:[getAddress(wallet)]}))>0n;}
+ private readonly stamps=new Map<string,{at:number;value:boolean}>();
+ /** Any $CHOG at all earns the stamp; the balance is read from the token itself and reused for five minutes. */
+ async holds(wallet:string){
+  const owner=getAddress(wallet),saved=this.stamps.get(owner);if(saved&&Date.now()-saved.at<300_000)return saved.value;
+  const value=(await this.options.client.readContract({address:getAddress(CHOG_TOKEN),abi:tokenAbi,functionName:'balanceOf',args:[owner]}))>0n;
+  if(this.stamps.size>5000)this.stamps.clear();this.stamps.set(owner,{at:Date.now(),value});return value;
+ }
  /** Credits a finalized burn exactly once. Only what reached 0x…dEaD from the player's wallet counts. */
  async verify(input:{tx:string;wallet:string;caseId:string;tokenId:number;nonce:string}){
   if(!/^0x[a-f0-9]{64}$/i.test(input.tx))throw new BurnError('BURN_NOT_FOUND',"We can't see that burn yet. It counts as soon as the chain shows it.");
