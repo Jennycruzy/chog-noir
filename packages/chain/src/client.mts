@@ -2,8 +2,9 @@ import {createPublicClient,defineChain,http,encodeFunctionData,keccak256,toHex,p
 import {privateKeyToAccount} from 'viem/accounts';
 import {mkdir,readFile,stat} from 'node:fs/promises';
 import {join} from 'node:path';
-import {casebookAbi,chainCaseId,encodedKey,type CaseChain,type ChainReceipt} from './casebook.mts';
+import {casebookAbi,chainCaseId,encodedKey,puzzleKeyBytes,puzzleCastFlags,solveResult,type CaseChain,type PuzzleChain,type ChainReceipt} from './casebook.mts';
 import type {CaseDraft} from '../../cases/src/build.mts';
+import {validatePuzzle,puzzleHash,type PuzzleCase} from '../../cases/src/puzzle.mts';
 import {atomicJSON} from '../../publishing/src/vault.mts';
 export const monad=defineChain({id:143,name:'Monad',nativeCurrency:{name:'Monad',symbol:'MON',decimals:18},rpcUrls:{default:{http:['https://rpc.monad.xyz']}}});
 export interface SignedAttempt {hash:Hex;raw:Hex;signedAt:number}
@@ -70,12 +71,12 @@ export async function transactionWriter(root:string,options:{url?:string;key?:st
  };
  return {client,account,send};
 }
-export async function recoverCaseOpened(client:Awaited<ReturnType<typeof transactionWriter>>['client'],address:Address,draft:CaseDraft,opensAt:number,closesAt:number,fromBlock:bigint):Promise<ChainReceipt>{
- const finalized=await client.getBlock({blockTag:'finalized'}),id=chainCaseId(draft.public.id);
+export async function recoverCaseOpened(client:Awaited<ReturnType<typeof transactionWriter>>['client'],address:Address,commitment:{id:string;answerHash:string},opensAt:number,closesAt:number,fromBlock:bigint):Promise<ChainReceipt>{
+ const finalized=await client.getBlock({blockTag:'finalized'}),id=chainCaseId(commitment.id);
  for(let start=fromBlock;start<=finalized.number;start+=1000n){
   const logs=await client.getContractEvents({address,abi:casebookAbi,eventName:'CaseOpened',args:{caseId:id},fromBlock:start,toBlock:start+999n<finalized.number?start+999n:finalized.number,strict:true});
   for(const log of logs){
-   if(log.args.answerHash!==draft.public.answerHash||Number(log.args.opensAt)!==opensAt||Number(log.args.closesAt)!==closesAt)throw new Error('CHAIN_RECOVERY_CONFLICT: Existing commitment differs');
+   if(log.args.answerHash!==commitment.answerHash||Number(log.args.opensAt)!==opensAt||Number(log.args.closesAt)!==closesAt)throw new Error('CHAIN_RECOVERY_CONFLICT: Existing commitment differs');
    const receipt=await client.getTransactionReceipt({hash:log.transactionHash}),block=await client.getBlock({blockNumber:log.blockNumber});
    if(receipt.status!=='success'||receipt.blockHash!==block.hash||log.blockHash!==block.hash||receipt.blockNumber!==log.blockNumber)throw new Error('CHAIN_REORG: Recovered commitment is not canonical');
    return {hash:receipt.transactionHash,blockNumber:receipt.blockNumber.toString(),blockHash:receipt.blockHash,timestamp:Number(block.timestamp),status:'success',chainId:143,address};
@@ -99,11 +100,42 @@ export async function casebookChain(root:string,address:Address):Promise<CaseCha
     if(hash!==draft.public.answerHash)throw new Error('CHAIN_RECOVERY_CONFLICT: Different commitment already exists');
     const manifest=JSON.parse(await readFile(join(root,'runs/chain/deployment.json'),'utf8'));
     if(manifest.address?.toLowerCase()!==address.toLowerCase()||!/^\d+$/.test(String(manifest.receipt?.blockNumber)))throw new Error('CHAIN_RECOVERY_DEPLOYMENT: A matching deployment receipt is required');
-    const receipt=await recoverCaseOpened(writer.client,address,draft,opensAt,closesAt,BigInt(manifest.receipt.blockNumber));
+    const receipt=await recoverCaseOpened(writer.client,address,{id:draft.public.id,answerHash:draft.public.answerHash},opensAt,closesAt,BigInt(manifest.receipt.blockNumber));
     await mkdir(join(root,'runs/chain/recovered'),{recursive:true,mode:0o700});await atomicJSON(join(root,'runs/chain/recovered',draft.public.id+'-open.json'),receipt);return receipt;
    }
    return writer.send(`${draft.public.id}-open`,encodeFunctionData({abi:casebookAbi,functionName:'openCase',args:[chainCaseId(draft.public.id),draft.public.answerHash as Hex,BigInt(opensAt),BigInt(closesAt)]}),address,address);},
   close(draft){return writer.send(`${draft.public.id}-close`,encodeFunctionData({abi:casebookAbi,functionName:'closeCase',args:[chainCaseId(draft.public.id),encodedKey(draft)]}),address,address);},
   cast(draft:CaseDraft){return writer.send(`${draft.public.id}-cast`,encodeFunctionData({abi:casebookAbi,functionName:'recordCast',args:[chainCaseId(draft.public.id),draft.public.cast.map(item=>BigInt(item.tokenId)),draft.public.cast.map(item=>1+(item.tokenId===draft.public.subject.tokenId?2:0)+(item.tokenId===draft.private.key.lie.witness?4:0))]}),address,address);},
+ };
+}
+/** CaseBook writes for v2 cases. Every write is journaled under a label derived from the case id. */
+export async function puzzleChain(root:string,address:Address,options:Parameters<typeof transactionWriter>[1]={}):Promise<PuzzleChain>{
+ const writer=await transactionWriter(root,{...options,address});
+ const owner=await writer.client.readContract({address,abi:casebookAbi,functionName:'owner'});
+ if(owner.toLowerCase()!==writer.account.address.toLowerCase())throw new Error('CHAIN_OWNER: Server wallet does not own CaseBook');
+ const checked=(puzzle:PuzzleCase)=>{if(validatePuzzle(puzzle).length||puzzle.answerHash!==puzzleHash(puzzle)||!/^case-[a-f0-9]{24}$/.test(puzzle.file.id))throw new Error('CHAIN_CASE_INVALID: Only a validated v2 case can be written');return puzzle;};
+ const inspect=async(id:string)=>{const hashId=chainCaseId(id);const [[hash,closed],[opensAt,closesAt]]=await Promise.all([
+  writer.client.readContract({address,abi:casebookAbi,functionName:'caseOf',args:[hashId]}),
+  writer.client.readContract({address,abi:casebookAbi,functionName:'caseTimes',args:[hashId]}),
+ ]);return {hash,closed,opensAt:Number(opensAt),closesAt:Number(closesAt)};};
+ return {
+  address,inspect,
+  async open(puzzle){
+   const {file}=checked(puzzle),current=await inspect(file.id);
+   if(current.hash!=='0x'+'0'.repeat(64)){
+    if(current.hash!==puzzle.answerHash)throw new Error('CHAIN_RECOVERY_CONFLICT: Different commitment already exists');
+    const manifest=JSON.parse(await readFile(join(root,'runs/chain/deployment.json'),'utf8'));
+    if(manifest.address?.toLowerCase()!==address.toLowerCase()||!/^\d+$/.test(String(manifest.receipt?.blockNumber)))throw new Error('CHAIN_RECOVERY_DEPLOYMENT: A matching deployment receipt is required');
+    const receipt=await recoverCaseOpened(writer.client,address,{id:file.id,answerHash:puzzle.answerHash},file.opensAt,file.closesAt,BigInt(manifest.receipt.blockNumber));
+    await mkdir(join(root,'runs/chain/recovered'),{recursive:true,mode:0o700});await atomicJSON(join(root,'runs/chain/recovered',file.id+'-open.json'),receipt);return receipt;
+   }
+   return writer.send(file.id+'-open',encodeFunctionData({abi:casebookAbi,functionName:'openCase',args:[chainCaseId(file.id),puzzle.answerHash as Hex,BigInt(file.opensAt),BigInt(file.closesAt)]}),address,address);
+  },
+  close(puzzle){return writer.send(checked(puzzle).file.id+'-close',encodeFunctionData({abi:casebookAbi,functionName:'closeCase',args:[chainCaseId(puzzle.file.id),puzzleKeyBytes(puzzle)]}),address,address);},
+  cast(puzzle){const {tokenIds,flags}=puzzleCastFlags(checked(puzzle));return writer.send(puzzle.file.id+'-cast',encodeFunctionData({abi:casebookAbi,functionName:'recordCast',args:[chainCaseId(puzzle.file.id),tokenIds,flags]}),address,address);},
+  solves(puzzle,chunk,rows){
+   if(!Number.isSafeInteger(chunk)||chunk<0||rows.length<1||rows.length>200||new Set(rows.map(row=>row.tokenId)).size!==rows.length)throw new Error('CHAIN_SOLVE_CHUNK: Send 1-200 distinct detectives per chunk');
+   return writer.send(checked(puzzle).file.id+'-solves-'+chunk,encodeFunctionData({abi:casebookAbi,functionName:'recordSolves',args:[chainCaseId(puzzle.file.id),rows.map(row=>row.tokenId),rows.map(solveResult)]}),address,address);
+  },
  };
 }

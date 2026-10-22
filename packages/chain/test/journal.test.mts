@@ -71,6 +71,6 @@ run('a confirmed CaseOpened event recovers the original receipt without another 
  const data=encodeFunctionData({abi:casebookAbi,functionName:'openCase',args:[chainCaseId(draft.public.id),draft.public.answerHash as Hex,BigInt(opensAt),BigInt(closesAt)]});
  const first=await writer.send('recoverable-case-open',data,deployed,deployed),nonce=await writer.client.getTransactionCount({address:writer.account.address});
  await rm(join(directory,'runs/chain/transactions/recoverable-case-open.json'));
- const recovered=await recoverCaseOpened(writer.client,deployed,draft,opensAt,closesAt,BigInt(first.blockNumber));expect(recovered).toEqual(first);expect(await writer.client.getTransactionCount({address:writer.account.address})).toBe(nonce);
- await expect(recoverCaseOpened(writer.client,deployed,draft,opensAt,closesAt+1,BigInt(first.blockNumber))).rejects.toThrow('CHAIN_RECOVERY_CONFLICT');
+ const recovered=await recoverCaseOpened(writer.client,deployed,{id:draft.public.id,answerHash:draft.public.answerHash},opensAt,closesAt,BigInt(first.blockNumber));expect(recovered).toEqual(first);expect(await writer.client.getTransactionCount({address:writer.account.address})).toBe(nonce);
+ await expect(recoverCaseOpened(writer.client,deployed,{id:draft.public.id,answerHash:draft.public.answerHash},opensAt,closesAt+1,BigInt(first.blockNumber))).rejects.toThrow('CHAIN_RECOVERY_CONFLICT');
 },120_000);
