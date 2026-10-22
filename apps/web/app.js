@@ -1,192 +1,354 @@
-const app=document.querySelector('#app'),modal=document.querySelector('#modal'),notice=document.querySelector('#notice');
-const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-const art=id=>`/medium/${Number(id)}.webp`;
-const shortWallet=value=>/^0x[0-9a-f]{40}$/i.test(value)?`${value.slice(0,6)}…${value.slice(-4)}`:value;
-const displayFact=value=>String(value).replace(/0x[0-9a-f]{40}(?![0-9a-f])/gi,shortWallet);
-const title=type=>({BIG_SPENDER:'The Big Spender',QUICK_EXIT:'The Quick Exit',LONG_GOODBYE:'The Long Goodbye',COLD_CASE:'Cold Case'}[type]??'Case File');
-const date=value=>new Intl.DateTimeFormat('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(value));
-const role=value=>({SUBJECT:'Subject',BUYER_ROOMMATE:'Buyer’s roommate',SELLER_ROOMMATE:'Seller’s roommate',RECENT_SALE:'Recent sale',NEIGHBOUR:'Neighbour'}[value]??value);
-const powerName=value=>({XRAY:'X-ray',ANALYST:'Analyst',TAKES_ONE:'Takes one to know one',EMPATH:'Empath'}[value]);
-const readLocal=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
-const writeLocal=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));}catch{/* Session saves remain on the server. */}};
-let liveConnection=null,livePoll=null,livePolling=false,lastLiveEvent=0;
-let catalogue=null,state=null,selected=null,selectedCard='ARRIVAL',player=null,pageData={},screen='cases',busy=false,answers={},pendingCase=null,toastTimer;
-const cardNames={LAST_SALE:'Last sale',LONGEST_HOLD:'Longest hold',LAST_NIGHT:'Case window',ROOMMATES:'Roommates',ARRIVAL:'Arrival',GIFT_OR_SALE:'Purchase or transfer',PRICE_TALK:'Price talk',KNOW_WALLET:'Know this wallet?',OWNER_COUNT:'Owner count',ODD_MOVES:'Recent moves'};
-const cardPrompts={LAST_SALE:'When did you last change hands, and for what?',LONGEST_HOLD:'Who held you longest?',LAST_NIGHT:'Where were you in the case window?',ROOMMATES:'Who else lives in your wallet?',ARRIVAL:'When did you arrive?',GIFT_OR_SALE:'Were you bought, or transferred?',PRICE_TALK:'What did you really go for?',KNOW_WALLET:'Do you know the seller’s wallet?',OWNER_COUNT:'How many owners have you had?',ODD_MOVES:'How often have you moved recently?'};
-function toast(message){notice.textContent=message;notice.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>notice.classList.remove('visible'),6500);}
-async function request(path,input){
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),25000);
- try{
-  const response=await fetch(path,{credentials:'same-origin',cache:'no-store',signal:controller.signal,...(input?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(input)}:{})});
-  const data=await response.json();if(!response.ok){if(data.state){state=data.state;render();}const error=new Error(data.error??'The desk is unavailable. Please try again.');error.status=response.status;throw error;}return data;
- }catch(error){if(error.name==='AbortError')throw new Error('The desk is taking longer than usual. Your last saved progress is safe. Please try again.');throw error;}
- finally{clearTimeout(timer);}
-}
-function sources(rows){return [...new Map(rows.map(item=>[item.tx,item])).values()].map((item,index)=>`<a href="https://monadscan.com/tx/${esc(item.tx)}#eventlog" target="_blank" rel="noopener noreferrer">View transaction${rows.length>1?` ${index+1}`:''} ↗</a>`).join(' · ');}
-function openModal(titleText,content){modal.innerHTML=`<div class="dialog-top"><h2 id="modal-title">${esc(titleText)}</h2><button data-action="close" aria-label="Close dialog">×</button></div>${content}`;if(!modal.open)modal.showModal();}
-async function navigate(next){
- if(next!=='arc')stopLiveUpdates();
- modal.close();screen=next;pageData.error=null;render();window.scrollTo(0,0);app.focus({preventScroll:true});
- const paths={cases:'/',casebook:'/casebook',partners:'/partners',report:'/report',desk:'/scam-desk',verify:'/verify',how:'/how',about:'/about',archive:'/archive',arc:'/arc'};
- const path=next.startsWith('chog:')?'/chog/'+Number(next.split(':')[1]):paths[next];if(path&&location.pathname!==path)history.pushState({},'',path);
- try{
-  if(next==='casebook'||next==='partners'){await refreshPlayer();if(next==='partners')pageData.partners=await request('/api/partners');}
-  if(next==='report')pageData.report=await request('/api/report');
-  if(next.startsWith('chog:'))pageData.chog=await request('/api/chog/'+Number(next.split(':')[1]));
-  if(next==='verify')pageData.publications=await request('/api/publications');
-  if(next==='arc'){pageData.live=await request('/api/live');if(screen==='arc')startLiveUpdates();}
-  render();
- }catch(error){pageData.error={screen:next,message:error.message};toast(error.message);render();}
-}
-function stopLiveUpdates(){liveConnection?.close();liveConnection=null;if(livePoll)clearInterval(livePoll);livePoll=null;}
-function startLiveUpdates(){
- stopLiveUpdates();lastLiveEvent=Date.now();
- if(typeof window.EventSource==='function'){
-  liveConnection=new EventSource('/api/events');
-  liveConnection.addEventListener('feed',event=>{try{const feed=JSON.parse(event.data);if(!Array.isArray(feed.events))throw new Error('Invalid feed');pageData.live=feed;lastLiveEvent=Date.now();if(screen==='arc')render();}catch{lastLiveEvent=0;}});
-  liveConnection.onerror=()=>{lastLiveEvent=0;};
- }
- livePoll=setInterval(async()=>{
-  if(livePolling||screen!=='arc'||(liveConnection?.readyState===1&&Date.now()-lastLiveEvent<20_000))return;
-  livePolling=true;try{pageData.live=await request('/api/live');}catch{pageData.live={...(pageData.live??{}),state:'OFFLINE',note:'The live feed connection is unavailable. Saved events may be stale.'};}finally{livePolling=false;if(screen==='arc')render();}
- },10_000);
-}
-window.addEventListener('pagehide',stopLiveUpdates);
-window.addEventListener('pageshow',event=>{if(event.persisted&&screen==='arc')startLiveUpdates();});
-async function refreshPlayer(){try{player=await request('/api/player');if(player?.partners?.length)catalogue.partners=player.partners;}catch{/* Older sessions can still be resumed. */}}
+// Chog Noir web client. The server decides every catch, cost and score; this file only renders and sends actions.
+const $=(selector,root=document)=>root.querySelector(selector);
+const app=$('#app');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const store={get(key){try{return localStorage.getItem(key);}catch{return null;}},set(key,value){try{localStorage.setItem(key,value);}catch{}}};
+const state={roster:null,address:null,detective:null,view:null,selected:{statement:null,receipt:null,blank:null},tiles:{},seen:new Set(),streams:[],today:null};
 
-function fileCard(item){const record=readLocal('chog-casebook',[]).find(row=>row.caseId===item.id);return `<button class="file-card" data-case="${esc(item.id)}"><div class="file-image"><img src="${art(item.subject.tokenId)}" alt="${esc(item.subject.name)}" loading="lazy"><span>FILE ${String(item.number).padStart(3,'0')}</span></div><div class="file-body"><small>${esc(date(item.occurredAt))} · ${item.publication?esc(item.publication.kind)+(item.publication.closed?' / REVEALED':item.publication.closesAt>Date.now()/1000?' / OPEN':' / AWAITING REVEAL'):'ARCHIVE PRACTICE'}</small><h3>${esc(title(item.type))}</h3><p>${esc(item.subject.name)} · ${item.witnesses} witnesses</p><div class="file-bottom"><span>${record?`CLOSED / GRADE ${esc(record.grade)}`:'OPEN THE FILE'}</span><span>↗</span></div></div></button>`;}
-function casesPage(){
- const first=catalogue.cases.find(item=>item.publication?.kind==='MAIN'&&!item.publication.closed&&item.publication.closesAt>Date.now()/1000)??catalogue.cases.find(item=>item.type==='QUICK_EXIT')??catalogue.cases[0];
- return `<section class="hero"><div class="hero-copy"><span class="eyebrow">REAL TRANSACTIONS. UNRELIABLE WITNESSES.</span><h1>Somebody’s<br>story doesn’t<br><em>add up.</em></h1><p>A Chog changed hands. The witnesses have their stories. The chain has the receipts. Question them. Find the contradiction. Close the case.</p><div class="button-row"><button class="primary" data-case="${esc(first.id)}">Take the case <span aria-hidden="true">↗</span></button>${state?'<button class="text-button" data-action="resume">Resume your file →</button>':'<button class="text-button" data-nav="how">How it works →</button>'}</div><p><small>3–5 MINUTES · NO WALLET · REAL MONAD RECORDS</small></p></div><div class="hero-art"><img src="${art(first.subject.tokenId)}" alt="${esc(first.subject.name)} — archive case subject"><span class="art-label">EVIDENCE / ${String(first.number).padStart(3,'0')}</span><div class="art-caption"><span class="eyebrow">FROM THE UNSOLVED FILES</span><h2>${esc(title(first.type))}</h2><p>${esc(first.subject.name)} · ${esc(date(first.occurredAt))} UTC<br>${first.witnesses} witnesses. One planned lie. The record remembers.</p></div></div></section><div class="desk-nav"><button data-nav="partners">Partner collection ↗</button><button data-nav="report">Precinct Report ↗</button><button data-nav="desk">Scam Desk ↗</button><button data-nav="verify">Verify a case ↗</button><button data-nav="archive">Archive ↗</button><button data-nav="arc">Live wire ↗</button></div><section><div class="case-heading"><h2>From the case drawer.</h2><p>${catalogue.cases.length} real events.<br>A different story in every file.</p></div><div class="case-grid">${catalogue.cases.map(fileCard).join('')}</div></section>`;
-}
-function partners(caseId){
- pendingCase=caseId;const item=catalogue.cases.find(row=>row.id===caseId);
- openModal('Choose your partner.',`<p>${esc(title(item.type))} · ${esc(item.subject.name)}. Every partner can solve the case. Pick an edge.</p><div class="partner-grid">${catalogue.partners.map(partner=>`<button class="partner-card" data-partner="${partner.tokenId}"><img src="${art(partner.tokenId)}" alt="${esc(partner.name)}"><div><small>${esc(powerName(partner.power))}</small><h3>${esc(partner.name)}</h3><p>${esc(partner.description)}</p></div></button>`).join('')}</div><p class="room-note">Eyes set your power; Tier sets its uses. Mouth, Side and special traits add passive benefits. Catch a witness’s lie or use its testimony in a correct answer to add it to your collection.</p>${state&&!state.submitted?'<p class="closed-note">Starting this file will replace your current active session.</p>':''}`);
-}
-function ledgerItem(fact){
- if(fact.sealed){const canPower=(state.powerUses??(!state.powerUsed?1:0))>0&&state.partner.power==='XRAY';return `<div class="ledger-item sealed"><div><small>SEALED / ${esc(fact.label)}</small><span class="redacted" aria-hidden="true"></span></div><div class="sealed-buttons"><button data-open="${esc(fact.id)}" ${state.plays<2?'disabled':''}>Open · 2 plays</button>${canPower?`<button data-power="${esc(fact.id)}">Use ${esc(powerName(state.partner.power))} · Free</button>`:''}</div></div>`;}
- return `<div class="ledger-item"><small>${fact.opened?'EXAMINED':'RECORD'} / ${esc(fact.id.replaceAll('-',' '))}</small><p>${esc(displayFact(fact.text))}</p><div>${sources(fact.sources)}</div><div style="margin-top:12px">${fact.opened?'<small class="proof-open">✓ AVAILABLE AS PROOF</small>':`<button data-open="${esc(fact.id)}">Examine record · Free</button>`}</div></div>`;
-}
-function roomPage(){
- if(state.playClosed&&!state.submitted)return `<section class="prose"><span class="eyebrow">DAILY PLAY CLOSED</span><h1>The deadline has passed.</h1><p>${state.case.publication?.closed?'The reveal is confirmed. Open this file again to play as archive practice.':'Waiting for the confirmed on-chain reveal. Answers stay private until then.'}</p><button data-action="refresh-reveal">Check case status →</button><button data-nav="cases">Case drawer →</button></section>`;
- const witness=state.case.cast.find(item=>item.tokenId===selected)??state.case.cast[0];selected=witness.tokenId;
- const testimony=state.testimony.find(item=>item.tokenId===selected&&item.card===selectedCard),accused=state.accused.includes(selected);
- const freeSide=!state.sideUsed&&((state.partner.side==='BUYER'&&['BUYER_ROOMMATE','SUBJECT'].includes(witness.role))||(state.partner.side==='SELLER'&&witness.role==='SELLER_ROOMMATE'));
- const cost=freeSide?0:1;
- const item=catalogue.cases.find(row=>row.id===state.caseId);
- let guide='';
- if(!readLocal('chog-guided',false)){
-  const step=!state.testimony.length?'<b>1 / Question a witness.</b> Choose an evidence card below. A new question costs one play unless your partner makes it free.':!state.ledger.some(fact=>fact.opened)?'<b>2 / Follow the paper trail.</b> Examine ledger records. Sealed records cost two plays, or use your partner’s power.':!state.caught?'<b>3 / Test the alibi.</b> Compare a witness claim to its ledger record. Tap “That’s a lie” and choose the record that proves it.':'<b>4 / Close the case.</b> You caught the lie. Read the remaining evidence, then answer the three case questions.';
-  guide=`<div class="helper">${step} <button class="text-button" data-action="skip-guide">Skip guide</button></div>`;
+/** Builds an element. Strings become text nodes, so chain text is never parsed as markup. */
+function h(tag,attrs={},...children){
+ const node=document.createElement(tag);
+ for(const [key,value] of Object.entries(attrs||{})){
+  if(value===null||value===undefined||value===false)continue;
+  if(key.startsWith('on'))node.addEventListener(key.slice(2),value);
+  else if(key==='class')node.className=value;
+  else if(value===true)node.setAttribute(key,'');
+  else node.setAttribute(key,String(value));
  }
- return `<div class="section-top"><span class="eyebrow">${state.case.publication?esc(state.case.publication.kind)+' DAILY':'ARCHIVE PRACTICE'} / FILE ${String(item.number).padStart(3,'0')}</span><button data-nav="cases">← Case drawer</button></div><h1 class="case-title">${esc(title(state.case.type))}</h1><div class="case-meta"><span>${esc(state.case.subject.name)}</span><span>${esc(date(state.case.occurredAt))} UTC</span><span>${state.case.cast.length} WITNESSES / ONE PLANNED LIE</span></div><div class="case-bar"><div class="partner-label"><img src="${art(state.partner.tokenId)}" alt=""><span>${esc(state.partner.name)}<small>${esc(powerName(state.partner.power))} / ${state.powerUses?`${state.powerUses} POWER USES LEFT`:'POWER APPLIED'}${state.partner.moneyTalk?' / MONEY TALK':''}${state.partner.special?' / SPECIAL':''}</small></span></div><div class="plays">${state.plays}<small> / ${state.initialPlays} plays left</small></div><div class="button-row">${state.partner.power==='TAKES_ONE'&&state.powerUses>0?'<button data-action="identify">Identify the liar · Free</button>':''}<button class="primary" data-action="questions">Answer the case →</button></div></div>${guide}<div class="room"><section aria-label="Interrogation room"><span class="eyebrow">THE WITNESS ROOM</span><div class="witnesses" aria-label="Choose a witness">${state.case.cast.map(member=>`<button class="witness-tab ${selected===member.tokenId?'active':''}" data-witness="${member.tokenId}" aria-pressed="${selected===member.tokenId}"><img src="${art(member.tokenId)}" alt=""><span>${esc(member.name)}<small>${esc(role(member.role))}${state.identified===member.tokenId?' / LIAR IDENTIFIED':''}</small></span></button>`).join('')}</div><div class="interview"><img class="witness-photo" src="${art(witness.tokenId)}" alt="${esc(witness.name)}"><div class="testimony"><span class="eyebrow">${esc(witness.name)} / ${esc(role(witness.role))}</span>${testimony?`<blockquote>“${esc(testimony.line)}”</blockquote>${state.caught?'<span class="caught">✓ The lie is on record.</span>':`${accused?'<span class="closed-note">That accusation did not hold up. Choose another record.</span>':''}<button data-accuse="${selected}" data-accuse-card="${selectedCard}">That’s a lie ↗</button>`}`:'<p>The chair creaks. Your witness is waiting.<br>Choose a card and ask a question.</p>'}</div></div><div class="card-hand" aria-label="Evidence cards">${(state.cards??['ARRIVAL']).map(card=>`<button data-card="${card}" aria-pressed="${card===selectedCard}" class="${card===selectedCard?'active':''}"><small>${state.testimony.some(item=>item.tokenId===selected&&item.card===card)?'ON RECORD':'EVIDENCE'}</small>${esc(cardNames[card])}</button>`).join('')}</div><div class="card-play"><div><small>EVIDENCE CARD / ${esc(selectedCard.replaceAll('_',' '))}</small><h3>“${esc(cardPrompts[selectedCard])}”</h3><p>${testimony?.unknown?'This witness has no supported answer in the saved history.':freeSide?'Your partner makes this side’s card free once.':'Answers use records up to the case cutoff.'}</p></div><button class="primary" data-action="ask" ${testimony||state.plays<cost?'disabled':''}>${testimony?'On record':`Play · ${cost===0?'Free':cost}`}</button></div>${state.partner.power==='ANALYST'&&state.powerUses>0&&['PRICE_TALK','LAST_SALE'].includes(selectedCard)?'<button class="text-button" data-action="exact">Use Analyst: reveal this witness’s exact price →</button>':''}${state.plays===0?'<p class="closed-note">No plays left. You can still examine unsealed records and answer the case.</p>':''}<p class="room-note">All ten cards read source-backed memories at this case’s cutoff. A witness may not know an answer. Re-reading is free; a wrong accusation costs one play.</p></section><aside class="ledger-panel" aria-label="Evidence ledger"><small>MONAD / SOURCE RECORDS</small><h2>The ledger.</h2><p>Witnesses can lie. These records can’t.<br>Examine a record to use it as proof.</p>${state.ledger.map(ledgerItem).join('')}</aside></div>`;
+ for(const child of children.flat(Infinity))if(child!==null&&child!==undefined&&child!==false)node.append(child instanceof Node?child:document.createTextNode(String(child)));
+ return node;
 }
-function questionsPage(){return `<section class="questions-page"><div class="section-top"><span class="eyebrow">FILE / ${esc(title(state.case.type))}</span><button data-action="room">← Back to evidence</button></div><h1 class="case-title">What really happened?</h1><p>Three questions. One final submission. Your answers will close this case.</p><form id="answers">${state.case.questions.map((question,index)=>`<div class="question"><fieldset><legend>${index+1}. ${esc(question.prompt)}</legend><div class="options">${question.options.map((option,i)=>`<label class="option"><input type="radio" name="${esc(question.id)}" value="${esc(option.id)}" ${answers[question.id]===option.id?'checked':''} required><span>${String.fromCharCode(65+i)}. ${esc(displayFact(option.label))}</span></label>`).join('')}</div></fieldset></div>`).join('')}<button class="primary" id="submit-case" type="submit" ${Object.keys(answers).length===3?'':'disabled'}>Close the case →</button><p class="room-note">${state.caught?'✓ Lie caught.':'You haven’t caught the lie yet. You can return to the evidence before submitting.'}</p></form></section>`;}
-function shareText(){const item=catalogue.cases.find(row=>row.id===state.caseId);return `Chog Noir · ${item.publication?item.id:'Archive #'+item.number} 🕵️ ${state.result.grade}\n${state.result.questions.map((q,i)=>`Q${i+1} ${q.correct?'🟩':'🟥'}`).join(' ')}  Lie ${state.caught?'🔎':'—'}\n${state.result.score} points · ${state.plays}/${state.initialPlays} plays left\n${location.origin}/?case=${encodeURIComponent(state.caseId)}`;}
-function resultPage(){
- if(state.locked){const close=new Date(state.closesAt*1000),remaining=Math.max(0,Math.ceil((close-Date.now())/60000));return `<section class="questions-page"><span class="eyebrow">DAILY CASE / SUBMITTED</span><h1>Answers locked.</h1><p>Reveal at ${esc(close.toISOString().slice(11,16))} UTC, after the on-chain close is confirmed.</p><p>${remaining?`${remaining} minutes remaining.`:'Waiting for the confirmed close.'} ${state.lieCaught?'Lie caught.':''}</p><button data-action="refresh-reveal">Check for reveal →</button><button data-nav="cases">Case drawer →</button></section>`;}
- const result=state.result,lie=result.lie;
- return `<section class="questions-page"><span class="eyebrow">FILE CLOSED / ${esc(title(state.case.type))}</span><div class="result-hero"><div><small>THE RECORD TELLS THE STORY.</small><h1>${result.score}<small> POINTS</small></h1><p>${result.questions.filter(q=>q.correct).length}/3 answers correct · ${state.caught?'Lie caught':'Lie missed'}</p></div><div class="grade" aria-label="Grade ${result.grade}">${result.grade}</div></div><div class="point-row"><span>ANSWERS <b>+${result.points.answers}</b></span><span>LIE <b>+${result.points.lie}</b></span><span>PLAYS LEFT <b>+${result.points.cards}</b></span><span>ALL CORRECT <b>+${result.points.perfect}</b></span></div><div class="lie-reveal"><span class="eyebrow">THE FALSE ALIBI</span><h3>${esc(lie.name)} changed the story.</h3><p>The claim: <strong>“${esc(lie.claim)}.”</strong><br>The truth: <strong>${esc(lie.truth)}.</strong></p><p>${esc(lie.proof.text)}</p>${sources(lie.proof.sources)}</div>${result.questions.map((question,index)=>`<div class="truth"><small class="${question.correct?'good':'bad'}">${question.correct?'✓ CORRECT':'× MISSED'} / QUESTION ${index+1}</small><h3>${esc(question.prompt)}</h3><p><strong>${esc(question.answer)}</strong></p><p>${esc(displayFact(question.fact))}</p>${sources(question.sources)}</div>`).join('')}<details class="comic-reveal"><summary>The case, in four panels.</summary><img src="/api/session/comic?inline=1" alt="Four-panel case comic: the scene, a witness, the planned lie and the source-backed truth" loading="lazy"></details><h2 style="margin-top:30px">Leave your mark.</h2><pre class="share-grid">${esc(shareText())}</pre><div class="button-row"><button class="primary" data-action="share">Copy result ↗</button><a class="download-button" href="/api/session/share" download>Download result PNG ↓</a><a class="download-button" href="/api/session/comic" download>Download portrait comic ↓</a><a class="download-button" href="/api/session/comic?format=landscape" download>Download landscape comic ↓</a><button data-nav="cases">Next file →</button><button class="text-button" data-action="verification">View answer commitment</button></div><p class="room-note">${state.case.publication&&!state.practice?'Your daily submission is final. Only MAIN cases advance the daily streak.':'This is archive practice. It does not advance the daily streak.'} Guest results are saved on this server and linked to your browser’s private cookie.</p></section>`;
-}
-function casebook(){const records=player?.results??readLocal('chog-casebook',[]);return `<section class="prose"><span class="eyebrow">YOUR PRIVATE PAPER TRAIL</span><h1>The casebook.</h1><p>${records.length} ${records.length===1?'file':'files'} closed. ${esc(player?.rank??'Rookie')} · ${player?.streak??0}-day streak · ${player?.alibis??0} alibis. Archive practice does not advance the daily streak.</p><div class="button-row"><button data-action="export-player">Export casebook ↓</button><button data-action="delete-player">Delete guest progress</button></div>${records.length?records.map(row=>`<div class="record"><strong>${esc(row.grade)}</strong><span>${esc(title(row.type))}<p>${esc(row.subject)} · ${row.score} points · ${esc(date(row.finishedAt))}</p></span><button data-case="${esc(row.caseId)}">Play again ↗</button></div>`).join(''):'<div class="helper">No closed files yet. The first case is waiting for you.</div>'}<button class="primary" data-nav="cases">Open the case drawer →</button></section>`;}
-function how(){return `<section class="prose"><span class="eyebrow">BUREAU FIELD MANUAL</span><h1>Trust the record.<br>Test the story.</h1><p>Every file starts with a real Chog sale on Monad. One witness makes a planned false claim. Your job is to find it.</p><ol><li><strong>Pick a file and a partner.</strong> X-ray opens any sealed line for free. Analyst opens the sale price. Empath gives you two extra plays.</li><li><strong>Question the witnesses.</strong> Select a Chog, then play the Arrival card. Each new witness costs one play; re-reading is free.</li><li><strong>Examine the ledger.</strong> Open records to use them as proof. Unsealed lines are free. A sealed record costs two plays, or use your partner.</li><li><strong>Catch the lie.</strong> Compare each claim to its source record. Tap “That’s a lie” and select the examined record that contradicts the witness. A wrong accusation costs one play.</li><li><strong>Close the case.</strong> Answer all three questions. Get 100 points per correct answer, 150 for catching the lie, 10 per unused play and 50 for getting all answers right.</li><li><strong>Check the truth.</strong> Every reveal links to the real transaction. Copy your result and try another case.</li></ol><p>All ten evidence cards and trait-based powers are available. Dialogue uses validated templates while live Claude evaluation is deferred. Daily cases only become playable after the server confirms their on-chain commitment.</p><button class="primary" data-nav="cases">Take a case →</button></section>`;}
-function about(){return `<section class="prose"><span class="eyebrow">WHAT’S REAL HERE?</span><h1>Real events.<br>Planned lies.</h1><h2>The evidence is real.</h2><p>These fourteen archive files use real Chog Genesis transactions on Monad from 30 September to 13 October 2026. The ledger links to source transactions. Prices include fees. MON and WMON use the same price bands. A seven-sale median is a comparison reference, not a historical floor quote.</p><h2>The witnesses are part of the game.</h2><p>Dialogue is written from validated templates. Each file includes one deliberately false claim, chosen before play. It is a puzzle mechanic, not an allegation about a holder. Witness dates describe ownership at the time of the archived event.</p><h2>The artwork belongs to Chog.</h2><p>Portraits are original Chog Genesis art with a noir colour treatment. Token IDs and displayed Chog numbers can differ; each portrait follows its token’s original metadata.</p><h2>The preview has limits.</h2><p>Answers and sealed facts are controlled by the server. Archive answer keys have saved local commitments. Daily cases require confirmed on-chain commitments; check the Verify page for their publication and reveal status. All ten evidence cards and partner powers use source-backed memories. Dialogue remains template-based while voice evaluation and human review are pending. Daily cases appear only after a confirmed on-chain commitment; the Verify page shows their current publication status.</p><h2>Your session.</h2><p>An essential cookie lets you resume your current case. Progress is saved on the server. Your casebook is saved on this server and linked to this browser’s private cookie. No wallet, sign-in or payment is required to play.</p><button class="primary" data-nav="cases">Back to the files →</button></section>`;}
-function collectionPage(){
- const data=pageData.partners;
- return `<section><div class="section-top"><span class="eyebrow">YOUR PARTNERS / ${player?.unlocked.length??3} OF 1,969</span><button data-nav="cases">← Case drawer</button></div><h1 class="case-title">The bureau’s finest.</h1><p>Catch a lie or use a witness’s testimony in a correct answer to recruit them. Every Chog has its own trait-driven edge.</p><form id="partner-filter" class="filter-row"><input name="q" type="search" placeholder="Find a Chog…" aria-label="Search partners"><select name="group" aria-label="Filter power"><option value="">All powers</option><option value="XRAY">X-ray</option><option value="ANALYST">Analyst</option><option value="TAKES_ONE">Takes one to know one</option><option value="EMPATH">Empath</option></select><button type="submit">Find →</button></form><div class="case-grid">${data?.total===0?'<p>No Chogs match those filters.</p>':data?data.items.map(item=>`<button class="file-card ${item.unlocked?'':'locked'}" data-chog="${item.tokenId}"><div class="file-image"><img src="${art(item.tokenId)}" alt="${esc(item.name)}" loading="lazy"><span>${item.unlocked?'RECRUITED':'NOT RECRUITED'}</span></div><div class="file-body"><small>${esc(powerName(item.power))} / ${item.uses??1} USES</small><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><div class="file-bottom"><span>VIEW RECORD</span><span>↗</span></div></div></button>`).join(''):'<p>Opening the personnel files…</p>'}</div>${data?.total?`<div class="pagination"><button data-partner-page="${Math.max(0,data.offset-48)}" ${data.offset===0?'disabled':''}>← Previous</button><small>${data.offset+1}–${Math.min(data.total,data.offset+48)} / ${data.total}</small><button data-partner-page="${data.offset+48}" ${data.offset+48>=data.total?'disabled':''}>Next →</button></div>`:''}</section>`;
-}
-function chogPage(){const item=pageData.chog;if(!item)return '<p>Opening the Chog’s record…</p>';return `<section class="prose"><button class="text-button" data-nav="partners">← Personnel files</button><div class="profile-head"><img src="${art(item.tokenId)}" alt="${esc(item.name)}"><div><span class="eyebrow">CHOG GENESIS / TOKEN ${item.tokenId}</span><h1>${esc(item.name)}</h1><p>${esc(powerName(item.power))} · ${item.uses} uses<br>${esc(item.description)}</p></div></div><div class="trait-list">${item.cleanTraits.map(trait=>`<span><small>${esc(trait.type)}</small>${esc(trait.display)}</span>`).join('')}</div><h2>The chain record.</h2><p>Showing the newest ${Math.min(100,item.moves.length)} of ${item.moves.length} saved movements. Saved through block ${item.toBlockExclusive.toLocaleString()}. These are public records; transfer intent is not inferred.</p>${item.moves.slice().reverse().slice(0,100).map(move=>`<div class="truth"><small>${esc(date(move.time))} / ${esc(move.class.replaceAll('_',' '))}</small><p>${esc(shortWallet(move.from))} → ${esc(shortWallet(move.to))}</p>${sources([move.source])}</div>`).join('')}<h2>Case appearances.</h2>${item.cases.length?item.cases.map(row=>`<div class="record"><span>${esc(title(row.type))}<p>${esc(date(row.occurredAt))}</p></span><button data-case="${esc(row.id)}">Open file →</button></div>`).join(''):'<p>No appearances in the loaded case drawer.</p>'}<p class="room-note">On-chain appearance records become available after CaseBook deployment and confirmed case closes. Traits use clean display labels; original metadata remains the source.</p></section>`;}
-function reportPage(){const report=pageData.report;if(!report)return '<section class="prose"><h1>The Precinct Report.</h1><p>Pulling the saved records…</p></section>';return `<section class="prose"><span class="eyebrow">THE PRECINCT REPORT / ${esc(date(report.day))} UTC</span><h1>A day in<br>Chog’s city.</h1><p>${report.distinctChogs} Chogs appeared in ${report.transfers} transfers. ${report.sales} were sales with verified, exact payments.</p><div class="point-row"><span>SALES <b>${report.sales}</b></span><span>ESCROW DEPOSITS <b>${report.escrowDeposits}</b></span><span>COLLECTIONS <b>${report.escrowCollections}</b></span><span>UNCLASSIFIED <b>${report.unclassified}</b></span></div>${report.lowest?`<h2>The price range.</h2><p>The lowest supported sale was ${esc(report.lowest.amount)} ${esc(report.lowest.asset)}. The highest was ${esc(report.highest.amount)} ${esc(report.highest.asset)}. These are gross payments, including fees.</p>${sources([report.lowest.source,report.highest.source])}`:'<p>No supported exact-price sales were recorded in this complete saved day.</p>'}<h2>Read the receipts.</h2><p>${esc(report.note)}</p><p class="room-note">Snapshot through block ${report.toBlockExclusive}. This report does not claim the saved snapshot is live.</p><details><summary>Source transactions (${report.sources.length} records)</summary><div class="source-list">${sources(report.sources)}</div></details><form id="report-date" class="filter-row"><label>Another UTC day <input type="date" name="day" value="${esc(report.day)}" required></label><button type="submit">Read report →</button></form></section>`;}
-function deskPage(){const data=pageData.desk;return `<section class="prose"><span class="eyebrow">THE SCAM DESK / PROOF-BACKED HISTORY</span><h1>Was your name<br>put on a record?</h1><p>A fake token can write a transfer record naming a wallet that never signed it. Search the stored records for findings backed by successful receipts and execution-time code.</p><form id="desk-search" class="filter-row"><label class="wallet-label">Monad wallet address<input type="text" name="wallet" placeholder="0x…" pattern="0x[a-fA-F0-9]{40}" maxlength="42" required></label><button type="submit" class="primary">Check records →</button></form>${data?`<div class="helper"><b>${data.status==='NOT_COVERED'?'This wallet is outside the stored records.':data.findings.length?`${data.findings.length} proven synthetic records found.`:'No proven synthetic records in this saved window.'}</b><p>${esc(data.note)}</p><small>${esc(date(data.scope.startTime))}–${esc(date(data.scope.endTimeInclusive))}</small></div>${data.findings.map(item=>`<div class="truth"><small>PROVEN SYNTHETIC RECORD / LOG ${item.logIndex}</small><h3>${esc(item.symbol?.shown??'Unlabelled token')}</h3><p>Emitting contract: ${esc(shortWallet(item.token))}${item.symbol?.status==='LOOKALIKE'?` · resembles ${esc(item.symbol.normalized)}`:''}</p><ul>${(item.proof?.reasons??[]).map(reason=>`<li>${esc(reason)}</li>`).join('')}</ul>${sources([{tx:item.tx}])}<p class="room-note">Execution code hash: ${esc(item.proof?.codeHash??'')}</p></div>`).join('')}<p>${esc(data.advice)}</p>`:''}<p class="room-note">This tool searches a stored 30-day Chog-wallet history scan. It is not a complete live wallet scan or a safety certificate. Unproven candidates stay off the findings list.</p></section>`;}
-function verifyPage(){const data=pageData.publications;return `<section class="prose"><span class="eyebrow">FAIRNESS / CHECK THE COMMITMENT</span><h1>Don’t take<br>our word for it.</h1><p>The publisher commits the case-bound answer hash before serving a daily case. At the scheduled close, the revealed key and salt must reproduce that hash.</p><form id="verify-case" class="filter-row"><label>Case identifier<input name="caseId" placeholder="2026-10-19-main" required maxlength="80"></label><button type="submit">Verify →</button></form>${pageData.verification?`<div class="helper"><b>${esc(pageData.verification.status)}</b><p>${esc(pageData.verification.message)}</p>${pageData.verification.openTx?sources([{tx:pageData.verification.openTx}]):''}${pageData.verification.closeTx?sources([{tx:pageData.verification.closeTx}]):''}</div>`:''}<h2>Published daily cases.</h2>${data?.cases?.length?data.cases.map(item=>`<div class="record"><span>${esc(item.id)}<p>${esc(item.status)}</p></span><button data-verify="${esc(item.id)}">Check ↗</button></div>`).join(''):'<p>No on-chain daily cases have been published yet. Archive practice has saved local commitments and carries no on-chain fairness claim.</p>'}<p class="room-note">Archive answer keys can be downloaded after your reveal. A local commitment is distinct from a confirmed on-chain commitment.</p></section>`;}
-function livePage(){const data=pageData.live;return `<section class="prose"><span class="eyebrow">THE LIVE WIRE</span><h1>The city<br>keeps moving.</h1><p>Supported sales appear after their transaction records are checked. A disconnected or stale feed is labelled rather than presented as live.</p><div class="helper"><b>${esc(data?.state??'CONNECTING')}</b><p>${esc(data?.note??'Waiting for the source feed.')}</p></div>${(data?.events??[]).slice().reverse().map(item=>`<div class="truth"><small>BLOCK ${item.block} / ${esc(date(item.time))}</small><h3>${esc(item.name??`Token ${item.tokenId}`)} changed hands.</h3><p>${esc(item.priceBand)} · ${item.route==='offer_accepted'?'Offer accepted':'Listing purchased'}</p>${sources([{tx:item.tx}])}</div>`).join('')}<h2>Open patterns.</h2><p>Repeated moves are facts, not claims about a holder’s intent. The case engine can use qualifying histories when they have enough source evidence.</p></section>`;}
-function archivePage(){return `<section><span class="eyebrow">THE ARCHIVE / REAL HISTORICAL FILES</span><h1 class="case-title">Every file has a paper trail.</h1><p>These practice cases use saved records. They do not earn a daily streak. Answers are revealed after your final submission.</p><div class="case-grid">${catalogue.cases.filter(item=>!item.publication).map(fileCard).join('')}</div></section>`;}
+const art=(id,size='medium')=>`/${size}/${Number(id)}.webp`;
+const explorer=tx=>`https://monadscan.com/tx/${encodeURIComponent(tx)}`;
+const sourceLinks=sources=>(sources||[]).map((source,index)=>h('a',{href:explorer(source.tx),target:'_blank',rel:'noopener'},index?' · receipt '+(index+1):'View on explorer'));
+const link=(href,text,attrs={})=>h('a',{href,'data-link':true,...attrs},text);
+const OPENSEA='https://opensea.io/collection/chog-genesis';
 
-function render(){
- const focused=app.contains(document.activeElement)?document.activeElement:null,focusKey=focused?{id:focused.id,data:{...focused.dataset},name:focused.getAttribute('name'),value:focused.getAttribute('value')}:null;
- function restoreFocus(){if(!focusKey)return;const candidates=[...app.querySelectorAll('button,a,input,select,summary')];const target=candidates.find(element=>focusKey.id?element.id===focusKey.id:Object.keys(focusKey.data).length?Object.entries(focusKey.data).every(([key,value])=>element.dataset[key]===value):focusKey.name&&element.getAttribute('name')===focusKey.name&&element.getAttribute('value')===focusKey.value);(target&&!target.disabled?target:app).focus({preventScroll:true});}
- if(!catalogue)return;document.querySelector('.preview').textContent=(catalogue.mode==='daily_cases'?'Daily case open':'Archive practice')+' · Template dialogue · Check daily commitments on Verify';if(pageData.error?.screen===screen){app.innerHTML=`<section class="prose"><span class="eyebrow">THE DESK NEEDS A MOMENT</span><h1>Hold that file.</h1><p>${esc(pageData.error.message)}</p><button class="primary" data-retry-screen="${esc(screen)}">Try again →</button></section>`;return;}app.innerHTML=screen==='room'?roomPage():screen==='questions'?questionsPage():screen==='result'?resultPage():screen==='casebook'?casebook():screen==='partners'?collectionPage():screen==='report'?reportPage():screen==='desk'?deskPage():screen==='verify'?verifyPage():screen==='archive'?archivePage():screen==='arc'?livePage():screen.startsWith('chog:')?chogPage():screen==='how'?how():screen==='about'?about():casesPage();restoreFocus();}
-function saveResult(){
- if(!state?.result)return;
- const records=readLocal('chog-casebook',[]).filter(row=>row.caseId!==state.caseId);
- records.unshift({caseId:state.caseId,type:state.case.type,subject:state.case.subject.name,score:state.result.score,grade:state.result.grade,finishedAt:new Date().toISOString()});writeLocal('chog-casebook',records);writeLocal('chog-guided',true);
+async function api(path,{method='GET',body}={}){
+ const response=await fetch('/api'+path,{method,credentials:'same-origin',headers:body?{'content-type':'application/json'}:{},body:body?JSON.stringify(body):undefined});
+ let value={};try{value=await response.json();}catch{}
+ if(!response.ok)throw Object.assign(new Error(value.error||'The bureau is temporarily unavailable. Try again.'),{code:value.code||'UNAVAILABLE',status:response.status});
+ return value;
 }
-async function action(input){
- if(busy)return;busy=true;app.querySelectorAll('button').forEach(button=>button.disabled=true);
- const previousCaught=state.caught;
- try{state=await request('/api/session/action',{...input,revision:state.revision});if(state.result||state.locked){saveResult();await refreshPlayer();screen='result';}render();if(input.type==='accuse')toast(state.caught&&!previousCaught?'Alibi broken. The record proves it.':'That record does not prove a lie. One card play deducted.');}
- catch(error){toast(error.message);render();}finally{busy=false;}
-}
-document.addEventListener('click',async event=>{
- const button=event.target.closest('button');if(!button||button.disabled||busy)return;
- if(button.dataset.nav){navigate(button.dataset.nav);return;}
- if(button.dataset.retryScreen){navigate(button.dataset.retryScreen);return;}
- if(button.dataset.chog){navigate('chog:'+Number(button.dataset.chog));return;}
- if(button.dataset.partnerPage){const form=document.querySelector('#partner-filter');const filter=new FormData(form);pageData.partners=await request('/api/partners?offset='+Number(button.dataset.partnerPage)+'&group='+encodeURIComponent(filter.get('group'))+'&q='+encodeURIComponent(filter.get('q')));render();return;}
- if(button.dataset.verify){try{pageData.verification=await request('/api/verify/'+encodeURIComponent(button.dataset.verify));render();}catch(error){toast(error.message);}return;}
- if(button.dataset.case){partners(button.dataset.case);return;}
- if(button.dataset.partner){
-  busy=true;modal.querySelectorAll('button').forEach(item=>item.disabled=true);
-  try{state=await request('/api/session',{caseId:pendingCase,partnerId:Number(button.dataset.partner),restart:true});selected=state.case.cast[0].tokenId;selectedCard='ARRIVAL';answers={};modal.close();navigate('room');}
-  catch(error){toast(error.message);modal.querySelectorAll('button').forEach(item=>item.disabled=false);}finally{busy=false;}return;
- }
- if(button.dataset.witness){selected=Number(button.dataset.witness);render();return;}
- if(button.dataset.card){selectedCard=button.dataset.card;render();return;}
- if(button.dataset.open){await action({type:'open',factId:button.dataset.open});return;}
- if(button.dataset.power){await action({type:'power',factId:button.dataset.power});return;}
- if(button.dataset.accuse){
-  const proof=state.ledger.filter(fact=>fact.opened);
-  if(!proof.length){toast('Examine a ledger record first. You need a record as proof.');return;}
-  openModal('Put it on the record.',`<p>Which examined record contradicts ${esc(state.case.cast.find(w=>w.tokenId===Number(button.dataset.accuse)).name)}? A wrong accusation costs one play.</p><label for="proof">Choose your evidence</label><select class="proof-select" id="proof">${proof.map(fact=>`<option value="${esc(fact.id)}">${esc(displayFact(fact.text))}</option>`).join('')}</select><button class="primary" data-confirm-accuse="${button.dataset.accuse}" data-confirm-card="${button.dataset.accuseCard??'ARRIVAL'}">File accusation →</button>`);return;
- }
- if(button.dataset.confirmAccuse){const factId=document.querySelector('#proof').value;modal.close();await action({type:'accuse',tokenId:Number(button.dataset.confirmAccuse),card:button.dataset.confirmCard??'ARRIVAL',factId});return;}
- switch(button.dataset.action){
-  case 'close':modal.close();break;
-  case 'export-player':{const blob=new Blob([JSON.stringify(player??readLocal('chog-casebook',[]),null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='chog-noir-casebook.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);break;}
-  case 'delete-player':openModal('Delete your guest progress?',`<p>This removes the server’s guest casebook and saved sessions, plus this browser’s Chog Noir casebook. Public chain records remain public.</p><button class="primary" data-action="confirm-delete">Delete my progress</button>`);break;
-  case 'confirm-delete':try{await request('/api/player/delete',{confirm:'DELETE'});for(const key of ['chog-casebook','chog-guided'])try{localStorage.removeItem(key);}catch{}state=null;player=null;modal.close();await refreshPlayer();navigate('casebook');toast('Guest progress deleted.');}catch(error){toast(error.message);}break;
-  case 'ask':await action({type:'ask',tokenId:selected,card:selectedCard});break;
-  case 'exact':await action({type:'power',tokenId:selected});break;
-  case 'identify':await action({type:'power'});break;
-  case 'refresh-reveal':state=await request('/api/session');await refreshPlayer();render();break;
-  case 'resume':navigate((state.result||state.locked)?'result':'room');break;
-  case 'questions':navigate('questions');break;
-  case 'room':navigate('room');break;
-  case 'skip-guide':writeLocal('chog-guided',true);render();break;
-  case 'retry':await boot();break;
-  case 'share':try{await navigator.clipboard.writeText(shareText());toast('Result copied. The truth travels.');}catch{openModal('Copy your result.',`<p>Select and copy the text below.</p><pre class="share-grid">${esc(shareText())}</pre>`);}break;
-  case 'verification':if(!state.result.verification.key){openModal('Committed on chain.',`<p>Your result is revealed. The full key and salt become public at the scheduled daily close.</p>${sources([{tx:state.result.verification.openTx}])}`);break;}openModal('The saved commitment.',`<p>This answer hash was saved before your session. ${state.result.verification.onchain?'It has a confirmed on-chain commitment.':'It has <strong>not been published on chain</strong>.'} The revealed key and salt can reproduce it using the repository’s canonical answerHash function.</p><pre class="share-grid" style="overflow-wrap:anywhere">${esc(state.case.answerHash)}</pre><p>${state.result.verification.onchain?'This daily case has a confirmed on-chain commitment. Use the Verify page to check its reveal.':'There is no on-chain fairness guarantee for this archive practice case.'}</p><button data-action="download-proof">Download revealed key + salt ↓</button>`);break;
-  case 'download-proof':{
-   const blob=new Blob([JSON.stringify({v:1,caseId:state.caseId,...state.result.verification},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='chog-noir-revealed-proof.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);break;
-  }
- }
-});
-document.addEventListener('change',event=>{if(event.target.matches('#answers input')){answers[event.target.name]=event.target.value;document.querySelector('#submit-case').disabled=Object.keys(answers).length!==3;}});
-document.addEventListener('submit',async event=>{
- const form=event.target;if(!['answers','partner-filter','report-date','desk-search','verify-case'].includes(form.id))return;event.preventDefault();
- if(form.id==='answers'){await action({type:'submit',answers});window.scrollTo(0,0);app.focus({preventScroll:true});return;}
- const values=new FormData(form);const button=form.querySelector('button[type="submit"]');if(button)button.disabled=true;
- try{
-  if(form.id==='partner-filter')pageData.partners=await request('/api/partners?group='+encodeURIComponent(values.get('group'))+'&q='+encodeURIComponent(values.get('q')));
-  if(form.id==='report-date')pageData.report=await request('/api/report?day='+encodeURIComponent(values.get('day')));
-  if(form.id==='desk-search')pageData.desk=await request('/api/scam-desk?wallet='+encodeURIComponent(values.get('wallet')));
-  if(form.id==='verify-case')pageData.verification=await request('/api/verify/'+encodeURIComponent(values.get('caseId')));
-  render();
- }catch(error){toast(error.message);if(button)button.disabled=false;}
-});
-async function boot(){
- try{
-  catalogue=await request('/api/cases');await refreshPlayer();
-  try{state=await request('/api/session');}catch(error){if(error.status!==404)toast(error.message);}
-  if(state){selected=state.testimony.at(-1)?.tokenId??state.case.cast[0].tokenId;selectedCard=state.testimony.at(-1)?.card??'ARRIVAL';}
-  if(state?.result)saveResult();
-  const target=new URL(location.href).searchParams.get('case');
-  if(target&&catalogue.cases.some(item=>item.id===target)){render();partners(target);}
-  else {const routes={'/partners':'partners','/casebook':'casebook','/report':'report','/scam-desk':'desk','/verify':'verify','/how':'how','/about':'about','/archive':'archive','/cold':'archive','/arc':'arc','/breaking':'arc'};if(routes[location.pathname])navigate(routes[location.pathname]);else if(/^\/chog\/\d+$/.test(location.pathname))navigate('chog:'+Number(location.pathname.split('/').at(-1)));else if(state){screen=(state.result||state.locked)?'result':'room';render();}else render();}
- }catch(error){app.innerHTML=`<section class="prose"><span class="eyebrow">THE DESK IS TEMPORARILY CLOSED</span><h1>Hold that thought.</h1><p>${esc(error.message)}</p><button class="primary" data-action="retry">Try again →</button></section>`;}
-}
-window.addEventListener('popstate',()=>{const routes={'/':'cases','/partners':'partners','/casebook':'casebook','/report':'report','/scam-desk':'desk','/verify':'verify','/how':'how','/about':'about','/archive':'archive','/cold':'archive','/arc':'arc','/breaking':'arc'};if(routes[location.pathname])navigate(routes[location.pathname]);else if(/^\/chog\/\d+$/.test(location.pathname))navigate('chog:'+Number(location.pathname.split('/').at(-1)));});
-await boot();
+let noticeTimer;
+function notify(text,kind=''){const node=$('#notice');node.textContent=text;node.className='show '+kind;clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>{node.className='';},5000);}
+function fail(error){notify(error.message||'Something went wrong. Try again.','alarm');}
 
-setInterval(()=>{if(state?.locked&&screen==='result'&&!busy)render();},30000);
+/* Sound: generated in the browser, muted until the player turns it on. */
+const sound={on:store.get('sound')==='on',context:null,rain:null,
+ ctx(){this.context??=new AudioContext();return this.context;},
+ tone(frequency,duration,type='sine',gain=.15){if(!this.on)return;const ctx=this.ctx(),osc=ctx.createOscillator(),amp=ctx.createGain();osc.type=type;osc.frequency.value=frequency;amp.gain.setValueAtTime(gain,ctx.currentTime);amp.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+duration);osc.connect(amp).connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+duration);},
+ tick(){this.tone(1800,.03,'square',.03);},thud(){this.tone(70,.35,'sine',.5);this.tone(140,.15,'triangle',.2);},
+ siren(){if(!this.on)return;[0,.4,.8].forEach(at=>setTimeout(()=>{this.tone(880,.35,'sawtooth',.06);setTimeout(()=>this.tone(660,.35,'sawtooth',.06),200);},at*1000));},
+ rainStart(){if(!this.on||this.rain)return;const ctx=this.ctx(),buffer=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate),data=buffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=(Math.random()*2-1)*.25;const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),amp=ctx.createGain();source.buffer=buffer;source.loop=true;filter.type='lowpass';filter.frequency.value=900;amp.gain.value=.08;source.connect(filter).connect(amp).connect(ctx.destination);source.start();this.rain=source;},
+ rainStop(){this.rain?.stop();this.rain=null;},
+};
+function renderControls(){
+ const button=$('#sound');button.textContent=sound.on?'Sound on':'Sound off';button.setAttribute('aria-pressed',String(sound.on));button.title=sound.on?'Sound is on':'Sound is off';
+ const theme=document.documentElement.dataset.theme;$('#theme').textContent=theme==='dark'?'Light':'Dark';$('#theme').setAttribute('aria-pressed',String(theme==='light'));
+}
+$('#sound').addEventListener('click',()=>{sound.on=!sound.on;store.set('sound',sound.on?'on':'off');if(!sound.on)sound.rainStop();else if($('.room'))sound.rainStart();renderControls();});
+$('#theme').addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=next;store.set('theme',next);renderControls();});
+document.documentElement.dataset.theme=store.get('theme')==='light'?'light':'dark';renderControls();
+
+/* Header: today's case and the active detective or the Rookie badge. */
+function renderBadge(){
+ const badge=$('#badge');badge.replaceChildren();
+ const view=state.view;
+ if(view?.mode==='ROOKIE')badge.append(h('img',{src:art(view.badge.tokenId,'thumbs'),alt:''}),h('span',{class:'stamp-label rookie-stamp'},'Rookie'),h('span',{},view.badge.name));
+ else if(state.detective)badge.append(h('img',{src:art(state.detective.tokenId,'thumbs'),alt:''}),h('span',{},state.detective.name+(state.detective.streak?` · streak ${state.detective.streak} 🔥`:'')));
+ else if(state.address)badge.append(h('span',{},'Wallet connected'));
+ const today=$('#today-link');if(state.today){today.hidden=false;today.textContent=`Case #${state.today.number} · ${state.today.weekday}`;}else today.hidden=true;
+}
+
+/* Routing */
+const routes=[
+ [/^\/$/,home],[/^\/rookie$/,rookie],[/^\/connect$/,connect],[/^\/pick$/,pick],[/^\/case$/,caseFile],[/^\/case\/room$/,room],[/^\/training$/,training],
+ [/^\/precinct$/,precinct],[/^\/issues$/,issues],[/^\/issues\/(\d+)$/,issue],[/^\/chog\/(\d+)$/,profile],[/^\/verify(?:\/(case-[a-f0-9]{24}))?$/,verify],
+ [/^\/report$/,report],[/^\/scam-desk$/,scamDesk],[/^\/about$/,about],
+];
+function closeStreams(){for(const stream of state.streams)stream.close();state.streams=[];sound.rainStop();}
+async function render(){
+ closeStreams();const path=location.pathname.replace(/\/+$/,'')||'/';
+ for(const [pattern,page] of routes){const match=path.match(pattern);if(match){try{await page(...match.slice(1));}catch(error){app.replaceChildren(h('h2',{},'The bureau is unavailable'),h('p',{},error.message||'Try again shortly.'),link('/','Back to the front door'));}renderBadge();return;}}
+ app.replaceChildren(h('h2',{},'Page not found'),link('/','Back to the front door'));
+}
+function go(path){history.pushState({},'',path);void render();app.focus({preventScroll:false});window.scrollTo(0,0);}
+document.addEventListener('click',event=>{const anchor=event.target.closest('a[data-link]');if(!anchor||event.metaKey||event.ctrlKey||event.shiftKey||anchor.target==='_blank')return;event.preventDefault();go(anchor.getAttribute('href'));});
+addEventListener('popstate',()=>void render());
+
+/* Front door */
+async function replayPanel(){
+ const replay=await api('/replay').catch(()=>null);if(!replay)return null;
+ const node=h('section',{class:'replay','aria-label':'Replay of a real caught lie'},
+  h('span',{class:'stamp-label replay-label'},'REPLAY'),h('p',{class:'muted'},replay.caseLine),
+  h('div',{class:'statement type'},h('strong',{},replay.witness.name+': '),'“'+replay.statement+'”'),
+  h('div',{class:'receipt receipt-card'},replay.receipt.text,' ',...sourceLinks(replay.receipt.sources)),
+  h('p',{class:'type'},'CAUGHT — false statement. '+replay.inference),
+  h('div',{class:'replay-stamp','aria-hidden':'true'},'CAUGHT'));
+ requestAnimationFrame(()=>node.classList.add('play'));if(!reduced.matches)setTimeout(()=>sound.thud(),3800);
+ return node;
+}
+function caseCard(summary){
+ return h('article',{class:'case-card'},h('img',{src:art(summary.subject.tokenId),alt:`${summary.subject.name}, the subject of today's case`}),
+  h('div',{},h('p',{class:'muted type'},`Case #${summary.number} · ${summary.weekday}`),h('h2',{},summary.title),h('p',{},summary.setup),h('p',{class:'rule'},summary.ruleLine),
+   h('p',{class:'muted'},'Witnesses: '+summary.cast.map(row=>row.name).join(', '))));
+}
+function ticker(){
+ const node=h('div',{class:'ticker','aria-live':'polite'},'Evidence coming in…');
+ const breaking=h('div',{hidden:true});
+ try{
+  const source=new EventSource('/api/events');state.streams.push(source);
+  source.addEventListener('feed',event=>{
+   const feed=JSON.parse(event.data);
+   if(!['LIVE','POLLING','CATCHING_UP'].includes(feed.state)){node.textContent='Live feed: '+(feed.state==='STALE'?'catching up':'offline')+'. Tomorrow’s case is built from the stored chain history.';return;}
+   const events=(feed.events||[]).slice(0,5);node.replaceChildren(h('strong',{},'Evidence coming in: '),events.length?events.map(row=>row.text).join(' · '):'quiet so far tonight.');
+   const sale=events.find(row=>row.kind==='SALE');const last=Number(store.get('breakingAt')||0);
+   if(sale&&sale.id!==store.get('breakingId')&&Date.now()-last>30*60_000){store.set('breakingAt',String(Date.now()));store.set('breakingId',sale.id);breaking.replaceWith(breakingScene(sale));}
+  });
+ }catch{node.textContent='Live feed unavailable in this browser.';}
+ return [breaking,node];
+}
+function breakingScene(sale){sound.siren();return h('div',{class:'breaking',role:'status'},h('img',{src:art(sale.tokenId,'thumbs'),alt:''}),h('span',{},`BREAKING · ${sale.text}. This could be tomorrow's case.`));}
+async function home(){
+ const [today,replay]=await Promise.all([api('/case/today').catch(()=>({case:null})),replayPanel()]);state.today=today.case;
+ const hero=h('section',{class:'hero'},
+  h('div',{},h('h1',{},'Chog Noir'),h('p',{class:'line'},'Every night something real happens to Chogs on Monad. Every morning your Chog takes the case. One witness is lying. The chain never does.'),
+   h('div',{class:'actions'},today.case?h('button',{class:'primary',onclick:()=>go('/rookie')},'Play as a rookie'):null,h('button',{onclick:()=>go('/connect')},'Connect wallet')),
+   today.case?caseCard(today.case):h('p',{class:'type'},'No case is open right now. A new case opens at 00:20 UTC.')),
+  replay??h('div',{}));
+ app.replaceChildren(hero,...ticker(),h('nav',{class:'actions'},link('/precinct','Precinct board'),' · ',link('/issues','Issues'),' · ',link('/report','Precinct Report'),' · ',link('/scam-desk','Scam Desk')));
+}
+
+/* Wallet */
+async function connect(){
+ app.replaceChildren(h('h2',{},'Connect the wallet that holds your Chog'),h('p',{},'One signature, no gas. Your Chog becomes the detective.'),h('div',{class:'actions'},h('button',{class:'primary',onclick:signIn},'Sign in'),link('/rookie','No Chog? Play as a rookie')));
+}
+async function signIn(){
+ const wallet=window.ethereum;
+ if(!wallet){notify('No browser wallet found. Open Chog Noir in a wallet browser, or play as a rookie.','alarm');return;}
+ try{
+  const [address]=await wallet.request({method:'eth_requestAccounts'});
+  const challenge=await api('/auth/nonce',{method:'POST',body:{address}});
+  const signature=await wallet.request({method:'personal_sign',params:[challenge.message,address]});
+  const roster=await api('/auth/verify',{method:'POST',body:{nonce:challenge.nonce,signature}});
+  state.address=roster.address;state.roster=roster;go(roster.total?'/pick':'/pick');
+ }catch(error){fail(error.code==='AUTH_BAD_SIGNATURE'||error.code===4001?Object.assign(error,{message:"That signature didn't check out. Try again."}):error);}
+}
+async function pick(){
+ let roster=state.roster;if(!roster)roster=await api('/me/chogs').catch(error=>{if(error.status===401){go('/connect');return null;}throw error;});if(!roster)return;
+ state.roster=roster;
+ if(!roster.total){app.replaceChildren(h('h2',{},'The bureau only hires Chogs.'),h('p',{},'The bureau only hires Chogs. You can still work today\'s case at the Rookie desk.'),h('div',{class:'actions'},h('button',{class:'primary',onclick:()=>go('/rookie')},'Play as a rookie'),h('a',{href:OPENSEA,target:'_blank',rel:'noopener'},'See the collection on OpenSea')),h('p',{},link('/issues','Issues'),' · ',link('/precinct','Precinct'),' · ',link('/report','Report'),' · ',link('/scam-desk','Scam Desk')));return;}
+ const list=h('div',{class:'grid'});
+ const add=chogs=>{for(const chog of chogs)list.append(h('button',{class:'chog-card',onclick:()=>{state.detective=chog;go('/case');},'aria-label':`${chog.name}, ${chog.skillName}, ${chog.budget.total} questions${chog.playedToday?', worked today':''}`},
+  h('img',{src:art(chog.tokenId,'thumbs'),alt:''}),h('span',{},h('strong',{},chog.name),h('br'),h('span',{class:'meta'},`${chog.skillName}: ${chog.skillLine}`),h('br'),h('span',{class:'meta'},`${chog.budget.total} questions · ${chog.rank} · streak ${chog.streak}${chog.founder?' · Founder':''}`),chog.playedToday?h('span',{class:'tag'},'Worked today'):null)));};
+ add(roster.chogs);
+ const more=h('button',{hidden:roster.nextCursor===null,onclick:async()=>{const next=await api('/me/chogs?after='+roster.nextCursor);roster.nextCursor=next.nextCursor;add(next.chogs);more.hidden=next.nextCursor===null;}},'More Chogs');
+ app.replaceChildren(h('h2',{},'Choose today’s detective'),h('p',{class:'muted'},`${roster.total} Chog${roster.total===1?'':'s'} in this wallet. Each one works the case once a day with its own skill and record. The hold time counts from when this wallet received the Chog; moving it between your own wallets resets it.`),list,more);
+}
+
+/* Case file and room */
+async function caseFile(){
+ const today=(await api('/case/today')).case;state.today=today;
+ if(!today){app.replaceChildren(h('h2',{},'No case is open'),h('p',{},'A new case opens at 00:20 UTC.'));return;}
+ if(!state.detective&&!state.address){go('/connect');return;}
+ if(!state.detective){go('/pick');return;}
+ app.replaceChildren(caseCard(today),h('p',{},`Detective: ${state.detective.name} · ${state.detective.skillName} · ${state.detective.budget.total} questions`),
+  h('div',{class:'actions'},h('button',{class:'primary',onclick:async()=>{try{const view=await api('/case/start',{method:'POST',body:{tokenId:state.detective.tokenId}});enterRoom(view);}catch(error){if(error.code==='PLAY_ALREADY_TODAY'){const view=await api('/case/state?tokenId='+state.detective.tokenId).catch(()=>null);if(view){enterRoom(view);return;}}fail(error);}}},'Take the case'),link('/pick','Choose another Chog')));
+}
+async function rookie(){
+ const today=(await api('/case/today')).case;state.today=today;
+ if(!today){app.replaceChildren(h('h2',{},'No case is open'),h('p',{},'A new case opens at 00:20 UTC.'));return;}
+ const view=await api('/rookie/start',{method:'POST',body:{}}).catch(error=>{if(error.code==='ROOKIE_DONE_TODAY'||error.code==='ROOKIE_LIMIT'){app.replaceChildren(h('h2',{},'Rookie desk'),h('p',{},error.message));return null;}throw error;});
+ if(!view)return;
+ if(!view.state.done&&view.state.revision===0&&!store.get('training:'+today.id)){offerTraining(view);return;}
+ enterRoom(view);
+}
+function offerTraining(view){
+ app.replaceChildren(h('span',{class:'stamp-label rookie-stamp'},'Rookie desk'),h('h2',{},view.badge.label),h('p',{},'Sixty seconds of practice on a real archived case first?'),
+  h('div',{class:'actions'},h('button',{class:'primary',onclick:()=>{store.set('training:'+view.case.id,'offered');go('/training');}},'Training case'),h('button',{onclick:()=>{store.set('training:'+view.case.id,'skipped');enterRoom(view);}},'Skip to today’s case')));
+}
+function enterRoom(view){state.view=view;state.selected={statement:null,receipt:null,blank:null};state.tiles={};history.pushState({},'','/case/room');drawRoom();renderBadge();}
+async function room(){
+ if(state.view){drawRoom();return;}
+ if(state.detective){const view=await api('/case/state?tokenId='+state.detective.tokenId).catch(()=>null);if(view){state.view=view;drawRoom();return;}}
+ go('/');
+}
+async function act(action){
+ const view=state.view,before=view.state;
+ try{
+  const next=await api('/case/action',{method:'POST',body:{...(view.mode==='HOLDER'?{tokenId:view.detective.tokenId}:{}),action:{...action,revision:before.revision}}});
+  state.view=next;const notice=next.state.notice;
+  if(action.type==='solve'&&!next.state.done){notify(`Feedback: ${next.state.feedback}. One more try.`,'alarm');drawSolve();return;}
+  if(notice?.startsWith('CAUGHT'))caughtMoment(next,before);else if(notice)notify(notice,'alarm');
+  state.selected={statement:null,receipt:null,blank:state.selected.blank};drawRoom();
+ }catch(error){
+  if(error.code==='CASE_REVISION_CHANGED'||error.code==='ROOKIE_REVISION_CHANGED'){notify('The case moved on in another tab. Showing the latest view.');await room();return;}
+  fail(error);
+ }
+}
+function caughtMoment(next,before){
+ const fresh=next.state.caught.find(row=>!before.caught.some(old=>old.id===row.id));
+ sound.thud();notify(next.state.notice+(fresh?' '+fresh.unlockedTruth:''),'clue');
+ if(reduced.matches)return;
+ const overlay=h('div',{class:'stamp','aria-hidden':'true'},h('span',{},'CAUGHT'));document.body.append(overlay);setTimeout(()=>overlay.remove(),900);
+ const liar=fresh&&next.state.case.cast.length&&fresh.statementId.match(/^w(\d+)-/)?.[1];
+ requestAnimationFrame(()=>{$('.room')?.classList.add('flicker');if(liar)$(`[data-witness="${liar}"]`)?.classList.add('shake');document.querySelectorAll('[data-witness]').forEach(node=>{if(node.dataset.witness!==liar&&next.state.case.ruleLine.startsWith('Two'))node.classList.add('react');});});
+}
+function typeOut(node,text){
+ if(reduced.matches||state.seen.has(text)){node.textContent=text;return;}
+ state.seen.add(text);let index=0;const step=()=>{node.textContent=text.slice(0,++index);if(index%3===0)sound.tick();if(index<text.length)setTimeout(step,18);};step();
+}
+function drawRoom(){
+ const view=state.view,s=view.state;
+ if(s.done&&s.result){drawReveal();return;}
+ sound.rainStart();
+ const known=new Map((view.known||[]).map(row=>[row.witness,row.tag]));
+ const witnesses=h('div',{class:'witnesses'},s.case.cast.map(member=>{
+  const statements=s.statements.filter(row=>row.witness===member.tokenId),caughtIds=new Set(s.caught.map(row=>row.statementId)),hasFollow=statements.some(row=>row.slot==='followup');
+  const identified=s.identified.find(row=>row.witness===member.tokenId);
+  return h('section',{class:'witness'+(hasFollow?' lean':''),'data-witness':member.tokenId,'aria-label':`Witness ${member.name}`},
+   h('header',{},h('img',{src:art(member.tokenId),alt:`${member.name}`}),h('div',{},h('div',{class:'name'},member.name),h('div',{class:'nick'},member.nickname),known.has(member.tokenId)?h('span',{class:'tag'},known.get(member.tokenId)):null,identified?h('span',{class:'tag',style:'border-color:var(--alarm);color:var(--alarm)'},identified.message):null)),
+   statements.map(row=>{const button=h('button',{class:'statement'+(caughtIds.has(row.id)?' caught':''),'data-statement':row.id,'aria-pressed':String(state.selected.statement===row.id),'aria-label':`${member.name} says: ${row.line}${caughtIds.has(row.id)?' (caught)':''}`,disabled:caughtIds.has(row.id),
+     onclick:()=>{state.selected.statement=state.selected.statement===row.id?null:row.id;drawRoom();},ondragover:event=>event.preventDefault(),ondrop:event=>{event.preventDefault();const receipt=event.dataTransfer.getData('text/plain');if(receipt)void act({type:'present',statementId:row.id,receiptId:receipt});}},h('span',{class:'typed'}));
+    typeOut(button.firstChild,row.line);return button;}),
+   hasFollow?null:h('button',{class:'press','data-press':member.tokenId,onclick:()=>act({type:'press',witness:member.tokenId})},known.has(member.tokenId)?'Press (free)':'Press · 1 question'));
+ }));
+ const receipts=h('div',{class:'receipts'},s.receipts.map(row=>row.sealed?
+  h('div',{class:'receipt-card sealed','data-receipt':row.id},h('span',{},'Sealed receipt'),h('button',{'data-open':row.id,onclick:()=>act({type:'open',receiptId:row.id})},'Open (2 questions)'),['XRAY','LEGEND'].includes(view.detective?.skill??view.badge?.skill)&&s.skillUses>0?h('button',{onclick:()=>act({type:'skill',receiptId:row.id})},'Use skill on this'):null):
+  h('button',{class:'receipt-card'+(s.highlighted.includes(row.id)?' highlight':''),'data-receipt':row.id,draggable:'true','aria-pressed':String(state.selected.receipt===row.id),ondragstart:event=>event.dataTransfer.setData('text/plain',row.id),
+   onclick:()=>{state.selected.receipt=state.selected.receipt===row.id?null:row.id;if(state.selected.statement&&state.selected.receipt){void act({type:'present',statementId:state.selected.statement,receiptId:state.selected.receipt});return;}drawRoom();}},
+   row.text,h('br'),...sourceLinks(row.sources))));
+ const skill=view.detective?.skill??view.badge?.skill,skillName=view.detective?.skillName??view.badge?.skillName;
+ const useSkill=()=>{if(skill==='ANALYST'){if(!state.selected.statement){notify('Select a statement first, then use Analyst.');return;}void act({type:'skill',statementId:state.selected.statement});return;}if(skill==='XRAY'){notify('Choose “Use skill on this” on a sealed receipt.');return;}void act({type:'skill'});};
+ const unlocked=s.caught.map(row=>h('p',{class:'truth-line'},row.unlockedTruth));
+ app.replaceChildren(h('section',{class:'room'},
+  view.mode==='ROOKIE'?h('span',{class:'stamp-label rookie-stamp rookie-desk'},'ROOKIE'):null,
+  s.ownChogMessage?h('p',{class:'banner'},s.ownChogMessage):null,
+  view.mode==='ROOKIE'?h('p',{class:'type muted'},view.badge.label):null,
+  h('div',{class:'room-head'},h('p',{class:'rule'},s.case.ruleLine),h('p',{class:'questions'},`Questions left: ${s.questions}`)),
+  h('p',{class:'type'},s.case.setup),...unlocked,witnesses,
+  h('div',{class:'tray'},h('h3',{},'Receipts',h('span',{class:'muted type',style:'font-size:13px;text-transform:none'},'Select a statement, then a receipt. Or drag a receipt onto a statement.')),receipts),
+  h('div',{class:'room-actions'},
+   h('button',{class:'primary',disabled:!(state.selected.statement&&state.selected.receipt),onclick:()=>act({type:'present',statementId:state.selected.statement,receiptId:state.selected.receipt})},'Present receipt'),
+   skill==='EMPATH'?h('span',{class:'muted'},'Empath: +2 questions already added.'):h('button',{disabled:s.skillUses<1,onclick:useSkill},`Skill: ${skillName} (${s.skillUses} left)`),
+   h('button',{onclick:()=>drawSolve()},'Solve the case'))));
+}
+function drawSolve(){
+ const view=state.view,s=view.state;
+ const blanks=s.case.blanks,tiles=s.case.tiles,label=id=>tiles.find(row=>row.id===state.tiles[id])?.label;
+ const sentence=h('p',{class:'sentence'},blanks.map((blank,index)=>[index?` ${blank.label} `:'',h('button',{class:'blank','data-blank':blank.id,'aria-pressed':String(state.selected.blank===blank.id),'aria-label':`Blank ${index+1}: ${label(blank.id)??'empty'}`,onclick:()=>{state.selected.blank=blank.id;drawSolve();}},label(blank.id)??(index?'…':'Which Chog'))]),'.');
+ const tray=h('div',{class:'tiles',role:'group','aria-label':'Phrase tiles'},tiles.map(tile=>h('button',{class:'tile','data-tile':tile.id,onclick:()=>{const target=state.selected.blank??blanks.find(row=>!state.tiles[row.id])?.id;if(!target)return;state.tiles[target]=tile.id;state.selected.blank=blanks.find(row=>!state.tiles[row.id])?.id??null;drawSolve();}},tile.label)));
+ app.replaceChildren(h('section',{class:'room'},h('h2',{},'Solve the case'),h('p',{class:'type'},'Fill the sentence with the tiles. You have two submissions; the second ends the case.'),
+  s.feedback?h('p',{class:'banner'},`Last try: ${s.feedback}`):null,sentence,tray,
+  h('div',{class:'room-actions'},h('button',{class:'primary',disabled:blanks.some(row=>!state.tiles[row.id]),onclick:()=>act({type:'solve',tiles:state.tiles})},'Submit solution'),h('button',{onclick:()=>{state.tiles={};drawSolve();}},'Clear'),h('button',{onclick:()=>drawRoom()},'Back to the room'))));
+}
+function shareGrid(view,record){
+ const s=view.state,result=s.result,lieCount=result.panels.length,caught=s.caught.length,summary=view.case;
+ const lines=[`CHOG NOIR #${summary.number} · ${summary.weekday}`,view.mode==='ROOKIE'?'ROOKIE DESK':`🕵️ ${view.detective.name}${view.detective.founder?' · Founder':''}${record?' · '+record.rank:''}`,
+  `Lies ${'🟥'.repeat(caught)}${'⬛'.repeat(Math.max(0,lieCount-caught))}  Solution ${result.solved?'✅':'❌'}  Questions left ${s.questions}`];
+ if(record&&view.mode==='HOLDER')lines.push(`Streak ${record.streak} 🔥`);
+ return lines.join('\n');
+}
+async function drawReveal(){
+ sound.rainStop();
+ const view=state.view,s=view.state,result=s.result;
+ const record=view.mode==='HOLDER'?(await api('/chog/'+view.detective.tokenId).catch(()=>null))?.career??null:null;
+ if(record&&state.detective)state.detective={...state.detective,streak:record.streak};renderBadge();
+ const grid=shareGrid(view,record),url=location.origin+'/';
+ app.replaceChildren(h('section',{},
+  view.mode==='ROOKIE'?h('span',{class:'stamp-label rookie-stamp'},'ROOKIE DESK'):null,
+  h('h2',{},'What really happened'),
+  h('div',{},result.panels.map(panel=>h('article',{class:'panel'},h('p',{class:'false'},panel.statement),h('p',{class:'label'},panel.label),h('p',{class:'type'},panel.receipt.text,' ',...sourceLinks(panel.receipt.sources)),h('p',{class:'muted'},panel.inference)))),
+  h('h3',{},'The true story'),result.truth.map(row=>h('p',{class:'truth-line'},row.text,' ',...sourceLinks(row.sources))),
+  h('p',{class:'grade','aria-label':`Grade ${result.grade}`},result.grade),h('p',{},`Score ${result.score} of ${result.max} · ${result.solved?'Solved':'Not solved'}${s.solutionAttempt===1?' on the first try':''}`),
+  view.mode==='HOLDER'&&record?h('p',{},`${view.detective.name}: ${record.rank} · ${record.solves} solved · streak ${record.streak} · `,link('/chog/'+view.detective.tokenId,'Detective record')):null,
+  view.mode==='HOLDER'&&view.transferredMidCase?h('p',{class:'muted'},'This Chog left the wallet during the case. The result stays on the token, marked “transferred mid-case”.'):null,
+  view.mode==='ROOKIE'?h('p',{class:'banner'},view.invitation,' ',h('a',{href:OPENSEA,target:'_blank',rel:'noopener'},'See Chogs on OpenSea')):null,
+  h('h3',{},'Share'),h('pre',{class:'share'},grid),
+  h('div',{class:'actions'},h('button',{onclick:async()=>{try{await navigator.clipboard.writeText(grid+'\n'+url);notify('Copied.','clue');}catch{notify('Copy is blocked in this browser. Select the text instead.');}}},'Copy'),
+   h('a',{href:'https://x.com/intent/post?text='+encodeURIComponent(grid+'\n'+url),target:'_blank',rel:'noopener'},'Post on X'),' · ',link(`/case/${encodeURIComponent(view.case.id)}/stats`,'Global results',{onclick:async event=>{event.preventDefault();event.stopPropagation();await showStats();}}))));
+}
+async function showStats(){
+ const view=state.view;
+ try{const stats=await api(`/case/${view.case.id}/stats${view.mode==='HOLDER'?'?tokenId='+view.detective.tokenId:''}`);
+  notify(stats.detectives?`${stats.detectives} detective${stats.detectives===1?'':'s'} so far: `+stats.lies.map(row=>`lie ${row.id} caught by ${row.caughtPercent}%`).join(', ')+`; ${stats.firstTryPercent}% solved on the first try.`:'You are the first detective to finish this case.','clue');
+ }catch(error){fail(error);}
+}
+
+/* Training case: a real archived case reduced to two witnesses and one lie. It counts for nothing. */
+async function training(){
+ let session=await api('/training/start',{method:'POST',body:{}}).catch(error=>{fail(error);return null;});if(!session)return;
+ const draw=()=>{
+  const t=session.view;
+  if(t.done){app.replaceChildren(h('span',{class:'stamp-label replay-label'},'TRAINING · REPLAY'),h('h2',{},t.feedback==='All correct'?'Case #0 closed.':'Case #0 closed.'),h('p',{},t.feedback==='All correct'?'That is the whole game: break the lie with a receipt, then say what really happened.':'Close. In the real case you get a second try.'),h('div',{class:'actions'},h('button',{class:'primary',onclick:()=>history.length>1?history.back():go('/')},'Take today’s case')));return;}
+  app.replaceChildren(h('section',{class:'room'},h('span',{class:'stamp-label replay-label'},'TRAINING · REPLAY'),h('p',{class:'rule'},t.ruleLine),h('p',{class:'type'},t.setup),
+   h('div',{class:'witnesses'},t.cast.map(member=>h('section',{class:'witness','data-witness':member.tokenId},h('header',{},h('img',{src:art(member.tokenId),alt:member.name}),h('div',{},h('div',{class:'name'},member.name),h('div',{class:'nick'},member.nickname))),
+    t.statements.filter(row=>row.witness===member.tokenId).map(row=>h('button',{class:'statement'+(t.caught?' caught':''),'data-statement':row.id,'aria-pressed':String(state.selected.statement===row.id),onclick:()=>{state.selected.statement=row.id;draw();}},row.line))))),
+   h('div',{class:'tray'},h('h3',{},'Receipts'),h('div',{class:'receipts'},t.receipts.map(row=>h('button',{class:'receipt-card','data-receipt':row.id,'aria-pressed':String(state.selected.receipt===row.id),onclick:async()=>{state.selected.receipt=row.id;if(state.selected.statement){await send({type:'present',statementId:state.selected.statement,receiptId:row.id});}else draw();}},row.text)))),
+   t.caught?h('div',{},h('p',{class:'truth-line'},t.unlockedTruth),h('p',{class:'sentence'},t.blanks.map((blank,index)=>[index?` ${blank.label} `:'',h('button',{class:'blank','data-blank':blank.id,'aria-pressed':String(state.selected.blank===blank.id),onclick:()=>{state.selected.blank=blank.id;draw();}},t.tiles.find(tile=>tile.id===state.tiles[blank.id])?.label??'…')]),'.'),
+    h('div',{class:'tiles'},t.tiles.map(tile=>h('button',{class:'tile','data-tile':tile.id,onclick:()=>{const target=state.selected.blank??t.blanks.find(row=>!state.tiles[row.id])?.id;if(target){state.tiles[target]=tile.id;state.selected.blank=null;draw();}}},tile.label))),
+    h('button',{class:'primary',disabled:t.blanks.some(row=>!state.tiles[row.id]),onclick:()=>send({type:'solve',tiles:state.tiles})},'Submit')):null,
+   h('div',{class:'room-actions'},h('button',{onclick:()=>history.length>1?history.back():go('/')},'Skip training'))));
+ };
+ const send=async action=>{try{session=await api('/training/action',{method:'POST',body:{token:session.token,action}});state.selected={statement:null,receipt:null,blank:null};if(session.view.notice?.startsWith('CAUGHT')){sound.thud();notify(session.view.notice,'clue');}else if(session.view.notice)notify(session.view.notice,'alarm');draw();}catch(error){fail(error);}};
+ state.selected={statement:null,receipt:null,blank:null};state.tiles={};draw();
+}
+
+/* Public pages */
+async function precinct(){
+ const node=h('div',{});
+ const draw=board=>{
+  node.replaceChildren(h('h2',{},'Precinct board'),board.case?caseCard(board.case):null,board.rookieLine?h('p',{class:'type'},board.rookieLine):null,
+   board.empty?h('p',{class:'type'},board.empty):h('div',{class:'board'},board.tiles.map(tile=>h('a',{class:'tile-card',href:'/chog/'+tile.tokenId,'data-link':true},h('img',{src:art(tile.tokenId,'thumbs'),alt:''}),h('div',{},h('strong',{},tile.name)),h('div',{class:'muted'},`${tile.rank} · streak ${tile.streak}`),h('div',{'aria-label':`${tile.liesCaught} lies caught`},'🟥'.repeat(tile.liesCaught)||'—'),tile.grade?h('div',{class:'grade',style:'font-size:28px'},tile.grade):null))),
+   board.catches.length?h('ul',{class:'type'},board.catches.map(row=>h('li',{},row.text))):null);
+ };
+ draw(await api('/precinct'));app.replaceChildren(node,...ticker());
+ try{const source=new EventSource('/api/precinct/stream');state.streams.push(source);source.addEventListener('precinct',event=>draw(JSON.parse(event.data)));}catch{}
+}
+async function issues(){
+ const list=(await api('/issues')).issues;
+ app.replaceChildren(h('h2',{},'Chog Noir issues'),list.length?h('ol',{reversed:true},list.map(row=>h('li',{},link('/issues/'+row.number,`Issue #${row.number} · ${row.title} · ${row.subject.name}`),' · ',h('a',{href:explorer(row.openTx),target:'_blank',rel:'noopener'},'locked'),' · ',h('a',{href:explorer(row.closeTx),target:'_blank',rel:'noopener'},'revealed')))):h('p',{class:'type'},'The first issue appears when the first case closes.'));
+}
+async function issue(number){
+ const data=await api('/issues/'+number),reveal=data.reveal;
+ app.replaceChildren(h('h2',{},`Issue #${data.number} · ${data.case.title}`),caseCard(data.case),
+  reveal.panels.map(panel=>h('article',{class:'panel'},h('p',{class:'false'},panel.statement),h('p',{class:'label'},panel.label),h('p',{class:'type'},panel.receipt.text,' ',...sourceLinks(panel.receipt.sources)),h('p',{class:'muted'},panel.inference))),
+  h('h3',{},'The true story'),reveal.truth.map(row=>h('p',{class:'truth-line'},row.text,' ',...sourceLinks(row.sources))),
+  h('p',{},h('a',{href:explorer(data.openTx),target:'_blank',rel:'noopener'},'Answer locked on chain'),' · ',h('a',{href:explorer(data.closeTx),target:'_blank',rel:'noopener'},'Answer revealed on chain'),' · ',link('/verify/'+data.case.id,'Verify')),
+  h('p',{},'Witnesses: ',data.case.cast.map((row,index)=>[index?', ':'',link('/chog/'+row.tokenId,row.name)])));
+}
+async function profile(id){
+ const data=await api('/chog/'+id),c=data.career;
+ app.replaceChildren(h('section',{class:'hero'},h('div',{},h('h2',{},data.name),h('p',{class:'type'},`${data.skill.name}: ${data.skill.line}`),data.founder?h('p',{class:'tag'},'Founder: never moved since mint'):null,
+   h('table',{},h('tbody',{},[['Rank',c.rank],['Cases solved',c.solves],['Lies caught',c.liesCaught],['Perfect cases',c.perfectCases],['Streak',`${c.streak} (best ${c.bestStreak}, freezes ${c.freezes})`],['Called as witness',data.witness.called],['Caught lying as a witness',data.witness.lied]].map(([key,value])=>h('tr',{},h('th',{},key),h('td',{},String(value))))))),
+  h('img',{src:art(id),alt:`${data.name}. ${data.traits.map(row=>row.display).join(', ')}`,style:'width:100%;max-width:420px;border-radius:8px'})),
+  h('h3',{},'Traits'),h('p',{},data.traits.map(row=>row.display).join(' · ')),
+  h('h3',{},'Rogues’ gallery'),data.gallery.length?h('p',{},data.gallery.map((row,index)=>[index?', ':'',link('/chog/'+row.tokenId,row.name??'Chog')])):h('p',{class:'muted'},'No liars caught yet.'),
+  h('h3',{},'Issues'),data.issues.length?h('p',{},'Appeared in ',data.issues.map((row,index)=>[index?', ':'',link('/issues/'+row.number,'Issue #'+row.number)])):h('p',{class:'muted'},'Not in a closed case yet.'),
+  h('h3',{},'Case record on chain'),data.results.length?h('ul',{},data.results.map(row=>h('li',{},`${row.day}: grade ${row.grade}${row.transferredMidCase?' (transferred mid-case)':''} `,row.recordTx?row.recordTx.map(tx=>h('a',{href:explorer(tx),target:'_blank',rel:'noopener'},'on-chain record')):h('span',{class:'muted'},'recorded on chain after the case closes')))):h('p',{class:'muted'},'No cases yet.'));
+}
+async function verify(caseId){
+ const input=h('input',{'aria-label':'Case id',placeholder:'case-…',value:caseId??''}),out=h('div',{'aria-live':'polite'});
+ const run=async()=>{out.textContent='Checking the chain…';try{const data=await api('/verify/'+encodeURIComponent(input.value.trim()));const result=data.result;out.replaceChildren(h('p',{class:'grade',style:'font-size:40px'},result.status==='PASS'?'PASS':result.status.replaceAll('_',' ')),h('p',{},result.message),result.openTx?h('a',{href:explorer(result.openTx),target:'_blank',rel:'noopener'},'Lock transaction'):null,result.closeTx?[' · ',h('a',{href:explorer(result.closeTx),target:'_blank',rel:'noopener'},'Reveal transaction')]:null);}catch(error){out.replaceChildren(h('p',{},'FAIL or unavailable: '+error.message));}};
+ app.replaceChildren(h('h2',{},'Verify a case'),h('p',{},'Every answer is locked on chain before you play. Paste a case id to check the lock and, after close, the revealed key.'),input,h('div',{class:'actions'},h('button',{class:'primary',onclick:run},'Verify')),out,h('p',{class:'muted type'},'Command line: corepack pnpm verify <case id>'));
+ if(caseId)await run();
+}
+async function report(){
+ const data=await api('/report');
+ app.replaceChildren(h('h2',{},'Precinct Report'),h('p',{class:'type'},data.day),h('pre',{class:'share'},JSON.stringify(data.summary??data,null,1).slice(0,4000)));
+}
+async function scamDesk(){
+ const input=h('input',{'aria-label':'Wallet address',placeholder:'0x…'}),out=h('div',{'aria-live':'polite'});
+ app.replaceChildren(h('h2',{},'Scam Desk'),h('p',{},'Paste a wallet. See forged transfer records that name it, each with its proof.'),input,h('div',{class:'actions'},h('button',{class:'primary',onclick:async()=>{out.textContent='Checking…';try{const data=await api('/scam-desk?wallet='+encodeURIComponent(input.value.trim()));out.replaceChildren(h('pre',{class:'share'},JSON.stringify(data,null,1).slice(0,6000)));}catch(error){out.textContent=error.message;}}},'Check')),out);
+}
+function about(){
+ const rows=[['Cases','Real Chog transfers and sales on Monad mainnet, read from the chain.','Nothing invented'],['Statements','Witness lines in character. Lies happen only inside statements during play.','Lies are planned by code and broken by a real receipt'],['Receipts','One true fact from a real transaction each, with an explorer link.','Never edited'],['Answers','Locked on chain before the case opens, revealed after it closes.','Anyone can verify'],['Rookie desk','Today’s real case, played with a borrowed bureau badge.','Nothing is kept'],['Training case','A real archived case reduced to one lie.','Marked REPLAY; counts for nothing']];
+ app.replaceChildren(h('h2',{},'What’s real'),h('p',{class:'line'},'Every case is a real event on Monad. Every answer is locked on chain before you play.'),
+  h('table',{},h('thead',{},h('tr',{},h('th',{},'Part'),h('th',{},'What it is'),h('th',{},'Rule'))),h('tbody',{},rows.map(row=>h('tr',{},row.map(cell=>h('td',{},cell)))))),
+  h('h3',{id:'sources'},'Sources'),h('p',{},'Chog Genesis transfers and Seaport sales on Monad mainnet (chain 143), collection metadata, and the CaseBook contract that locks each answer.'),
+  h('h3',{id:'opt-out'},'Opt-out'),h('p',{},'Wallets appear only as noir nicknames. To have a wallet left out of future cases, sign an opt-out from that wallet; it is honoured within 24 hours.'),
+  h('p',{},'Chog Genesis by CHOGLABS. Unofficial Chogathon entry.'));
+}
+
+void render();

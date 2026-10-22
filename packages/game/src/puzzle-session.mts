@@ -92,12 +92,24 @@ export function puzzleScore(puzzle:PuzzleCase,session:PuzzleSession){
  const score=session.caught.length*150+(session.solved?(session.solutionAttempt===1?200:100):0)+session.questions*10+(session.wrongPresents===0?50:0);
  return {score,max,grade:score>=max*0.85?'A' as const:score>=max*0.65?'B' as const:score>=max*0.4?'C' as const:'D' as const};
 }
+/**
+ * What really happened. Each false statement appears only on the same panel as the exact CAUGHT label and the real
+ * receipt that breaks it; the truth lines and solution contain facts only.
+ */
+export function caseReveal(puzzle:PuzzleCase,plan=planFor(puzzle,null),exact=false){
+ const text=(row:PuzzleCase['file']['receipts'][number])=>exact?row.exactText:row.text;
+ const arrival=puzzle.file.receipts.find(row=>row.id==='arrival-'+puzzle.file.subject.tokenId)!,payment=puzzle.file.receipts.find(row=>row.id==='payment')!;
+ return {
+  panels:plan.lies.map(lie=>{const receipt=puzzle.file.receipts.find(row=>row.id===lie.receiptId)!;return {label:'CAUGHT — false statement' as const,lie:lie.id,witness:lie.witness,statement:plan.statements.find(row=>row.id===lie.statementId)!.line,receipt:{id:receipt.id,text:text(receipt),at:receipt.at,sources:receipt.sources},inference:lie.inference};}),
+  truth:[{text:text(arrival),sources:arrival.sources},{text:text(payment),sources:payment.sources},{text:'The recorded payment links this move to a purchase.',sources:payment.sources}],
+  solution:puzzle.file.blanks.map(blank=>{const tile=puzzle.file.tiles.find(row=>row.id===puzzle.key.answers[blank.id])!;return {blank:blank.id,label:blank.label,answer:tile.label,sources:tile.sources};}),
+ };
+}
 export function viewPuzzleSession(puzzle:PuzzleCase,session:PuzzleSession){
  const plan=planFor(puzzle,session.mode==='HOLDER'?session.detective.tokenId:null),visible=plan.statements.filter(row=>(row.slot==='opening'||session.pressed.includes(row.witness))&&row.requiresCaught.every(id=>session.caught.includes(id)));
  const receipts=puzzle.file.receipts.map(row=>session.opened.includes(row.id)||session.done?{id:row.id,sealed:false,text:session.detective.moneyTalk?row.exactText:row.text,at:row.at,sources:row.sources}:{id:row.id,sealed:true});
  const caught=plan.lies.filter(lie=>session.caught.includes(lie.id));
- const arrival=puzzle.file.receipts.find(row=>row.id==='arrival-'+puzzle.file.subject.tokenId)!,payment=puzzle.file.receipts.find(row=>row.id==='payment')!;
  return {v:2,case:{id:puzzle.file.id,day:puzzle.file.day,mode:puzzle.file.mode,title:puzzle.file.title,setup:puzzle.file.setup,ruleLine:puzzle.file.ruleLine,cast:puzzle.file.cast,tiles:puzzle.file.tiles.map(({id,label})=>({id,label})),blanks:puzzle.file.blanks,answerHash:puzzle.answerHash},mode:session.mode,ownChogMessage:session.mode==='HOLDER'&&puzzle.file.cast.some(row=>row.tokenId===session.detective.tokenId)?"Your Chog is in today's case.":null,detective:{tokenId:session.detective.tokenId,name:session.detective.name,skill:session.detective.skill},revision:session.revision,questions:session.questions,skillUses:session.skillUses,
   statements:session.done?[]:visible.map(({id,witness,slot,line})=>({id,witness,slot,line})),receipts,caught:caught.map(row=>({id:row.id,statementId:row.statementId,message:'CAUGHT. '+row.inference,unlockedTruth:row.unlock.line})),identified:session.identified.map(witness=>({witness,message:plan.lies.length===3?'One of the two lying witnesses.':'The lying witness.'})),highlighted:session.highlighted,feedback:session.feedback,notice:session.notice,done:session.done,
-  result:session.done?{...puzzleScore(puzzle,session),solved:session.solved,shareLabel:session.mode==='ROOKIE'?'ROOKIE DESK':session.detective.name,panels:plan.lies.map(lie=>({label:'CAUGHT — false statement',statement:plan.statements.find(row=>row.id===lie.statementId)!.line,receipt:receipts.find(row=>row.id===lie.receiptId)!})),truth:[{text:arrival.text,sources:arrival.sources},{text:session.detective.moneyTalk?payment.exactText:payment.text,sources:payment.sources},{text:'The recorded payment links this move to a purchase.',sources:payment.sources}]}:null};
+  result:session.done?{...puzzleScore(puzzle,session),solved:session.solved,solutionAttempt:session.solutionAttempt,wrongPresents:session.wrongPresents,shareLabel:session.mode==='ROOKIE'?'ROOKIE DESK':session.detective.name,...caseReveal(puzzle,plan,session.detective.moneyTalk)}:null};
 }

@@ -88,6 +88,12 @@ export class RookieDesk<S> {
    session.state=next.state;session.done=next.done;session.revision++;await this.save(desk);return structuredClone(session);
   });
  }
+ /** Reads a rookie session without creating, rotating or saving anything. */
+ async peek(current:RookieCase,token:string){
+  if(!tokenValid(token))return null;
+  const desk=await this.load();if(!desk||desk.caseId!==current.id)return null;
+  const session=desk.sessions[digest(token)];return session?structuredClone(session):null;
+ }
  async count(current:RookieCase){const now=this.clock();this.validate(current,now);const desk=await this.load();return desk?.caseId===current.id?Object.keys(desk.sessions).length:0;}
  async expire(){
   const now=this.clock();return withPlayerLock(this.options.root,lockId,async()=>{

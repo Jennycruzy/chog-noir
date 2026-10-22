@@ -48,6 +48,10 @@ export class HolderDirectory {
   let owner:Address;try{owner=getAddress(address);}catch{throw new AuthError('AUTH_ADDRESS_INVALID','Connect a valid wallet.',400);}
   return [...(await this.fresh()).values()].filter(row=>row.owner===owner).sort((a,b)=>a.tokenId-b.tokenId).map(row=>structuredClone(row));
  }
+ async token(tokenId:number){
+  if(!tokenValid(tokenId))throw new AuthError('HOLDER_TOKEN_INVALID','Choose a Chog from the collection.',400);
+  const row=(await this.fresh()).get(tokenId);if(!row)throw new AuthError('HOLDER_INDEX_INVALID','Chog ownership data is invalid.',503);return structuredClone(row);
+ }
  async owns(address:string,tokenId:number){
   if(!tokenValid(tokenId))throw new AuthError('HOLDER_TOKEN_INVALID','Choose a Chog from the collection.',400);
   let expected:Address;try{expected=getAddress(address);}catch{throw new AuthError('AUTH_ADDRESS_INVALID','Connect a valid wallet.',400);}

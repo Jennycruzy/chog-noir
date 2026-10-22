@@ -1,6 +1,21 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111411"><meta name="description" content="Question Chogs about real Monad transactions. Read the evidence. Catch the lie. Play Chog Noir without a wallet."><title>Chog Noir — The chain remembers.</title><link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head><body>
-<header class="masthead"><a href="/" class="wordmark" aria-label="Chog Noir home">CHOG<span>NOIR</span><i>DETECTIVE BUREAU</i></a><nav aria-label="Main"><button data-nav="cases">Case files <span class="nav-dot"></span></button><button data-nav="casebook">Your casebook</button><button data-nav="how">How to play ↗</button></nav><span class="network"><b></b> MONAD · REAL EVIDENCE</span></header>
-<div class="preview"><span>THE BUREAU</span> Opening case status…</div>
-<main id="app" tabindex="-1"><div class="loading"><span class="eyebrow">OPENING THE BUREAU</span><h1>Pulling your file…</h1><p>Every case starts with a real record.</p></div></main><div id="notice" role="status" aria-live="polite"></div>
-<footer><span>THE CHAIN REMEMBERS.</span><p>Chog Genesis by CHOGLABS. Unofficial Chogathon entry.</p><button data-nav="about">What’s real here? ↗</button></footer><dialog id="modal" aria-labelledby="modal-title"></dialog></body></html>
+<html lang="en" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0E0E10">
+<meta name="description" content="Every night something real happens to Chogs on Monad. Every morning your Chog takes the case. One witness is lying. The chain never does.">
+<title>Chog Noir</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Courier+Prime:wght@400;700&family=Inter:wght@400;600&display=swap">
+<link rel="stylesheet" href="/style.css"><script type="module" src="/app.js"></script></head><body>
+<a class="skip" href="#app">Skip to the case</a>
+<header class="masthead">
+ <a href="/" class="wordmark" data-link aria-label="Chog Noir home">CHOG <span>NOIR</span></a>
+ <a href="/case" data-link class="today" id="today-link" hidden></a>
+ <div class="badge" id="badge" aria-live="polite"></div>
+ <div class="controls"><button type="button" id="sound" aria-pressed="false" title="Sound is off">Sound off</button><button type="button" id="theme" aria-pressed="false">Light</button></div>
+</header>
+<main id="app" tabindex="-1"><p class="loading">Opening the bureau…</p></main>
+<div id="notice" role="status" aria-live="polite"></div>
+<footer>
+ <nav aria-label="Public pages"><a href="/precinct" data-link>Precinct</a><a href="/issues" data-link>Issues</a><a href="/report" data-link>Report</a><a href="/scam-desk" data-link>Scam Desk</a><a href="/verify" data-link>Verify</a><a href="/about" data-link>What's real</a></nav>
+ <p>Chog Genesis by CHOGLABS. Unofficial Chogathon entry. · <a href="/about#sources" data-link>Sources</a> · <a href="/about#opt-out" data-link>Opt-out</a></p>
+</footer>
+</body></html>
