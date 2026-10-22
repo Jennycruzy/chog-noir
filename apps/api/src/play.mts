@@ -216,7 +216,8 @@ export function playRoutes(options:PlayOptions){
   const results=career.duties.filter(duty=>duty.result).map(duty=>{const chain=closed.find(row=>row.record.id===duty.caseId)?.record;return {caseId:duty.caseId,day:duty.day,grade:duty.result!.grade,transferredMidCase:duty.result!.transferredMidCase,recordTx:chain?.solves?.length?chain.solves.map(receipt=>receipt.hash):null};});
   // Founder status needs a fresh owner index; when it is updating the profile says so instead of guessing.
   const held=await options.holders.token(tokenId).catch(error=>{if(error instanceof AuthError&&error.status===503)return null;throw error;});
-  const chogStamp=held&&options.burns?await options.burns.holds(held.owner).catch(()=>null):null;
+  // The stamp is a badge, not a fact the page depends on: a slow RPC shows no badge rather than holding the profile.
+  const chogStamp=held&&options.burns?await Promise.race([options.burns.holds(held.owner).catch(()=>null),new Promise<null>(resolve=>setTimeout(resolve,1500,null))]):null;
   return {tokenId,name:detective.name,traits:detective.cleanTraits,skill:{name:detective.skillName,line:detective.skillLine,uses:detective.uses},founder:held?held.founder:null,chogStamp,
    career:{...careerStatus(career,day,held?.founder??false),grades:career.grades,liesCaught:career.liesCaught,perfectCases:career.perfectCases,firstCase:career.duties[0]?.day??null},
    gallery:career.gallery.map(id=>({tokenId:id,name:options.metadata.get(id)?.metadata.name??null})),results,
