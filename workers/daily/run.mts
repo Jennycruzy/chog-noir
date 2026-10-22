@@ -49,8 +49,9 @@ try{
  }
  let plan=await savedCase(day);
  if(!plan){
+  // Collection gets at least eight minutes, so a run after midnight still builds from fresh history.
   await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:'BUILDING',day});
-  const recovery=await recoverDailySource(()=>collectDaily(root,Math.max(Date.parse(day+'T00:10:00Z'),Date.now()+30_000)),async()=>{
+  const recovery=await recoverDailySource(()=>collectDaily(root,Math.max(Date.parse(day+'T00:10:00Z'),Date.now()+8*60_000)),async()=>{
    // Degraded days build from the latest saved, already verified history.
    const sourced=async(historyPath:string,enrichedPath:string)=>{const snapshot=JSON.parse(await readFile(join(root,historyPath),'utf8')) as StoredHistory&{coverageAt?:number},enriched=JSON.parse(await readFile(join(root,enrichedPath),'utf8')) as {events:EnrichedEvent[]};return {snapshot,enriched};};
    const {snapshot,enriched}=await sourced('runs/daily/source/history.json','runs/daily/source/enriched.json').catch(error=>{if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;return sourced('data/related/history.json','runs/classification/enriched.json');});
