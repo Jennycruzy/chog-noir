@@ -21,7 +21,7 @@ const build=(offset=0)=>{const source=input(offset),base=buildSalePuzzle(source)
 test('varied claims preserve every weekday pattern, own-Chog alternate and minimum-budget solver result',()=>{
  for(let day=0;day<7;day++){
   const {source,base,catalog}=build(day),{puzzle,proof}=selectClaimPuzzle(base,catalog);
-  expect(validatePuzzle(puzzle)).toEqual([]);expect(verifyComposedPuzzleSources(puzzle,source,catalog)).toBe(true);expect(proof).toHaveLength(base.file.cast.length*5);expect(proof.every(row=>row.questionsSpent<=3&&row.questionsLeft>=1)).toBe(true);
+  expect(validatePuzzle(puzzle)).toEqual([]);expect(verifyComposedPuzzleSources(puzzle,source,catalog)).toBe(true);expect(proof).toHaveLength((base.file.cast.length+1)*5);expect(proof.every(row=>row.questionsSpent<=3&&row.questionsLeft>=1)).toBe(true);
   expect(puzzle.file.receipts.length).toBeGreaterThanOrEqual(4);expect(puzzle.file.receipts.length).toBeLessThanOrEqual(6);
   for(const member of puzzle.file.cast)expect(puzzle.file.receipts.some(row=>row.tokenIds?.includes(member.tokenId))).toBe(true);
   expect(planFor(puzzle,null).lies[0]!.kind.startsWith('D')).toBe(true);expect(planFor(puzzle,null).lies[1]!.kind.startsWith('I')).toBe(true);

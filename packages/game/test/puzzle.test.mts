@@ -28,7 +28,7 @@ test('all seven daily patterns and every skill solve with budget four, including
  for(let day=0;day<7;day++){
   const puzzle=build(day);expect(validatePuzzle(puzzle)).toEqual([]);
   expect(puzzle.file.cast).toHaveLength(day<5?3:4);expect(puzzle.key.plans.default!.lies).toHaveLength(day<5?2:3);
-  const proof=provePuzzleSolvable(puzzle);expect(proof).toHaveLength((day<5?3:4)*5);expect(proof.every(row=>row.questionsSpent<=3&&row.questionsLeft>=1&&row.grade==='A')).toBe(true);
+  const proof=provePuzzleSolvable(puzzle);expect(proof).toHaveLength(((day<5?3:4)+1)*5);expect(proof.every(row=>row.questionsSpent<=3&&row.questionsLeft>=1&&row.grade==='A')).toBe(true);
   const reverse=buildSalePuzzle({candidate,history:[...fixture.rows].reverse(),times,metadata,day:puzzle.file.day,salt:puzzle.key.salt,mode:'REPLAY'});expect(reverse).toEqual(puzzle);
  }
 });

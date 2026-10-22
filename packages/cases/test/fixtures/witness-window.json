@@ -1,0 +1,2561 @@
+{
+  "subjectTx": "0x162a55d070a02ce47017c238cf48487063b435e277a949d4328741d334e4cce9",
+  "subjectLogIndex": 30,
+  "day": "2026-10-04",
+  "rows": [
+    {
+      "event": {
+        "tx": "0x5e9f076875457f87a579f100db6945670be20fcabaa9dd255471554d8e23bfe2",
+        "block": 101919302,
+        "logIndex": 90,
+        "tokenId": 822,
+        "from": "0x0000000000000000000000000000000000000000",
+        "to": "0xf4adf7d11032c3ea471b56f8869c99b20ab90a16",
+        "class": "MINT",
+        "rule": "R1",
+        "reason": "Transfer from the zero address",
+        "evidence": {
+          "tx": "0x5e9f076875457f87a579f100db6945670be20fcabaa9dd255471554d8e23bfe2",
+          "transferLogIndex": 90,
+          "orderLogIndices": []
+        }
+      },
+      "holdSeconds": null,
+      "ownersBefore": 0,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": null,
+      "priceReferenceReason": "INSUFFICIENT_PRIOR_SALES",
+      "buyerSalesInUtcDay": 0,
+      "sellerSalesInUtcDay": 0,
+      "sources": {
+        "transfer": {
+          "tx": "0x5e9f076875457f87a579f100db6945670be20fcabaa9dd255471554d8e23bfe2",
+          "block": 101919302,
+          "logIndex": 90
+        },
+        "arrival": null,
+        "priorSales": [
+          {
+            "tx": "0x6b9fa26b85408be88344b63fb76adfce00d91c49792feae9b0df6265247818a3",
+            "block": 101919033,
+            "logIndex": 64
+          },
+          {
+            "tx": "0x01e87cc945e4b3a55ece9ffd2fc79ee26c8362d6215ff5c60dd1db20bfeb461f",
+            "block": 101919096,
+            "logIndex": 117
+          }
+        ],
+        "owners": []
+      }
+    },
+    {
+      "event": {
+        "tx": "0xbefd93f7c17d67a725a7cf44d4dbc5d763ed6ce79a1b990e7bff21fe8c667f3e",
+        "block": 101919500,
+        "logIndex": 108,
+        "tokenId": 876,
+        "from": "0x0000000000000000000000000000000000000000",
+        "to": "0x87bda98fa0dd5fb3502756dd75c9189531b2d3d7",
+        "class": "MINT",
+        "rule": "R1",
+        "reason": "Transfer from the zero address",
+        "evidence": {
+          "tx": "0xbefd93f7c17d67a725a7cf44d4dbc5d763ed6ce79a1b990e7bff21fe8c667f3e",
+          "transferLogIndex": 108,
+          "orderLogIndices": []
+        }
+      },
+      "holdSeconds": null,
+      "ownersBefore": 0,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": null,
+      "priceReferenceReason": "INSUFFICIENT_PRIOR_SALES",
+      "buyerSalesInUtcDay": 0,
+      "sellerSalesInUtcDay": 0,
+      "sources": {
+        "transfer": {
+          "tx": "0xbefd93f7c17d67a725a7cf44d4dbc5d763ed6ce79a1b990e7bff21fe8c667f3e",
+          "block": 101919500,
+          "logIndex": 108
+        },
+        "arrival": null,
+        "priorSales": [
+          {
+            "tx": "0x6b9fa26b85408be88344b63fb76adfce00d91c49792feae9b0df6265247818a3",
+            "block": 101919033,
+            "logIndex": 64
+          },
+          {
+            "tx": "0x01e87cc945e4b3a55ece9ffd2fc79ee26c8362d6215ff5c60dd1db20bfeb461f",
+            "block": 101919096,
+            "logIndex": 117
+          }
+        ],
+        "owners": []
+      }
+    },
+    {
+      "event": {
+        "tx": "0x599be166768e32675d979074f922597c78461cbf2ced24ea7688a8fd99486167",
+        "block": 102021379,
+        "logIndex": 46,
+        "tokenId": 822,
+        "from": "0xf4adf7d11032c3ea471b56f8869c99b20ab90a16",
+        "to": "0x1f0db15cb2848d6f259f3fc9a5f9015363d60f06",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0x599be166768e32675d979074f922597c78461cbf2ced24ea7688a8fd99486167",
+          "transferLogIndex": 46,
+          "orderLogIndices": [
+            43
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "14000000000000000000000",
+          "sellerProceedsWei": "13860000000000000000000",
+          "feesWei": "140000000000000000000"
+        }
+      },
+      "holdSeconds": 31061,
+      "ownersBefore": 1,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "13750000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 6,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0x599be166768e32675d979074f922597c78461cbf2ced24ea7688a8fd99486167",
+          "block": 102021379,
+          "logIndex": 46
+        },
+        "arrival": {
+          "tx": "0x5e9f076875457f87a579f100db6945670be20fcabaa9dd255471554d8e23bfe2",
+          "block": 101919302,
+          "logIndex": 90
+        },
+        "priorSales": [
+          {
+            "tx": "0x9a6d96de22ab637d4b005741a13d135c1ed1870dc456493c15c967c67f7c6a3f",
+            "block": 102019954,
+            "logIndex": 183
+          },
+          {
+            "tx": "0x9a6d96de22ab637d4b005741a13d135c1ed1870dc456493c15c967c67f7c6a3f",
+            "block": 102019954,
+            "logIndex": 184
+          },
+          {
+            "tx": "0x9a6d96de22ab637d4b005741a13d135c1ed1870dc456493c15c967c67f7c6a3f",
+            "block": 102019954,
+            "logIndex": 185
+          },
+          {
+            "tx": "0x83753c9148b4d1cc6acba9a88c672eee4ade749b0c370b9a183f5a7044c9a179",
+            "block": 102020746,
+            "logIndex": 190
+          },
+          {
+            "tx": "0xb239921d32ed84205a31e2f78760daa3d4c2d8f068025014aef07c8deafeb13d",
+            "block": 102021163,
+            "logIndex": 4
+          },
+          {
+            "tx": "0x9af312774a8faa9865bf0c3a990675a5223b88bcf336468a292273535f2dc111",
+            "block": 102021264,
+            "logIndex": 59
+          },
+          {
+            "tx": "0x599be166768e32675d979074f922597c78461cbf2ced24ea7688a8fd99486167",
+            "block": 102021379,
+            "logIndex": 45
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x5e9f076875457f87a579f100db6945670be20fcabaa9dd255471554d8e23bfe2",
+            "block": 101919302,
+            "logIndex": 90
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0x8e25bdc9c2924b28086b12488b17a2caaacb1425dc63aed63c2c3dd8be0182a8",
+        "block": 102131789,
+        "logIndex": 157,
+        "tokenId": 1471,
+        "from": "0x0000000000000000000000000000000000000000",
+        "to": "0x3d627ff6032f15e170b2fec28495236d6f831278",
+        "class": "MINT",
+        "rule": "R1",
+        "reason": "Transfer from the zero address",
+        "evidence": {
+          "tx": "0x8e25bdc9c2924b28086b12488b17a2caaacb1425dc63aed63c2c3dd8be0182a8",
+          "transferLogIndex": 157,
+          "orderLogIndices": []
+        }
+      },
+      "holdSeconds": null,
+      "ownersBefore": 0,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": "9400000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 0,
+      "sellerSalesInUtcDay": 0,
+      "sources": {
+        "transfer": {
+          "tx": "0x8e25bdc9c2924b28086b12488b17a2caaacb1425dc63aed63c2c3dd8be0182a8",
+          "block": 102131789,
+          "logIndex": 157
+        },
+        "arrival": null,
+        "priorSales": [
+          {
+            "tx": "0x6882a00a1399ace300a6a9efc97df14840383b692e687bce9ee9986ed6e5cd17",
+            "block": 102109192,
+            "logIndex": 64
+          },
+          {
+            "tx": "0xdc737dbd32d9d873deaf3fa5d4a383d916a6b0a5453976a43eececcdfd64678b",
+            "block": 102111491,
+            "logIndex": 97
+          },
+          {
+            "tx": "0xb40c11e19cfb37a19abe6a6789efdaf200a50468e166076256ac139775ca321e",
+            "block": 102116282,
+            "logIndex": 99
+          },
+          {
+            "tx": "0x6f3e3333096f4bcd39c624b86c7b9c83f1fa6d77074540bb599027df4848f7b0",
+            "block": 102121574,
+            "logIndex": 57
+          },
+          {
+            "tx": "0x5fff32a6e691e8e0052ddf08005fbc58905cefe58bd022b877b9ecaab4acd121",
+            "block": 102129285,
+            "logIndex": 83
+          },
+          {
+            "tx": "0x61057c8d4c9f7cf8b69a37b2e3d97a123161a0406d7727752445a9386f966de7",
+            "block": 102129892,
+            "logIndex": 108
+          },
+          {
+            "tx": "0xd870bd14ceeba762383afa0045e0fe78af8f779270d8dfa3c7bd1aa544cf3111",
+            "block": 102131454,
+            "logIndex": 87
+          }
+        ],
+        "owners": []
+      }
+    },
+    {
+      "event": {
+        "tx": "0x98ce31b35f4ed2839c544cc1510641cc8acf9cfc4b75c55ea722f8ca6512e5b5",
+        "block": 102131857,
+        "logIndex": 25,
+        "tokenId": 1789,
+        "from": "0x0000000000000000000000000000000000000000",
+        "to": "0x1bb767af58239549acecc8d1ea7a66c22e3425c3",
+        "class": "MINT",
+        "rule": "R1",
+        "reason": "Transfer from the zero address",
+        "evidence": {
+          "tx": "0x98ce31b35f4ed2839c544cc1510641cc8acf9cfc4b75c55ea722f8ca6512e5b5",
+          "transferLogIndex": 25,
+          "orderLogIndices": []
+        }
+      },
+      "holdSeconds": null,
+      "ownersBefore": 0,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": "9400000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 0,
+      "sellerSalesInUtcDay": 0,
+      "sources": {
+        "transfer": {
+          "tx": "0x98ce31b35f4ed2839c544cc1510641cc8acf9cfc4b75c55ea722f8ca6512e5b5",
+          "block": 102131857,
+          "logIndex": 25
+        },
+        "arrival": null,
+        "priorSales": [
+          {
+            "tx": "0x6882a00a1399ace300a6a9efc97df14840383b692e687bce9ee9986ed6e5cd17",
+            "block": 102109192,
+            "logIndex": 64
+          },
+          {
+            "tx": "0xdc737dbd32d9d873deaf3fa5d4a383d916a6b0a5453976a43eececcdfd64678b",
+            "block": 102111491,
+            "logIndex": 97
+          },
+          {
+            "tx": "0xb40c11e19cfb37a19abe6a6789efdaf200a50468e166076256ac139775ca321e",
+            "block": 102116282,
+            "logIndex": 99
+          },
+          {
+            "tx": "0x6f3e3333096f4bcd39c624b86c7b9c83f1fa6d77074540bb599027df4848f7b0",
+            "block": 102121574,
+            "logIndex": 57
+          },
+          {
+            "tx": "0x5fff32a6e691e8e0052ddf08005fbc58905cefe58bd022b877b9ecaab4acd121",
+            "block": 102129285,
+            "logIndex": 83
+          },
+          {
+            "tx": "0x61057c8d4c9f7cf8b69a37b2e3d97a123161a0406d7727752445a9386f966de7",
+            "block": 102129892,
+            "logIndex": 108
+          },
+          {
+            "tx": "0xd870bd14ceeba762383afa0045e0fe78af8f779270d8dfa3c7bd1aa544cf3111",
+            "block": 102131454,
+            "logIndex": 87
+          }
+        ],
+        "owners": []
+      }
+    },
+    {
+      "event": {
+        "tx": "0x04c9331c977b90fe3f8e4834d0b586ed19b18d37c08715eb53c3ffdd71f8b05e",
+        "block": 102132520,
+        "logIndex": 13,
+        "tokenId": 1471,
+        "from": "0x3d627ff6032f15e170b2fec28495236d6f831278",
+        "to": "0xcdc2b0e08cd32db1d989234b9ce3029c04d0744a",
+        "class": "PLAIN_TRANSFER",
+        "rule": "R6",
+        "reason": "Owner signed a direct NFT transfer; intent is not inferred",
+        "evidence": {
+          "tx": "0x04c9331c977b90fe3f8e4834d0b586ed19b18d37c08715eb53c3ffdd71f8b05e",
+          "transferLogIndex": 13,
+          "orderLogIndices": []
+        }
+      },
+      "holdSeconds": 221,
+      "ownersBefore": 1,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": "8102010000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 0,
+      "sellerSalesInUtcDay": 0,
+      "sources": {
+        "transfer": {
+          "tx": "0x04c9331c977b90fe3f8e4834d0b586ed19b18d37c08715eb53c3ffdd71f8b05e",
+          "block": 102132520,
+          "logIndex": 13
+        },
+        "arrival": {
+          "tx": "0x8e25bdc9c2924b28086b12488b17a2caaacb1425dc63aed63c2c3dd8be0182a8",
+          "block": 102131789,
+          "logIndex": 157
+        },
+        "priorSales": [
+          {
+            "tx": "0x3caac0cd7aa5e399b232a2a6f0026395646d3e67f4df8f9cdb7b520f218b9e73",
+            "block": 102132140,
+            "logIndex": 6
+          },
+          {
+            "tx": "0x454cffe0234266d7cda3ad720d6679cc9d0747d2ac5a647c8bc95aa414602290",
+            "block": 102132172,
+            "logIndex": 104
+          },
+          {
+            "tx": "0xfa5db775989ce3ee5f24ff91a6a8d3b486556e6b62ad7ea8c2de78d609e9ee34",
+            "block": 102132236,
+            "logIndex": 82
+          },
+          {
+            "tx": "0xcff5e87ede76d02f88182633c320e2874ec46380c1d4201b0c922332a27bc7d2",
+            "block": 102132339,
+            "logIndex": 20
+          },
+          {
+            "tx": "0x1c81e41b7a91b313fa2a7ee055bbaf21877c3d9edd4a25830a3b055fe71b02a9",
+            "block": 102132440,
+            "logIndex": 141
+          },
+          {
+            "tx": "0x089e27ae2484495b907e50db8c8200ea446a8b93b8ba7b657a93a57fd211ee65",
+            "block": 102132467,
+            "logIndex": 21
+          },
+          {
+            "tx": "0x8a6d99df7eca5a33427a338117b464e6e18e0b88bbe806ca9b072a53719716d3",
+            "block": 102132516,
+            "logIndex": 70
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x8e25bdc9c2924b28086b12488b17a2caaacb1425dc63aed63c2c3dd8be0182a8",
+            "block": 102131789,
+            "logIndex": 157
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0x78b8f5fe0681d2fc6fac9274c3e3964bb232b734c8ff6cd475910faa2d129a43",
+        "block": 102143659,
+        "logIndex": 44,
+        "tokenId": 1889,
+        "from": "0x0000000000000000000000000000000000000000",
+        "to": "0x05a01a381d47cc6d502148a2d93f95aef5aca3c1",
+        "class": "MINT",
+        "rule": "R1",
+        "reason": "Transfer from the zero address",
+        "evidence": {
+          "tx": "0x78b8f5fe0681d2fc6fac9274c3e3964bb232b734c8ff6cd475910faa2d129a43",
+          "transferLogIndex": 44,
+          "orderLogIndices": []
+        }
+      },
+      "holdSeconds": null,
+      "ownersBefore": 0,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "9480000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 0,
+      "sellerSalesInUtcDay": 0,
+      "sources": {
+        "transfer": {
+          "tx": "0x78b8f5fe0681d2fc6fac9274c3e3964bb232b734c8ff6cd475910faa2d129a43",
+          "block": 102143659,
+          "logIndex": 44
+        },
+        "arrival": null,
+        "priorSales": [
+          {
+            "tx": "0x4c13092e8cf052ee55b188e673a909c8d4642a507aa522916c7a5684a7abeafa",
+            "block": 102138606,
+            "logIndex": 65
+          },
+          {
+            "tx": "0x18abc88e6fe81a44394eaa5fd08517daa81f2d2fcf87223837df64aedc3a972e",
+            "block": 102138789,
+            "logIndex": 88
+          },
+          {
+            "tx": "0x535a32a1a43ee3e8009ab8512229fbcd986c2b702518e8e3569edabcbb9ea4db",
+            "block": 102138960,
+            "logIndex": 162
+          },
+          {
+            "tx": "0xd45b3ff5e8678f2cc3d60f75ecbad9c2a0440f8d062c715c3b60e52401fc73b8",
+            "block": 102140819,
+            "logIndex": 45
+          },
+          {
+            "tx": "0xbb0b04efda192bdaa67a6afb904a58627fb869ad43af7bec79a2a8eb4281a612",
+            "block": 102140911,
+            "logIndex": 4
+          },
+          {
+            "tx": "0xc2a8faa084f2425ac2750ecf99cc2be87833eb62ce8ecf07e4712f61f18b505f",
+            "block": 102141709,
+            "logIndex": 47
+          },
+          {
+            "tx": "0xf3b9a577df4683e01fb30324c5484a18a8d5323dc576c6fa61d39073f53495e2",
+            "block": 102142158,
+            "logIndex": 40
+          }
+        ],
+        "owners": []
+      }
+    },
+    {
+      "event": {
+        "tx": "0xdfbce12a082281882ed735f43e28ddcd762975453aa1afa7615324d9510a7e75",
+        "block": 102143670,
+        "logIndex": 1,
+        "tokenId": 1931,
+        "from": "0x0000000000000000000000000000000000000000",
+        "to": "0xc948f617d092e04279d08afecaa598a8e0ed45e0",
+        "class": "MINT",
+        "rule": "R1",
+        "reason": "Transfer from the zero address",
+        "evidence": {
+          "tx": "0xdfbce12a082281882ed735f43e28ddcd762975453aa1afa7615324d9510a7e75",
+          "transferLogIndex": 1,
+          "orderLogIndices": []
+        }
+      },
+      "holdSeconds": null,
+      "ownersBefore": 0,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": "9480000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 0,
+      "sellerSalesInUtcDay": 0,
+      "sources": {
+        "transfer": {
+          "tx": "0xdfbce12a082281882ed735f43e28ddcd762975453aa1afa7615324d9510a7e75",
+          "block": 102143670,
+          "logIndex": 1
+        },
+        "arrival": null,
+        "priorSales": [
+          {
+            "tx": "0x4c13092e8cf052ee55b188e673a909c8d4642a507aa522916c7a5684a7abeafa",
+            "block": 102138606,
+            "logIndex": 65
+          },
+          {
+            "tx": "0x18abc88e6fe81a44394eaa5fd08517daa81f2d2fcf87223837df64aedc3a972e",
+            "block": 102138789,
+            "logIndex": 88
+          },
+          {
+            "tx": "0x535a32a1a43ee3e8009ab8512229fbcd986c2b702518e8e3569edabcbb9ea4db",
+            "block": 102138960,
+            "logIndex": 162
+          },
+          {
+            "tx": "0xd45b3ff5e8678f2cc3d60f75ecbad9c2a0440f8d062c715c3b60e52401fc73b8",
+            "block": 102140819,
+            "logIndex": 45
+          },
+          {
+            "tx": "0xbb0b04efda192bdaa67a6afb904a58627fb869ad43af7bec79a2a8eb4281a612",
+            "block": 102140911,
+            "logIndex": 4
+          },
+          {
+            "tx": "0xc2a8faa084f2425ac2750ecf99cc2be87833eb62ce8ecf07e4712f61f18b505f",
+            "block": 102141709,
+            "logIndex": 47
+          },
+          {
+            "tx": "0xf3b9a577df4683e01fb30324c5484a18a8d5323dc576c6fa61d39073f53495e2",
+            "block": 102142158,
+            "logIndex": 40
+          }
+        ],
+        "owners": []
+      }
+    },
+    {
+      "event": {
+        "tx": "0x5cdd05e81808ffc1d5d681f237703b62532f4d8906967e2e35feebf80a9dade6",
+        "block": 102222069,
+        "logIndex": 69,
+        "tokenId": 1931,
+        "from": "0xc948f617d092e04279d08afecaa598a8e0ed45e0",
+        "to": "0x1bb767af58239549acecc8d1ea7a66c22e3425c3",
+        "class": "SMART_WALLET_ACTION",
+        "rule": "R5",
+        "reason": "Delegation action; no matched sale evidence",
+        "evidence": {
+          "tx": "0x5cdd05e81808ffc1d5d681f237703b62532f4d8906967e2e35feebf80a9dade6",
+          "transferLogIndex": 69,
+          "orderLogIndices": []
+        }
+      },
+      "holdSeconds": 23831,
+      "ownersBefore": 1,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "10950000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 0,
+      "sellerSalesInUtcDay": 0,
+      "sources": {
+        "transfer": {
+          "tx": "0x5cdd05e81808ffc1d5d681f237703b62532f4d8906967e2e35feebf80a9dade6",
+          "block": 102222069,
+          "logIndex": 69
+        },
+        "arrival": {
+          "tx": "0xdfbce12a082281882ed735f43e28ddcd762975453aa1afa7615324d9510a7e75",
+          "block": 102143670,
+          "logIndex": 1
+        },
+        "priorSales": [
+          {
+            "tx": "0x4fac85240272895bdb28bda2bd703e09162476e09591fc23a8e1d0294a3df7ab",
+            "block": 102210756,
+            "logIndex": 73
+          },
+          {
+            "tx": "0x118723aa8e1bb56227110d2a185f06e535bd0a56cb45e027ba3dda8e84cae3d5",
+            "block": 102210972,
+            "logIndex": 158
+          },
+          {
+            "tx": "0x132a4007e61c7527d7985bc420a3655657ec7fcdd829d730f5f05deec2290c58",
+            "block": 102211566,
+            "logIndex": 100
+          },
+          {
+            "tx": "0x24eaf6b95d445793275b5720a43de95a180015fff4151086102777ef85502437",
+            "block": 102211718,
+            "logIndex": 119
+          },
+          {
+            "tx": "0xd4de170a75557fe8deadcc717d8aacf88bbcbbb92b477dd73f9024a1c176ff85",
+            "block": 102212217,
+            "logIndex": 141
+          },
+          {
+            "tx": "0x854ec8514e1b9889230f9c6e98a1c5a0c9f4e53f3e867074319f7351855a0e9b",
+            "block": 102212375,
+            "logIndex": 34
+          },
+          {
+            "tx": "0xddc0e3ada6a2d53f1e906b1e9fa5bba238f486794b67e95283cb64ae905171be",
+            "block": 102221987,
+            "logIndex": 5
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0xdfbce12a082281882ed735f43e28ddcd762975453aa1afa7615324d9510a7e75",
+            "block": 102143670,
+            "logIndex": 1
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0xa2192506fcc93c1d516484d05d72821f79483a2debe092ac0da9154140316a14",
+        "block": 102789930,
+        "logIndex": 279,
+        "tokenId": 1889,
+        "from": "0x05a01a381d47cc6d502148a2d93f95aef5aca3c1",
+        "to": "0xd9c00b9cdb1d45cf265d1925eb1d004ee04d9f69",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0xa2192506fcc93c1d516484d05d72821f79483a2debe092ac0da9154140316a14",
+          "transferLogIndex": 279,
+          "orderLogIndices": [
+            278
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "13800000000000000000000",
+          "sellerProceedsWei": "13662000000000000000000",
+          "feesWei": "138000000000000000000"
+        }
+      },
+      "holdSeconds": 196330,
+      "ownersBefore": 1,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "12498000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 2,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0xa2192506fcc93c1d516484d05d72821f79483a2debe092ac0da9154140316a14",
+          "block": 102789930,
+          "logIndex": 279
+        },
+        "arrival": {
+          "tx": "0x78b8f5fe0681d2fc6fac9274c3e3964bb232b734c8ff6cd475910faa2d129a43",
+          "block": 102143659,
+          "logIndex": 44
+        },
+        "priorSales": [
+          {
+            "tx": "0xe4f8950bc5f77e7dd24e232dd88b79908519a798c3c39d2bb027af53ec6aa68d",
+            "block": 102788946,
+            "logIndex": 168
+          },
+          {
+            "tx": "0xdebc3283a71c9b53c0522891649d2dbe3d763b478b883a76b87e7fc766962d41",
+            "block": 102789009,
+            "logIndex": 120
+          },
+          {
+            "tx": "0x4def8a171b994b7e368103c88b33936b9f50d4d98f381fe57d91f479e8235dda",
+            "block": 102789033,
+            "logIndex": 76
+          },
+          {
+            "tx": "0xa7146ea3722d1d6810a8ac0bec7956b29493df166305d7e1180ef7cd97250f66",
+            "block": 102789091,
+            "logIndex": 69
+          },
+          {
+            "tx": "0xc1fd188f90d238a5957a9525dced45881c39ec4685d0f67684b8c826c7bfb905",
+            "block": 102789163,
+            "logIndex": 112
+          },
+          {
+            "tx": "0x5232158bbe31e842ebe9d9d247e1308d9eb125a9226058aefae069487aff4b63",
+            "block": 102789305,
+            "logIndex": 81
+          },
+          {
+            "tx": "0x8090f66cd879c6f3644daeb6f048fa1b9e5e25154638ed16041cc8857de0173a",
+            "block": 102789695,
+            "logIndex": 186
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x78b8f5fe0681d2fc6fac9274c3e3964bb232b734c8ff6cd475910faa2d129a43",
+            "block": 102143659,
+            "logIndex": 44
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+        "block": 102879248,
+        "logIndex": 62,
+        "tokenId": 1471,
+        "from": "0xcdc2b0e08cd32db1d989234b9ce3029c04d0744a",
+        "to": "0xb3ae810ed3c62b2265dbb77e98ff0b00cc85947b",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+          "transferLogIndex": 62,
+          "orderLogIndices": [
+            60
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "9450000000000000000000",
+          "sellerProceedsWei": "9355500000000000000000",
+          "feesWei": "94500000000000000000"
+        }
+      },
+      "holdSeconds": 226691,
+      "ownersBefore": 2,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "9290000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 2,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+          "block": 102879248,
+          "logIndex": 62
+        },
+        "arrival": {
+          "tx": "0x04c9331c977b90fe3f8e4834d0b586ed19b18d37c08715eb53c3ffdd71f8b05e",
+          "block": 102132520,
+          "logIndex": 13
+        },
+        "priorSales": [
+          {
+            "tx": "0x71393aa0e46f45a46bc96d31bf711fa9672e017aa062380dacb9249dacf7d0ff",
+            "block": 102846154,
+            "logIndex": 113
+          },
+          {
+            "tx": "0xe9e84de1eecd3caa1208d81259a59c318b9b947db9b11b30a004dc7f03f80fc6",
+            "block": 102851139,
+            "logIndex": 142
+          },
+          {
+            "tx": "0x7f037d40cd11c28af856c8c504b5bf53161c3253539b5116887f5333ebd656fe",
+            "block": 102865099,
+            "logIndex": 38
+          },
+          {
+            "tx": "0x5a46b51e7c395dacb980f346e2a08f6287a6526b2f3c27392be28774e32376eb",
+            "block": 102870190,
+            "logIndex": 36
+          },
+          {
+            "tx": "0x68b5ab51f9416fb86a929a4df8c65f15bf17b8d5c59d9cdc04deab89f2510bdf",
+            "block": 102870693,
+            "logIndex": 62
+          },
+          {
+            "tx": "0xf7f374958bf5ddd8badc6d48a0dd63729ba71fbe7a4c9ddf0fc9132f9c9f69b7",
+            "block": 102874986,
+            "logIndex": 247
+          },
+          {
+            "tx": "0x748022a905d7a1329916d402d5b0c57e923df406f776f5f99c69ebca708dd922",
+            "block": 102877836,
+            "logIndex": 104
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x8e25bdc9c2924b28086b12488b17a2caaacb1425dc63aed63c2c3dd8be0182a8",
+            "block": 102131789,
+            "logIndex": 157
+          },
+          {
+            "tx": "0x04c9331c977b90fe3f8e4834d0b586ed19b18d37c08715eb53c3ffdd71f8b05e",
+            "block": 102132520,
+            "logIndex": 13
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+        "block": 102879248,
+        "logIndex": 63,
+        "tokenId": 1889,
+        "from": "0xd9c00b9cdb1d45cf265d1925eb1d004ee04d9f69",
+        "to": "0xb3ae810ed3c62b2265dbb77e98ff0b00cc85947b",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+          "transferLogIndex": 63,
+          "orderLogIndices": [
+            61
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "9449000000000000000000",
+          "sellerProceedsWei": "9354510000000000000000",
+          "feesWei": "94490000000000000000"
+        }
+      },
+      "holdSeconds": 26975,
+      "ownersBefore": 2,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "9444000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 2,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+          "block": 102879248,
+          "logIndex": 63
+        },
+        "arrival": {
+          "tx": "0xa2192506fcc93c1d516484d05d72821f79483a2debe092ac0da9154140316a14",
+          "block": 102789930,
+          "logIndex": 279
+        },
+        "priorSales": [
+          {
+            "tx": "0xe9e84de1eecd3caa1208d81259a59c318b9b947db9b11b30a004dc7f03f80fc6",
+            "block": 102851139,
+            "logIndex": 142
+          },
+          {
+            "tx": "0x7f037d40cd11c28af856c8c504b5bf53161c3253539b5116887f5333ebd656fe",
+            "block": 102865099,
+            "logIndex": 38
+          },
+          {
+            "tx": "0x5a46b51e7c395dacb980f346e2a08f6287a6526b2f3c27392be28774e32376eb",
+            "block": 102870190,
+            "logIndex": 36
+          },
+          {
+            "tx": "0x68b5ab51f9416fb86a929a4df8c65f15bf17b8d5c59d9cdc04deab89f2510bdf",
+            "block": 102870693,
+            "logIndex": 62
+          },
+          {
+            "tx": "0xf7f374958bf5ddd8badc6d48a0dd63729ba71fbe7a4c9ddf0fc9132f9c9f69b7",
+            "block": 102874986,
+            "logIndex": 247
+          },
+          {
+            "tx": "0x748022a905d7a1329916d402d5b0c57e923df406f776f5f99c69ebca708dd922",
+            "block": 102877836,
+            "logIndex": 104
+          },
+          {
+            "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+            "block": 102879248,
+            "logIndex": 62
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x78b8f5fe0681d2fc6fac9274c3e3964bb232b734c8ff6cd475910faa2d129a43",
+            "block": 102143659,
+            "logIndex": 44
+          },
+          {
+            "tx": "0xa2192506fcc93c1d516484d05d72821f79483a2debe092ac0da9154140316a14",
+            "block": 102789930,
+            "logIndex": 279
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0xd5fb0a8df85bd525c4d10d370beb7007ae0223d7b44638725b39662f97cd3e71",
+        "block": 103615463,
+        "logIndex": 156,
+        "tokenId": 876,
+        "from": "0x87bda98fa0dd5fb3502756dd75c9189531b2d3d7",
+        "to": "0x2071467ddc56ab94bdb12c3a02f59161b6db0b84",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0xd5fb0a8df85bd525c4d10d370beb7007ae0223d7b44638725b39662f97cd3e71",
+          "transferLogIndex": 156,
+          "orderLogIndices": [
+            155
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "8499990000000000000000",
+          "sellerProceedsWei": "8414990100000000000000",
+          "feesWei": "84999900000000000000"
+        }
+      },
+      "holdSeconds": 514039,
+      "ownersBefore": 1,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": "8560000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 1,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0xd5fb0a8df85bd525c4d10d370beb7007ae0223d7b44638725b39662f97cd3e71",
+          "block": 103615463,
+          "logIndex": 156
+        },
+        "arrival": {
+          "tx": "0xbefd93f7c17d67a725a7cf44d4dbc5d763ed6ce79a1b990e7bff21fe8c667f3e",
+          "block": 101919500,
+          "logIndex": 108
+        },
+        "priorSales": [
+          {
+            "tx": "0x1f9894d154040d4f8e51e0fb1d7947e07ca8e9416d752e5e33ed84164671452e",
+            "block": 103561236,
+            "logIndex": 154
+          },
+          {
+            "tx": "0x4fa234a75deb63266acf263743b4d8d412724a59a693f04ebf0ee5fa6eb7ff40",
+            "block": 103561775,
+            "logIndex": 109
+          },
+          {
+            "tx": "0xfc1e268ae4d38c6d598f1f34952f6be218d982b44e703217c404a3b0712071a2",
+            "block": 103600402,
+            "logIndex": 42
+          },
+          {
+            "tx": "0x950e5f3e05501c40d2d0cd510ed35608b76b99536bb4f3b3d8ca4e13e43141b8",
+            "block": 103601497,
+            "logIndex": 197
+          },
+          {
+            "tx": "0x00dcc012eabb38a17523d2951014c29e16d484f4e8d4c32585ae43f81146f56e",
+            "block": 103601542,
+            "logIndex": 90
+          },
+          {
+            "tx": "0x86dc67043be325341ee73712a0108e58408b66063bfc9e6be3115cbe45fe8aae",
+            "block": 103613395,
+            "logIndex": 98
+          },
+          {
+            "tx": "0xc9b4cd7b74976515a2691a02b4e2eb2c15b5b05b44b55f6b1a1d660a2ac889dd",
+            "block": 103614377,
+            "logIndex": 170
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0xbefd93f7c17d67a725a7cf44d4dbc5d763ed6ce79a1b990e7bff21fe8c667f3e",
+            "block": 101919500,
+            "logIndex": 108
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0xfb14c15b877beb5c36595f72c33b1445718b7f78c4314f6c698bab564fdfa4ff",
+        "block": 103954811,
+        "logIndex": 323,
+        "tokenId": 822,
+        "from": "0x1f0db15cb2848d6f259f3fc9a5f9015363d60f06",
+        "to": "0x2807a54fa8af1454ac6de0be06349a0bb74eea62",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0xfb14c15b877beb5c36595f72c33b1445718b7f78c4314f6c698bab564fdfa4ff",
+          "transferLogIndex": 323,
+          "orderLogIndices": [
+            325
+          ]
+        },
+        "route": "offer_accepted",
+        "price": {
+          "asset": "WMON",
+          "status": "EXACT",
+          "grossWei": "8011000000000000000000",
+          "sellerProceedsWei": "7930890000000000000000",
+          "feesWei": "80110000000000000000"
+        }
+      },
+      "holdSeconds": 585882,
+      "ownersBefore": 2,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "9000000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 1,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0xfb14c15b877beb5c36595f72c33b1445718b7f78c4314f6c698bab564fdfa4ff",
+          "block": 103954811,
+          "logIndex": 323
+        },
+        "arrival": {
+          "tx": "0x599be166768e32675d979074f922597c78461cbf2ced24ea7688a8fd99486167",
+          "block": 102021379,
+          "logIndex": 46
+        },
+        "priorSales": [
+          {
+            "tx": "0x605dae9fc31a69cd7eadd3dad255e223d3f374e35263419291d4285784e3979f",
+            "block": 103894414,
+            "logIndex": 51
+          },
+          {
+            "tx": "0xaa73902dc4c1c75aabdeed62d27dba09cf51c91142a9e82575f2974bf68e2e9a",
+            "block": 103894503,
+            "logIndex": 191
+          },
+          {
+            "tx": "0xaa73902dc4c1c75aabdeed62d27dba09cf51c91142a9e82575f2974bf68e2e9a",
+            "block": 103894503,
+            "logIndex": 192
+          },
+          {
+            "tx": "0xaa73902dc4c1c75aabdeed62d27dba09cf51c91142a9e82575f2974bf68e2e9a",
+            "block": 103894503,
+            "logIndex": 193
+          },
+          {
+            "tx": "0x6e1c79653f621a5605c200796f2f098d7d2d0afa9fa354d9eb2f78a737b3676e",
+            "block": 103909244,
+            "logIndex": 72
+          },
+          {
+            "tx": "0x7a678e425b94b9bc05ac78cbc314169071e9ef11f09bb3e8f1f084d62d273aa1",
+            "block": 103921649,
+            "logIndex": 253
+          },
+          {
+            "tx": "0xd55462c6485ae031418e3d9e871abc11073202c10bdecc3dc84df5b416d2309e",
+            "block": 103942705,
+            "logIndex": 178
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x5e9f076875457f87a579f100db6945670be20fcabaa9dd255471554d8e23bfe2",
+            "block": 101919302,
+            "logIndex": 90
+          },
+          {
+            "tx": "0x599be166768e32675d979074f922597c78461cbf2ced24ea7688a8fd99486167",
+            "block": 102021379,
+            "logIndex": 46
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0x9138c777813eddf7955eca4ca32048ab325d41902a299bbb099f5b16392f40bb",
+        "block": 103965760,
+        "logIndex": 68,
+        "tokenId": 822,
+        "from": "0x2807a54fa8af1454ac6de0be06349a0bb74eea62",
+        "to": "0xc6275cdd53f46d2a3c355af8e917bc9c9ce82017",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0x9138c777813eddf7955eca4ca32048ab325d41902a299bbb099f5b16392f40bb",
+          "transferLogIndex": 68,
+          "orderLogIndices": [
+            69
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "9398000000000000000000",
+          "sellerProceedsWei": "9304020000000000000000",
+          "feesWei": "93980000000000000000"
+        }
+      },
+      "holdSeconds": 3339,
+      "ownersBefore": 3,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": "9000000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 1,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0x9138c777813eddf7955eca4ca32048ab325d41902a299bbb099f5b16392f40bb",
+          "block": 103965760,
+          "logIndex": 68
+        },
+        "arrival": {
+          "tx": "0xfb14c15b877beb5c36595f72c33b1445718b7f78c4314f6c698bab564fdfa4ff",
+          "block": 103954811,
+          "logIndex": 323
+        },
+        "priorSales": [
+          {
+            "tx": "0xaa73902dc4c1c75aabdeed62d27dba09cf51c91142a9e82575f2974bf68e2e9a",
+            "block": 103894503,
+            "logIndex": 191
+          },
+          {
+            "tx": "0xaa73902dc4c1c75aabdeed62d27dba09cf51c91142a9e82575f2974bf68e2e9a",
+            "block": 103894503,
+            "logIndex": 192
+          },
+          {
+            "tx": "0xaa73902dc4c1c75aabdeed62d27dba09cf51c91142a9e82575f2974bf68e2e9a",
+            "block": 103894503,
+            "logIndex": 193
+          },
+          {
+            "tx": "0x6e1c79653f621a5605c200796f2f098d7d2d0afa9fa354d9eb2f78a737b3676e",
+            "block": 103909244,
+            "logIndex": 72
+          },
+          {
+            "tx": "0x7a678e425b94b9bc05ac78cbc314169071e9ef11f09bb3e8f1f084d62d273aa1",
+            "block": 103921649,
+            "logIndex": 253
+          },
+          {
+            "tx": "0xd55462c6485ae031418e3d9e871abc11073202c10bdecc3dc84df5b416d2309e",
+            "block": 103942705,
+            "logIndex": 178
+          },
+          {
+            "tx": "0xfb14c15b877beb5c36595f72c33b1445718b7f78c4314f6c698bab564fdfa4ff",
+            "block": 103954811,
+            "logIndex": 323
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x5e9f076875457f87a579f100db6945670be20fcabaa9dd255471554d8e23bfe2",
+            "block": 101919302,
+            "logIndex": 90
+          },
+          {
+            "tx": "0x599be166768e32675d979074f922597c78461cbf2ced24ea7688a8fd99486167",
+            "block": 102021379,
+            "logIndex": 46
+          },
+          {
+            "tx": "0xfb14c15b877beb5c36595f72c33b1445718b7f78c4314f6c698bab564fdfa4ff",
+            "block": 103954811,
+            "logIndex": 323
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+        "block": 109466342,
+        "logIndex": 304,
+        "tokenId": 1471,
+        "from": "0xb3ae810ed3c62b2265dbb77e98ff0b00cc85947b",
+        "to": "0x50680590d8d078e946c3c7ff1c653f373ddcb329",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+          "transferLogIndex": 304,
+          "orderLogIndices": [
+            299
+          ]
+        },
+        "route": "offer_accepted",
+        "price": {
+          "asset": "WMON",
+          "status": "EXACT",
+          "grossWei": "5408940000000000000000",
+          "sellerProceedsWei": "5354850600000000000000",
+          "feesWei": "54089400000000000000"
+        }
+      },
+      "holdSeconds": 1992786,
+      "ownersBefore": 3,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "6088000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 2,
+      "sellerSalesInUtcDay": 2,
+      "sources": {
+        "transfer": {
+          "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+          "block": 109466342,
+          "logIndex": 304
+        },
+        "arrival": {
+          "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+          "block": 102879248,
+          "logIndex": 62
+        },
+        "priorSales": [
+          {
+            "tx": "0x23b8fbaf1f73e8df0ef4f1927de9129d5f1402514d61b74d93e755778d62df66",
+            "block": 109459302,
+            "logIndex": 226
+          },
+          {
+            "tx": "0x23b8fbaf1f73e8df0ef4f1927de9129d5f1402514d61b74d93e755778d62df66",
+            "block": 109459302,
+            "logIndex": 227
+          },
+          {
+            "tx": "0x23b8fbaf1f73e8df0ef4f1927de9129d5f1402514d61b74d93e755778d62df66",
+            "block": 109459302,
+            "logIndex": 228
+          },
+          {
+            "tx": "0x42bd71a8645514b4daebac246c9e4be70733b807f9ba067c6a32c87b13f2fd63",
+            "block": 109461783,
+            "logIndex": 447
+          },
+          {
+            "tx": "0x42bd71a8645514b4daebac246c9e4be70733b807f9ba067c6a32c87b13f2fd63",
+            "block": 109461783,
+            "logIndex": 448
+          },
+          {
+            "tx": "0x65439f964b7647558f420906cea481ffe3d124fa0155d513f53f64fe5d7d9caa",
+            "block": 109462864,
+            "logIndex": 58
+          },
+          {
+            "tx": "0x652ed772cce9d43720d124d2b6b56fb66ffde98134130a089381ce5ec27cb601",
+            "block": 109464773,
+            "logIndex": 224
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x8e25bdc9c2924b28086b12488b17a2caaacb1425dc63aed63c2c3dd8be0182a8",
+            "block": 102131789,
+            "logIndex": 157
+          },
+          {
+            "tx": "0x04c9331c977b90fe3f8e4834d0b586ed19b18d37c08715eb53c3ffdd71f8b05e",
+            "block": 102132520,
+            "logIndex": 13
+          },
+          {
+            "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+            "block": 102879248,
+            "logIndex": 62
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+        "block": 109466342,
+        "logIndex": 305,
+        "tokenId": 1889,
+        "from": "0xb3ae810ed3c62b2265dbb77e98ff0b00cc85947b",
+        "to": "0x445566795544c9bc72fa6175d2f1ddb3fb378159",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+          "transferLogIndex": 305,
+          "orderLogIndices": [
+            300
+          ]
+        },
+        "route": "offer_accepted",
+        "price": {
+          "asset": "WMON",
+          "status": "EXACT",
+          "grossWei": "5408930000000000000000",
+          "sellerProceedsWei": "5354840700000000000000",
+          "feesWei": "54089300000000000000"
+        }
+      },
+      "holdSeconds": 1992786,
+      "ownersBefore": 3,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "6088000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 4,
+      "sellerSalesInUtcDay": 2,
+      "sources": {
+        "transfer": {
+          "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+          "block": 109466342,
+          "logIndex": 305
+        },
+        "arrival": {
+          "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+          "block": 102879248,
+          "logIndex": 63
+        },
+        "priorSales": [
+          {
+            "tx": "0x23b8fbaf1f73e8df0ef4f1927de9129d5f1402514d61b74d93e755778d62df66",
+            "block": 109459302,
+            "logIndex": 227
+          },
+          {
+            "tx": "0x23b8fbaf1f73e8df0ef4f1927de9129d5f1402514d61b74d93e755778d62df66",
+            "block": 109459302,
+            "logIndex": 228
+          },
+          {
+            "tx": "0x42bd71a8645514b4daebac246c9e4be70733b807f9ba067c6a32c87b13f2fd63",
+            "block": 109461783,
+            "logIndex": 447
+          },
+          {
+            "tx": "0x42bd71a8645514b4daebac246c9e4be70733b807f9ba067c6a32c87b13f2fd63",
+            "block": 109461783,
+            "logIndex": 448
+          },
+          {
+            "tx": "0x65439f964b7647558f420906cea481ffe3d124fa0155d513f53f64fe5d7d9caa",
+            "block": 109462864,
+            "logIndex": 58
+          },
+          {
+            "tx": "0x652ed772cce9d43720d124d2b6b56fb66ffde98134130a089381ce5ec27cb601",
+            "block": 109464773,
+            "logIndex": 224
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 304
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x78b8f5fe0681d2fc6fac9274c3e3964bb232b734c8ff6cd475910faa2d129a43",
+            "block": 102143659,
+            "logIndex": 44
+          },
+          {
+            "tx": "0xa2192506fcc93c1d516484d05d72821f79483a2debe092ac0da9154140316a14",
+            "block": 102789930,
+            "logIndex": 279
+          },
+          {
+            "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+            "block": 102879248,
+            "logIndex": 63
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+        "block": 109473495,
+        "logIndex": 93,
+        "tokenId": 1889,
+        "from": "0x445566795544c9bc72fa6175d2f1ddb3fb378159",
+        "to": "0xf69f29a2af99eb5bd178b77283b6e5df974fa557",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+          "transferLogIndex": 93,
+          "orderLogIndices": [
+            90
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "5820990000000000000000",
+          "sellerProceedsWei": "5762780100000000000000",
+          "feesWei": "58209900000000000000"
+        }
+      },
+      "holdSeconds": 2161,
+      "ownersBefore": 4,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": "6088000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 3,
+      "sellerSalesInUtcDay": 4,
+      "sources": {
+        "transfer": {
+          "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+          "block": 109473495,
+          "logIndex": 93
+        },
+        "arrival": {
+          "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+          "block": 109466342,
+          "logIndex": 305
+        },
+        "priorSales": [
+          {
+            "tx": "0x23b8fbaf1f73e8df0ef4f1927de9129d5f1402514d61b74d93e755778d62df66",
+            "block": 109459302,
+            "logIndex": 228
+          },
+          {
+            "tx": "0x42bd71a8645514b4daebac246c9e4be70733b807f9ba067c6a32c87b13f2fd63",
+            "block": 109461783,
+            "logIndex": 447
+          },
+          {
+            "tx": "0x42bd71a8645514b4daebac246c9e4be70733b807f9ba067c6a32c87b13f2fd63",
+            "block": 109461783,
+            "logIndex": 448
+          },
+          {
+            "tx": "0x65439f964b7647558f420906cea481ffe3d124fa0155d513f53f64fe5d7d9caa",
+            "block": 109462864,
+            "logIndex": 58
+          },
+          {
+            "tx": "0x652ed772cce9d43720d124d2b6b56fb66ffde98134130a089381ce5ec27cb601",
+            "block": 109464773,
+            "logIndex": 224
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 304
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 305
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x78b8f5fe0681d2fc6fac9274c3e3964bb232b734c8ff6cd475910faa2d129a43",
+            "block": 102143659,
+            "logIndex": 44
+          },
+          {
+            "tx": "0xa2192506fcc93c1d516484d05d72821f79483a2debe092ac0da9154140316a14",
+            "block": 102789930,
+            "logIndex": 279
+          },
+          {
+            "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+            "block": 102879248,
+            "logIndex": 63
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 305
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+        "block": 109473495,
+        "logIndex": 94,
+        "tokenId": 1471,
+        "from": "0x50680590d8d078e946c3c7ff1c653f373ddcb329",
+        "to": "0xf69f29a2af99eb5bd178b77283b6e5df974fa557",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+          "transferLogIndex": 94,
+          "orderLogIndices": [
+            91
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "6324989900000000000000",
+          "sellerProceedsWei": "6261740001000000000000",
+          "feesWei": "63249899000000000000"
+        }
+      },
+      "holdSeconds": 2161,
+      "ownersBefore": 4,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "6088000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 3,
+      "sellerSalesInUtcDay": 2,
+      "sources": {
+        "transfer": {
+          "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+          "block": 109473495,
+          "logIndex": 94
+        },
+        "arrival": {
+          "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+          "block": 109466342,
+          "logIndex": 304
+        },
+        "priorSales": [
+          {
+            "tx": "0x42bd71a8645514b4daebac246c9e4be70733b807f9ba067c6a32c87b13f2fd63",
+            "block": 109461783,
+            "logIndex": 447
+          },
+          {
+            "tx": "0x42bd71a8645514b4daebac246c9e4be70733b807f9ba067c6a32c87b13f2fd63",
+            "block": 109461783,
+            "logIndex": 448
+          },
+          {
+            "tx": "0x65439f964b7647558f420906cea481ffe3d124fa0155d513f53f64fe5d7d9caa",
+            "block": 109462864,
+            "logIndex": 58
+          },
+          {
+            "tx": "0x652ed772cce9d43720d124d2b6b56fb66ffde98134130a089381ce5ec27cb601",
+            "block": 109464773,
+            "logIndex": 224
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 304
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 305
+          },
+          {
+            "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+            "block": 109473495,
+            "logIndex": 93
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x8e25bdc9c2924b28086b12488b17a2caaacb1425dc63aed63c2c3dd8be0182a8",
+            "block": 102131789,
+            "logIndex": 157
+          },
+          {
+            "tx": "0x04c9331c977b90fe3f8e4834d0b586ed19b18d37c08715eb53c3ffdd71f8b05e",
+            "block": 102132520,
+            "logIndex": 13
+          },
+          {
+            "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+            "block": 102879248,
+            "logIndex": 62
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 304
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+        "block": 109473495,
+        "logIndex": 95,
+        "tokenId": 822,
+        "from": "0xc6275cdd53f46d2a3c355af8e917bc9c9ce82017",
+        "to": "0xf69f29a2af99eb5bd178b77283b6e5df974fa557",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+          "transferLogIndex": 95,
+          "orderLogIndices": [
+            92
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "6324990000000000000000",
+          "sellerProceedsWei": "6261740100000000000000",
+          "feesWei": "63249900000000000000"
+        }
+      },
+      "holdSeconds": 1666223,
+      "ownersBefore": 4,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "6088000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 3,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+          "block": 109473495,
+          "logIndex": 95
+        },
+        "arrival": {
+          "tx": "0x9138c777813eddf7955eca4ca32048ab325d41902a299bbb099f5b16392f40bb",
+          "block": 103965760,
+          "logIndex": 68
+        },
+        "priorSales": [
+          {
+            "tx": "0x42bd71a8645514b4daebac246c9e4be70733b807f9ba067c6a32c87b13f2fd63",
+            "block": 109461783,
+            "logIndex": 448
+          },
+          {
+            "tx": "0x65439f964b7647558f420906cea481ffe3d124fa0155d513f53f64fe5d7d9caa",
+            "block": 109462864,
+            "logIndex": 58
+          },
+          {
+            "tx": "0x652ed772cce9d43720d124d2b6b56fb66ffde98134130a089381ce5ec27cb601",
+            "block": 109464773,
+            "logIndex": 224
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 304
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 305
+          },
+          {
+            "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+            "block": 109473495,
+            "logIndex": 93
+          },
+          {
+            "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+            "block": 109473495,
+            "logIndex": 94
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x5e9f076875457f87a579f100db6945670be20fcabaa9dd255471554d8e23bfe2",
+            "block": 101919302,
+            "logIndex": 90
+          },
+          {
+            "tx": "0x599be166768e32675d979074f922597c78461cbf2ced24ea7688a8fd99486167",
+            "block": 102021379,
+            "logIndex": 46
+          },
+          {
+            "tx": "0xfb14c15b877beb5c36595f72c33b1445718b7f78c4314f6c698bab564fdfa4ff",
+            "block": 103954811,
+            "logIndex": 323
+          },
+          {
+            "tx": "0x9138c777813eddf7955eca4ca32048ab325d41902a299bbb099f5b16392f40bb",
+            "block": 103965760,
+            "logIndex": 68
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0x162a55d070a02ce47017c238cf48487063b435e277a949d4328741d334e4cce9",
+        "block": 110190554,
+        "logIndex": 30,
+        "tokenId": 1931,
+        "from": "0x1bb767af58239549acecc8d1ea7a66c22e3425c3",
+        "to": "0x98939f3b05bd16ca4993cddb05966d8f592cbace",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0x162a55d070a02ce47017c238cf48487063b435e277a949d4328741d334e4cce9",
+          "transferLogIndex": 30,
+          "orderLogIndices": [
+            32
+          ]
+        },
+        "route": "offer_accepted",
+        "price": {
+          "asset": "WMON",
+          "status": "EXACT",
+          "grossWei": "5470000000000000000000",
+          "sellerProceedsWei": "5415300000000000000000",
+          "feesWei": "54700000000000000000"
+        }
+      },
+      "holdSeconds": 2410972,
+      "ownersBefore": 2,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "4900000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 1,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0x162a55d070a02ce47017c238cf48487063b435e277a949d4328741d334e4cce9",
+          "block": 110190554,
+          "logIndex": 30
+        },
+        "arrival": {
+          "tx": "0x5cdd05e81808ffc1d5d681f237703b62532f4d8906967e2e35feebf80a9dade6",
+          "block": 102222069,
+          "logIndex": 69
+        },
+        "priorSales": [
+          {
+            "tx": "0x12817fa04d567a1b7017a4d0d7782e107f944de8a3f99cae0f11c1f401e95eda",
+            "block": 109973971,
+            "logIndex": 135
+          },
+          {
+            "tx": "0x12817fa04d567a1b7017a4d0d7782e107f944de8a3f99cae0f11c1f401e95eda",
+            "block": 109973971,
+            "logIndex": 136
+          },
+          {
+            "tx": "0x12817fa04d567a1b7017a4d0d7782e107f944de8a3f99cae0f11c1f401e95eda",
+            "block": 109973971,
+            "logIndex": 137
+          },
+          {
+            "tx": "0x2b66d90252b40c11e6f236691008ece6e47e90cc30b36e561688d0c05ca03ff0",
+            "block": 109977818,
+            "logIndex": 105
+          },
+          {
+            "tx": "0x513fa03d5a17c71d2ead1ec03997d3a5d6da57159bb49f58b22fab9188a71f97",
+            "block": 110018006,
+            "logIndex": 77
+          },
+          {
+            "tx": "0xdecaddd8a4f17fd6b57cbce9d504cd5b9feb86a64ffd6ef1e1f0632af077495f",
+            "block": 110054147,
+            "logIndex": 2
+          },
+          {
+            "tx": "0x2efbaafb4cbabd53457c62f0cec6fad20d1a0890eca7846cf37b089d7e7916c4",
+            "block": 110094775,
+            "logIndex": 88
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0xdfbce12a082281882ed735f43e28ddcd762975453aa1afa7615324d9510a7e75",
+            "block": 102143670,
+            "logIndex": 1
+          },
+          {
+            "tx": "0x5cdd05e81808ffc1d5d681f237703b62532f4d8906967e2e35feebf80a9dade6",
+            "block": 102222069,
+            "logIndex": 69
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0xf65c39fb48a3b299176bf35bddf985cbcc7447273e9203631a6ba4bee5aa4c27",
+        "block": 110200833,
+        "logIndex": 23,
+        "tokenId": 876,
+        "from": "0x2071467ddc56ab94bdb12c3a02f59161b6db0b84",
+        "to": "0xd7a43d8bf5690bc655f13aa7e44865615f894d5a",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0xf65c39fb48a3b299176bf35bddf985cbcc7447273e9203631a6ba4bee5aa4c27",
+          "transferLogIndex": 23,
+          "orderLogIndices": [
+            20,
+            21
+          ]
+        },
+        "route": "offer_accepted",
+        "price": {
+          "asset": "WMON",
+          "status": "EXACT",
+          "grossWei": "4520100000000000000000",
+          "sellerProceedsWei": "4248894000000000000000",
+          "feesWei": "271206000000000000000"
+        }
+      },
+      "holdSeconds": 1992062,
+      "ownersBefore": 2,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "4900000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 2,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0xf65c39fb48a3b299176bf35bddf985cbcc7447273e9203631a6ba4bee5aa4c27",
+          "block": 110200833,
+          "logIndex": 23
+        },
+        "arrival": {
+          "tx": "0xd5fb0a8df85bd525c4d10d370beb7007ae0223d7b44638725b39662f97cd3e71",
+          "block": 103615463,
+          "logIndex": 156
+        },
+        "priorSales": [
+          {
+            "tx": "0x12817fa04d567a1b7017a4d0d7782e107f944de8a3f99cae0f11c1f401e95eda",
+            "block": 109973971,
+            "logIndex": 136
+          },
+          {
+            "tx": "0x12817fa04d567a1b7017a4d0d7782e107f944de8a3f99cae0f11c1f401e95eda",
+            "block": 109973971,
+            "logIndex": 137
+          },
+          {
+            "tx": "0x2b66d90252b40c11e6f236691008ece6e47e90cc30b36e561688d0c05ca03ff0",
+            "block": 109977818,
+            "logIndex": 105
+          },
+          {
+            "tx": "0x513fa03d5a17c71d2ead1ec03997d3a5d6da57159bb49f58b22fab9188a71f97",
+            "block": 110018006,
+            "logIndex": 77
+          },
+          {
+            "tx": "0xdecaddd8a4f17fd6b57cbce9d504cd5b9feb86a64ffd6ef1e1f0632af077495f",
+            "block": 110054147,
+            "logIndex": 2
+          },
+          {
+            "tx": "0x2efbaafb4cbabd53457c62f0cec6fad20d1a0890eca7846cf37b089d7e7916c4",
+            "block": 110094775,
+            "logIndex": 88
+          },
+          {
+            "tx": "0x162a55d070a02ce47017c238cf48487063b435e277a949d4328741d334e4cce9",
+            "block": 110190554,
+            "logIndex": 30
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0xbefd93f7c17d67a725a7cf44d4dbc5d763ed6ce79a1b990e7bff21fe8c667f3e",
+            "block": 101919500,
+            "logIndex": 108
+          },
+          {
+            "tx": "0xd5fb0a8df85bd525c4d10d370beb7007ae0223d7b44638725b39662f97cd3e71",
+            "block": 103615463,
+            "logIndex": 156
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0x546a7f3fc289b9e4df40cbe3b85c153ade1aad56dbb296df7dfca7d69a54956a",
+        "block": 110202523,
+        "logIndex": 49,
+        "tokenId": 876,
+        "from": "0xd7a43d8bf5690bc655f13aa7e44865615f894d5a",
+        "to": "0x1093a7394afb514646bb4866a414df304c39945e",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0x546a7f3fc289b9e4df40cbe3b85c153ade1aad56dbb296df7dfca7d69a54956a",
+          "transferLogIndex": 49,
+          "orderLogIndices": [
+            48
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "5149000000000000000000",
+          "sellerProceedsWei": "5097510000000000000000",
+          "feesWei": "51490000000000000000"
+        }
+      },
+      "holdSeconds": 511,
+      "ownersBefore": 3,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": "4812000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 1,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0x546a7f3fc289b9e4df40cbe3b85c153ade1aad56dbb296df7dfca7d69a54956a",
+          "block": 110202523,
+          "logIndex": 49
+        },
+        "arrival": {
+          "tx": "0xf65c39fb48a3b299176bf35bddf985cbcc7447273e9203631a6ba4bee5aa4c27",
+          "block": 110200833,
+          "logIndex": 23
+        },
+        "priorSales": [
+          {
+            "tx": "0x12817fa04d567a1b7017a4d0d7782e107f944de8a3f99cae0f11c1f401e95eda",
+            "block": 109973971,
+            "logIndex": 137
+          },
+          {
+            "tx": "0x2b66d90252b40c11e6f236691008ece6e47e90cc30b36e561688d0c05ca03ff0",
+            "block": 109977818,
+            "logIndex": 105
+          },
+          {
+            "tx": "0x513fa03d5a17c71d2ead1ec03997d3a5d6da57159bb49f58b22fab9188a71f97",
+            "block": 110018006,
+            "logIndex": 77
+          },
+          {
+            "tx": "0xdecaddd8a4f17fd6b57cbce9d504cd5b9feb86a64ffd6ef1e1f0632af077495f",
+            "block": 110054147,
+            "logIndex": 2
+          },
+          {
+            "tx": "0x2efbaafb4cbabd53457c62f0cec6fad20d1a0890eca7846cf37b089d7e7916c4",
+            "block": 110094775,
+            "logIndex": 88
+          },
+          {
+            "tx": "0x162a55d070a02ce47017c238cf48487063b435e277a949d4328741d334e4cce9",
+            "block": 110190554,
+            "logIndex": 30
+          },
+          {
+            "tx": "0xf65c39fb48a3b299176bf35bddf985cbcc7447273e9203631a6ba4bee5aa4c27",
+            "block": 110200833,
+            "logIndex": 23
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0xbefd93f7c17d67a725a7cf44d4dbc5d763ed6ce79a1b990e7bff21fe8c667f3e",
+            "block": 101919500,
+            "logIndex": 108
+          },
+          {
+            "tx": "0xd5fb0a8df85bd525c4d10d370beb7007ae0223d7b44638725b39662f97cd3e71",
+            "block": 103615463,
+            "logIndex": 156
+          },
+          {
+            "tx": "0xf65c39fb48a3b299176bf35bddf985cbcc7447273e9203631a6ba4bee5aa4c27",
+            "block": 110200833,
+            "logIndex": 23
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0x9601d98b8107d30756a05144c583648f043b950bfce7d47eb9b04e3bb7660b1b",
+        "block": 110204642,
+        "logIndex": 37,
+        "tokenId": 1889,
+        "from": "0xf69f29a2af99eb5bd178b77283b6e5df974fa557",
+        "to": "0xd7a43d8bf5690bc655f13aa7e44865615f894d5a",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0x9601d98b8107d30756a05144c583648f043b950bfce7d47eb9b04e3bb7660b1b",
+          "transferLogIndex": 37,
+          "orderLogIndices": [
+            34,
+            35
+          ]
+        },
+        "route": "offer_accepted",
+        "price": {
+          "asset": "WMON",
+          "status": "EXACT",
+          "grossWei": "4520100000000000000000",
+          "sellerProceedsWei": "4248894000000000000000",
+          "feesWei": "271206000000000000000"
+        }
+      },
+      "holdSeconds": 220806,
+      "ownersBefore": 5,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "4900000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 2,
+      "sellerSalesInUtcDay": 3,
+      "sources": {
+        "transfer": {
+          "tx": "0x9601d98b8107d30756a05144c583648f043b950bfce7d47eb9b04e3bb7660b1b",
+          "block": 110204642,
+          "logIndex": 37
+        },
+        "arrival": {
+          "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+          "block": 109473495,
+          "logIndex": 93
+        },
+        "priorSales": [
+          {
+            "tx": "0x2b66d90252b40c11e6f236691008ece6e47e90cc30b36e561688d0c05ca03ff0",
+            "block": 109977818,
+            "logIndex": 105
+          },
+          {
+            "tx": "0x513fa03d5a17c71d2ead1ec03997d3a5d6da57159bb49f58b22fab9188a71f97",
+            "block": 110018006,
+            "logIndex": 77
+          },
+          {
+            "tx": "0xdecaddd8a4f17fd6b57cbce9d504cd5b9feb86a64ffd6ef1e1f0632af077495f",
+            "block": 110054147,
+            "logIndex": 2
+          },
+          {
+            "tx": "0x2efbaafb4cbabd53457c62f0cec6fad20d1a0890eca7846cf37b089d7e7916c4",
+            "block": 110094775,
+            "logIndex": 88
+          },
+          {
+            "tx": "0x162a55d070a02ce47017c238cf48487063b435e277a949d4328741d334e4cce9",
+            "block": 110190554,
+            "logIndex": 30
+          },
+          {
+            "tx": "0xf65c39fb48a3b299176bf35bddf985cbcc7447273e9203631a6ba4bee5aa4c27",
+            "block": 110200833,
+            "logIndex": 23
+          },
+          {
+            "tx": "0x546a7f3fc289b9e4df40cbe3b85c153ade1aad56dbb296df7dfca7d69a54956a",
+            "block": 110202523,
+            "logIndex": 49
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x78b8f5fe0681d2fc6fac9274c3e3964bb232b734c8ff6cd475910faa2d129a43",
+            "block": 102143659,
+            "logIndex": 44
+          },
+          {
+            "tx": "0xa2192506fcc93c1d516484d05d72821f79483a2debe092ac0da9154140316a14",
+            "block": 102789930,
+            "logIndex": 279
+          },
+          {
+            "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+            "block": 102879248,
+            "logIndex": 63
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 305
+          },
+          {
+            "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+            "block": 109473495,
+            "logIndex": 93
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+        "block": 110204824,
+        "logIndex": 72,
+        "tokenId": 1471,
+        "from": "0xf69f29a2af99eb5bd178b77283b6e5df974fa557",
+        "to": "0x74730ee9116305f1e4b2e444cad2e8528e05713b",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+          "transferLogIndex": 72,
+          "orderLogIndices": [
+            66
+          ]
+        },
+        "route": "offer_accepted",
+        "price": {
+          "asset": "WMON",
+          "status": "EXACT",
+          "grossWei": "4520000000000000000000",
+          "sellerProceedsWei": "4248800000000000000000",
+          "feesWei": "271200000000000000000"
+        }
+      },
+      "holdSeconds": 220861,
+      "ownersBefore": 5,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": "4801010000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 1,
+      "sellerSalesInUtcDay": 3,
+      "sources": {
+        "transfer": {
+          "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+          "block": 110204824,
+          "logIndex": 72
+        },
+        "arrival": {
+          "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+          "block": 109473495,
+          "logIndex": 94
+        },
+        "priorSales": [
+          {
+            "tx": "0x513fa03d5a17c71d2ead1ec03997d3a5d6da57159bb49f58b22fab9188a71f97",
+            "block": 110018006,
+            "logIndex": 77
+          },
+          {
+            "tx": "0xdecaddd8a4f17fd6b57cbce9d504cd5b9feb86a64ffd6ef1e1f0632af077495f",
+            "block": 110054147,
+            "logIndex": 2
+          },
+          {
+            "tx": "0x2efbaafb4cbabd53457c62f0cec6fad20d1a0890eca7846cf37b089d7e7916c4",
+            "block": 110094775,
+            "logIndex": 88
+          },
+          {
+            "tx": "0x162a55d070a02ce47017c238cf48487063b435e277a949d4328741d334e4cce9",
+            "block": 110190554,
+            "logIndex": 30
+          },
+          {
+            "tx": "0xf65c39fb48a3b299176bf35bddf985cbcc7447273e9203631a6ba4bee5aa4c27",
+            "block": 110200833,
+            "logIndex": 23
+          },
+          {
+            "tx": "0x546a7f3fc289b9e4df40cbe3b85c153ade1aad56dbb296df7dfca7d69a54956a",
+            "block": 110202523,
+            "logIndex": 49
+          },
+          {
+            "tx": "0x9601d98b8107d30756a05144c583648f043b950bfce7d47eb9b04e3bb7660b1b",
+            "block": 110204642,
+            "logIndex": 37
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x8e25bdc9c2924b28086b12488b17a2caaacb1425dc63aed63c2c3dd8be0182a8",
+            "block": 102131789,
+            "logIndex": 157
+          },
+          {
+            "tx": "0x04c9331c977b90fe3f8e4834d0b586ed19b18d37c08715eb53c3ffdd71f8b05e",
+            "block": 102132520,
+            "logIndex": 13
+          },
+          {
+            "tx": "0x9de297486ea1ad9fd0452b86d7c8d7e7a0dc38e89d0593979e493965c6ec799c",
+            "block": 102879248,
+            "logIndex": 62
+          },
+          {
+            "tx": "0xe0cc2594c752c834f402080d88f77ab674b0914586a6e98c3d6900b56ffd88c3",
+            "block": 109466342,
+            "logIndex": 304
+          },
+          {
+            "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+            "block": 109473495,
+            "logIndex": 94
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+        "block": 110204824,
+        "logIndex": 73,
+        "tokenId": 822,
+        "from": "0xf69f29a2af99eb5bd178b77283b6e5df974fa557",
+        "to": "0xe6a2d99f1150a8c95c0542360feafca509774bc8",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+          "transferLogIndex": 73,
+          "orderLogIndices": [
+            67
+          ]
+        },
+        "route": "offer_accepted",
+        "price": {
+          "asset": "WMON",
+          "status": "EXACT",
+          "grossWei": "4509520000000000000000",
+          "sellerProceedsWei": "4238948800000000000000",
+          "feesWei": "270571200000000000000"
+        }
+      },
+      "holdSeconds": 220861,
+      "ownersBefore": 5,
+      "receiverNewToChogs": false,
+      "priorSaleMedianWei": "4800000000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 1,
+      "sellerSalesInUtcDay": 3,
+      "sources": {
+        "transfer": {
+          "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+          "block": 110204824,
+          "logIndex": 73
+        },
+        "arrival": {
+          "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+          "block": 109473495,
+          "logIndex": 95
+        },
+        "priorSales": [
+          {
+            "tx": "0xdecaddd8a4f17fd6b57cbce9d504cd5b9feb86a64ffd6ef1e1f0632af077495f",
+            "block": 110054147,
+            "logIndex": 2
+          },
+          {
+            "tx": "0x2efbaafb4cbabd53457c62f0cec6fad20d1a0890eca7846cf37b089d7e7916c4",
+            "block": 110094775,
+            "logIndex": 88
+          },
+          {
+            "tx": "0x162a55d070a02ce47017c238cf48487063b435e277a949d4328741d334e4cce9",
+            "block": 110190554,
+            "logIndex": 30
+          },
+          {
+            "tx": "0xf65c39fb48a3b299176bf35bddf985cbcc7447273e9203631a6ba4bee5aa4c27",
+            "block": 110200833,
+            "logIndex": 23
+          },
+          {
+            "tx": "0x546a7f3fc289b9e4df40cbe3b85c153ade1aad56dbb296df7dfca7d69a54956a",
+            "block": 110202523,
+            "logIndex": 49
+          },
+          {
+            "tx": "0x9601d98b8107d30756a05144c583648f043b950bfce7d47eb9b04e3bb7660b1b",
+            "block": 110204642,
+            "logIndex": 37
+          },
+          {
+            "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+            "block": 110204824,
+            "logIndex": 72
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x5e9f076875457f87a579f100db6945670be20fcabaa9dd255471554d8e23bfe2",
+            "block": 101919302,
+            "logIndex": 90
+          },
+          {
+            "tx": "0x599be166768e32675d979074f922597c78461cbf2ced24ea7688a8fd99486167",
+            "block": 102021379,
+            "logIndex": 46
+          },
+          {
+            "tx": "0xfb14c15b877beb5c36595f72c33b1445718b7f78c4314f6c698bab564fdfa4ff",
+            "block": 103954811,
+            "logIndex": 323
+          },
+          {
+            "tx": "0x9138c777813eddf7955eca4ca32048ab325d41902a299bbb099f5b16392f40bb",
+            "block": 103965760,
+            "logIndex": 68
+          },
+          {
+            "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+            "block": 109473495,
+            "logIndex": 95
+          }
+        ]
+      }
+    },
+    {
+      "event": {
+        "tx": "0xcbe47832ac08247c2d78532fabf391a6eb663c43c60b0d8ace2336c70f1bb8c1",
+        "block": 110449114,
+        "logIndex": 154,
+        "tokenId": 822,
+        "from": "0xe6a2d99f1150a8c95c0542360feafca509774bc8",
+        "to": "0x7a059af7908848529e26dd8ffbec937399436777",
+        "class": "SALE",
+        "rule": "R2",
+        "reason": "NFT and payment items match the transfer",
+        "evidence": {
+          "tx": "0xcbe47832ac08247c2d78532fabf391a6eb663c43c60b0d8ace2336c70f1bb8c1",
+          "transferLogIndex": 154,
+          "orderLogIndices": [
+            155
+          ]
+        },
+        "route": "listing_bought",
+        "price": {
+          "asset": "MON",
+          "status": "EXACT",
+          "grossWei": "4338990000000000000000",
+          "sellerProceedsWei": "4078650600000000000000",
+          "feesWei": "260339400000000000000"
+        }
+      },
+      "holdSeconds": 73750,
+      "ownersBefore": 6,
+      "receiverNewToChogs": true,
+      "priorSaleMedianWei": "4520100000000000000000",
+      "priceReferenceReason": "SEVEN_PRIOR_SALES",
+      "buyerSalesInUtcDay": 1,
+      "sellerSalesInUtcDay": 1,
+      "sources": {
+        "transfer": {
+          "tx": "0xcbe47832ac08247c2d78532fabf391a6eb663c43c60b0d8ace2336c70f1bb8c1",
+          "block": 110449114,
+          "logIndex": 154
+        },
+        "arrival": {
+          "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+          "block": 110204824,
+          "logIndex": 73
+        },
+        "priorSales": [
+          {
+            "tx": "0x2efbaafb4cbabd53457c62f0cec6fad20d1a0890eca7846cf37b089d7e7916c4",
+            "block": 110094775,
+            "logIndex": 88
+          },
+          {
+            "tx": "0x162a55d070a02ce47017c238cf48487063b435e277a949d4328741d334e4cce9",
+            "block": 110190554,
+            "logIndex": 30
+          },
+          {
+            "tx": "0xf65c39fb48a3b299176bf35bddf985cbcc7447273e9203631a6ba4bee5aa4c27",
+            "block": 110200833,
+            "logIndex": 23
+          },
+          {
+            "tx": "0x546a7f3fc289b9e4df40cbe3b85c153ade1aad56dbb296df7dfca7d69a54956a",
+            "block": 110202523,
+            "logIndex": 49
+          },
+          {
+            "tx": "0x9601d98b8107d30756a05144c583648f043b950bfce7d47eb9b04e3bb7660b1b",
+            "block": 110204642,
+            "logIndex": 37
+          },
+          {
+            "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+            "block": 110204824,
+            "logIndex": 72
+          },
+          {
+            "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+            "block": 110204824,
+            "logIndex": 73
+          }
+        ],
+        "owners": [
+          {
+            "tx": "0x5e9f076875457f87a579f100db6945670be20fcabaa9dd255471554d8e23bfe2",
+            "block": 101919302,
+            "logIndex": 90
+          },
+          {
+            "tx": "0x599be166768e32675d979074f922597c78461cbf2ced24ea7688a8fd99486167",
+            "block": 102021379,
+            "logIndex": 46
+          },
+          {
+            "tx": "0xfb14c15b877beb5c36595f72c33b1445718b7f78c4314f6c698bab564fdfa4ff",
+            "block": 103954811,
+            "logIndex": 323
+          },
+          {
+            "tx": "0x9138c777813eddf7955eca4ca32048ab325d41902a299bbb099f5b16392f40bb",
+            "block": 103965760,
+            "logIndex": 68
+          },
+          {
+            "tx": "0xfecca011a4b451d0e55850e29ad324e654a7d547a9a7bdccfe22d8d65259c9b0",
+            "block": 109473495,
+            "logIndex": 95
+          },
+          {
+            "tx": "0x11e3ab289163b8f3fce32148c694722af07b04bd5db07b47fc015da50f9c998c",
+            "block": 110204824,
+            "logIndex": 73
+          }
+        ]
+      }
+    }
+  ],
+  "times": [
+    [
+      101919302,
+      1788530555
+    ],
+    [
+      101919500,
+      1788530615
+    ],
+    [
+      102021379,
+      1788561616
+    ],
+    [
+      102131789,
+      1788595201
+    ],
+    [
+      102131857,
+      1788595221
+    ],
+    [
+      102132520,
+      1788595422
+    ],
+    [
+      102143659,
+      1788598808
+    ],
+    [
+      102143670,
+      1788598811
+    ],
+    [
+      102222069,
+      1788622642
+    ],
+    [
+      102789930,
+      1788795138
+    ],
+    [
+      102879248,
+      1788822113
+    ],
+    [
+      103615463,
+      1789044654
+    ],
+    [
+      103954811,
+      1789147498
+    ],
+    [
+      103965760,
+      1789150837
+    ],
+    [
+      109466342,
+      1790814899
+    ],
+    [
+      109473495,
+      1790817060
+    ],
+    [
+      110190554,
+      1791033614
+    ],
+    [
+      110200833,
+      1791036716
+    ],
+    [
+      110202523,
+      1791037227
+    ],
+    [
+      110204642,
+      1791037866
+    ],
+    [
+      110204824,
+      1791037921
+    ],
+    [
+      110449114,
+      1791111671
+    ]
+  ]
+}

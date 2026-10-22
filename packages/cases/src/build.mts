@@ -61,13 +61,13 @@ export function buildCast(candidate:Candidate,history:readonly EnrichedEvent[],t
  return result;
 }
 /** Witnesses must have a recorded connection to the event, never a nearby token number. */
-export function buildLinkedCast(candidate:Candidate,history:readonly EnrichedEvent[],times:ReadonlyMap<number,number>,metadata:ReadonlyMap<number,Metadata>):CastMember[]{
- const rows=pastRows(candidate,history),held=new Map<number,EnrichedEvent>();
+export function buildLinkedCast(candidate:Candidate,history:readonly EnrichedEvent[],times:ReadonlyMap<number,number>,metadata:ReadonlyMap<number,Metadata>,cutoff:Source=source(candidate.row)):CastMember[]{
+ const rows=history.filter(row=>row.event.block<cutoff.block||row.event.block===cutoff.block&&row.event.logIndex<=cutoff.logIndex).sort(order),held=new Map<number,EnrichedEvent>();
  for(const row of rows)if(row.event.from!==row.event.to){if(row.event.to===ZERO)held.delete(row.event.tokenId);else held.set(row.event.tokenId,row);}
  const result:CastMember[]=[],ids=new Set<number>();
  const add=(id:number,role:CastMember['role'])=>{
   if(ids.has(id))return;
-  const arrival=held.get(id);if(!arrival||arrival.event.class==='UNCLASSIFIED')return;
+  const arrival=id===candidate.row.event.tokenId?candidate.row:held.get(id);if(!arrival||arrival.event.class==='UNCLASSIFIED')return;
   const name=metadata.get(id)?.name,at=times.get(arrival.event.block);
   if(!name||at===undefined)throw new Error('CASE_CAST_SOURCE: Missing name or arrival time');
   result.push({tokenId:id,name,role,arrival:source(arrival),arrivedAt:at});ids.add(id);
@@ -75,7 +75,7 @@ export function buildLinkedCast(candidate:Candidate,history:readonly EnrichedEve
  add(candidate.row.event.tokenId,'SUBJECT');
  for(const [wallet,role] of [[candidate.row.event.from,'SELLER_ROOMMATE'],[candidate.row.event.to,'BUYER_ROOMMATE']] as const)
   for(const row of [...held.values()].filter(row=>row.event.to===wallet).sort((a,b)=>a.event.tokenId-b.event.tokenId))add(row.event.tokenId,role);
- for(const row of [...rows].reverse())if(row.event.class==='SALE'&&times.get(row.event.block)!>=candidate.at-6*3600)add(row.event.tokenId,'RECENT_SALE');
+ for(const row of [...rows].reverse())if(row.event.class==='SALE'&&Math.abs(times.get(row.event.block)!-candidate.at)<=6*3600)add(row.event.tokenId,'RECENT_SALE');
  const earlier=new Set(rows.filter(row=>row.event.to===candidate.row.event.from).map(row=>row.event.tokenId));
  for(const id of [...earlier].sort((a,b)=>a-b))add(id,'PREVIOUS_ROOMMATE');
  const previousOwners=new Set(rows.filter(row=>row.event.tokenId===candidate.row.event.tokenId&&row.event.from!==ZERO).map(row=>row.event.from));

@@ -39,18 +39,36 @@ const differentPriceBand=(wei:string)=>{
 };
 const statementId=(id:number,slot:string)=>'w'+id+'-'+slot;
 
+/**
+ * Sales up to six hours after the subject may join the cast. The evidence cutoff moves only as far as
+ * needed, stays before opening and stops before the subject moves again, so its sale stays its latest arrival.
+ */
+export function witnessCutoff(input:{candidate:Candidate;history:readonly EnrichedEvent[];times:ReadonlyMap<number,number>;metadata:ReadonlyMap<number,Metadata>;opensAt:number;witnesses:number}){
+ const {candidate,history,times,metadata,opensAt,witnesses}=input,anchor=source(candidate.row);
+ const eligible=(cutoff:Source)=>buildLinkedCast(candidate,history,times,metadata,cutoff).filter(member=>{
+  const arrival=history.find(row=>identity(source(row))===identity(member.arrival));
+  return arrival&&arrival.event.class!=='UNCLASSIFIED'&&arrival.event.from!==arrival.event.to;
+ });
+ let cutoff=anchor,cast=eligible(cutoff);
+ for(const row of history.filter(row=>!before(source(row),anchor)).sort((a,b)=>a.event.block-b.event.block||a.event.logIndex-b.event.logIndex)){
+  if(cast.length>=witnesses)break;
+  const at=times.get(row.event.block);
+  if(at===undefined||!Number.isSafeInteger(at)||at<0)return fail('CASE_SOURCE_TIME','Every history record needs its stored block time.');
+  if(at>candidate.at+6*3600||at>=opensAt||row.event.tokenId===candidate.row.event.tokenId&&row.event.from!==row.event.to)break;
+  cutoff=source(row);cast=eligible(cutoff);
+ }
+ return {cutoff,cast};
+}
+
 /** Build the sale puzzle from classified records; the original records remain its authority. */
 export function buildSalePuzzle(input:{candidate:Candidate;history:readonly EnrichedEvent[];times:ReadonlyMap<number,number>;metadata:ReadonlyMap<number,Metadata>;day:string;salt:string;mode:'DAILY'|'REPLAY'}):PuzzleCase{
- const {candidate,history,times,metadata,day,salt,mode}=input,difficulty=dailyDifficulty(day),event=candidate.row.event,cutoff=source(candidate.row);
+ const {candidate,history,times,metadata,day,salt,mode}=input,difficulty=dailyDifficulty(day),event=candidate.row.event,anchor=source(candidate.row);
  if(!/^0x[a-f0-9]{64}$/i.test(salt))return fail('CASE_SALT_INVALID','A complete case salt is required.');
- const saved=history.find(row=>identity(source(row))===identity(cutoff));
+ const saved=history.find(row=>identity(source(row))===identity(anchor));
  if(!saved||canonicalJSON(saved)!==canonicalJSON(candidate.row)||times.get(event.block)!==candidate.at||event.class!=='SALE'||event.price?.status!=='EXACT'||!event.price.grossWei||BigInt(event.price.grossWei)<=0n||!['MON','WMON'].includes(event.price.asset)||!['offer_accepted','listing_bought'].includes(event.route??'')||event.evidence.orderLogIndices.length===0)return fail('CASE_SOURCE_INVALID','An exact source-backed sale is required.');
  const opensAt=Date.parse(day+'T00:20:00Z')/1000;
  if(candidate.at>=opensAt)return fail('CASE_SOURCE_FUTURE','Case evidence must predate opening.');
- const cast=buildLinkedCast(candidate,history,times,metadata).filter(member=>{
-  const arrival=history.find(row=>identity(source(row))===identity(member.arrival));
-  return arrival&&arrival.event.class!=='UNCLASSIFIED'&&arrival.event.from!==arrival.event.to;
- }).slice(0,difficulty.witnesses);
+ const {cutoff,cast:linked}=witnessCutoff({candidate,history,times,metadata,opensAt,witnesses:difficulty.witnesses}),cast=linked.slice(0,difficulty.witnesses);
  if(cast.length!==difficulty.witnesses)return fail('CASE_CAST_INCOMPLETE','The event needs more eligible witnesses.');
  const rows=history.filter(row=>before(source(row),cutoff)).sort((a,b)=>a.event.block-b.event.block||a.event.logIndex-b.event.logIndex),subject=metadata.get(event.tokenId);
  if(!subject)return fail('CASE_METADATA_MISSING','The subject metadata is required.');
@@ -63,7 +81,7 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
   const value=arrivalValue(member.name,member.arrivedAt);
   return {id:'arrival-'+member.tokenId,text:value+'.',exactText:value+'.',at:member.arrivedAt,sources:[member.arrival],sealed:false,facts:[{id:'arrival-'+member.tokenId,value}]};
  });
- const route=event.route==='offer_accepted'?'accepted offer':'bought listing',price=rounded(event.price.grossWei,event.price.asset),paymentSources=[cutoff,...event.evidence.orderLogIndices.map(logIndex=>({tx:event.tx,block:event.block,logIndex}))];
+ const route=event.route==='offer_accepted'?'accepted offer':'bought listing',price=rounded(event.price.grossWei,event.price.asset),paymentSources=[anchor,...event.evidence.orderLogIndices.map(logIndex=>({tx:event.tx,block:event.block,logIndex}))];
  const paidValue=subject.name+' changed wallets through '+(event.route==='offer_accepted'?'an accepted offer':'a listing purchase'),priceValue=subject.name+' was paid for with '+price;
  receipts.push({id:'payment',text:subject.name+' · '+route+' · Paid: '+price+'.',exactText:subject.name+' · '+route+' · Paid: '+formatEther(BigInt(event.price.grossWei))+' '+event.price.asset+'.',at:candidate.at,sources:paymentSources,sealed:difficulty.sealed===1,facts:[{id:'move-kind',value:paidValue},{id:'price',value:priceValue}]});
  const castRows=cast.map(member=>({tokenId:member.tokenId,name:member.name,nickname:nicknames.get(owners.get(member.tokenId)!)!,side:member.role==='SUBJECT'||member.role==='BUYER_ROOMMATE'?'BUYER' as const:member.role==='SELLER_ROOMMATE'?'SELLER' as const:null}));
@@ -88,7 +106,7 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
   for(const lie of lies){const statement=statements.find(row=>row.id===lie.statementId)!;statement.line='I saw '+lie.falseValue+'.';statement.claim={factId:lie.id==='A'?'arrival-'+event.tokenId:lie.id==='B'?'move-kind':'price',value:lie.falseValue};if(lie.id==='C'&&difficulty.chained)statement.requiresCaught=['B'];}
   return {statements,lies};
  };
- const tileInputs=[{label:subject.name,sources:[cutoff]},{label:route,sources:paymentSources},{label:price,sources:paymentSources},...cast.filter(member=>member.tokenId!==event.tokenId).map(member=>({label:member.name,sources:[member.arrival]}))];
+ const tileInputs=[{label:subject.name,sources:[anchor]},{label:route,sources:paymentSources},{label:price,sources:paymentSources},...cast.filter(member=>member.tokenId!==event.tokenId).map(member=>({label:member.name,sources:[member.arrival]}))];
  const tiles=tileInputs.map(row=>({id:hash(salt+':tile:'+row.label).slice(0,18),...row})).sort((a,b)=>hash(salt+a.id).localeCompare(hash(salt+b.id)));
  const file:PuzzleFile={v:2,id:'case-'+hash(candidate.id+':'+day).slice(2,26),day,mode,title:({QUICK_EXIT:'The short stay',BIG_SPENDER:'The heavy envelope',LONG_GOODBYE:'The long goodbye',COLD_CASE:'The ink still holds'} as const)[candidate.type],setup:'A real sale moved '+subject.name+' to a new wallet. Find what the receipts say about the move.',type:candidate.type,subject:{tokenId:event.tokenId,name:subject.name},ruleLine:puzzleRule(day),opensAt,closesAt:opensAt+86400,cutoff,cast:castRows,receipts,tiles,blanks:[{id:'subject',label:'Chog'},{id:'move',label:'moved in a'},{id:'price',label:'for'}]};
  const plans:Record<string,PuzzlePlan>={default:makePlan(null)};for(const id of [primary,secondary])if(id!==null)plans[id]=makePlan(id);

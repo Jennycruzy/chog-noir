@@ -14,10 +14,12 @@ export function solvePuzzle(puzzle:PuzzleCase,detective:PuzzleDetective){
  apply({type:'solve',tiles:puzzle.key.answers});
  return {state,actions,questionsSpent:state.initialQuestions-state.questions,...puzzleScore(puzzle,state)};
 }
+/** Proves every skill at the minimum budget for each cast member's own plan and for an outside detective's shared plan. */
 export function provePuzzleSolvable(puzzle:PuzzleCase){
- const rows:{skill:DetectiveSkill;detectiveId:number;questionsSpent:number;questionsLeft:number;grade:string}[]=[],ids=puzzle.file.cast.map(row=>row.tokenId);
- for(const skill of ['XRAY','ANALYST','TAKES_ONE','EMPATH','LEGEND'] as DetectiveSkill[])for(const detectiveId of new Set(ids)){
-  const detective:PuzzleDetective={tokenId:detectiveId,name:puzzle.file.cast.find(row=>row.tokenId===detectiveId)!.name,skill,uses:1,questions:4,moneyTalk:false,side:null,freePress:[]},result=solvePuzzle(puzzle,detective);
+ const rows:{skill:DetectiveSkill;detectiveId:number;questionsSpent:number;questionsLeft:number;grade:string}[]=[],cast=puzzle.file.cast.map(row=>row.tokenId);
+ const outsider=Array.from({length:1969},(_,index)=>index+1).find(id=>!cast.includes(id))!,ids=[...new Set(cast),outsider];
+ for(const skill of ['XRAY','ANALYST','TAKES_ONE','EMPATH','LEGEND'] as DetectiveSkill[])for(const detectiveId of ids){
+  const detective:PuzzleDetective={tokenId:detectiveId,name:puzzle.file.cast.find(row=>row.tokenId===detectiveId)?.name??'Outside detective',skill,uses:1,questions:4,moneyTalk:false,side:null,freePress:[]},result=solvePuzzle(puzzle,detective);
   if(!result.state.done||!result.state.solved||result.questionsSpent>3||result.state.questions<1||result.state.caught.length!==planFor(puzzle,detectiveId).lies.length)throw new Error('CASE_UNSOLVABLE: Perfect play must leave a question at budget four');
   rows.push({skill,detectiveId,questionsSpent:result.questionsSpent,questionsLeft:result.state.questions,grade:result.grade});
  }
