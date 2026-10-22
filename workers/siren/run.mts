@@ -8,9 +8,8 @@ import {monad} from '../../packages/chain/src/client.mts';
 import {CHOG,TRANSFER_TOPIC,type ChainLog} from '../../packages/core/src/chain.mts';
 import {classifyTransaction} from '../../packages/core/src/classify.mts';
 import {atomicJSON} from '../../packages/publishing/src/vault.mts';
-import {nativeBand} from '../../packages/witness/src/facts.mts';
 import {safeError} from '../../scripts/errors.mts';
-import type {FeedEvent} from '../../packages/indexer/src/feed.mts';
+import {nativeBand,type FeedEvent} from '../../packages/indexer/src/feed.mts';
 async function main(){
 await loadEnv();
 const root=fileURLToPath(new URL('../../',import.meta.url)),directory=join(root,'runs/live');await mkdir(join(directory,'receipts'),{recursive:true,mode:0o700});

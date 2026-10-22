@@ -2,7 +2,6 @@ import {createCipheriv,createDecipheriv,randomBytes} from 'node:crypto';
 import {mkdir,readFile,writeFile,rename,link,unlink,chmod,readdir} from 'node:fs/promises';
 import {join,dirname} from 'node:path';
 import {keccak256,toBytes} from 'viem';
-import type {CaseDraft} from '../../cases/src/build.mts';
 export async function atomicJSON(path:string,value:unknown){
  const temporary=`${path}.${randomBytes(8).toString('hex')}.tmp`;
  await writeFile(temporary,JSON.stringify(value,null,2),{mode:0o600});await rename(temporary,path);
@@ -10,8 +9,6 @@ export async function atomicJSON(path:string,value:unknown){
 export class CaseVault {
  constructor(private directory:string,private key:Buffer){if(key.length!==32)throw new Error('VAULT_KEY: Expected 32 bytes');}
  private path(id:string){return join(this.directory,keccak256(toBytes(id))+'.json');}
- async save(draft:CaseDraft){await this.seal(draft.public.id,draft);}
- async load(id:string):Promise<CaseDraft>{return this.open<CaseDraft>(id);}
  /** Encrypts any case record, authenticated against its identifier. */
  async seal(id:string,value:unknown){
   await mkdir(this.directory,{recursive:true,mode:0o700});

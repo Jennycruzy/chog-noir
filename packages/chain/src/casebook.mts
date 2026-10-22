@@ -1,5 +1,5 @@
 import {parseAbi,keccak256,toBytes,toHex,type Hex,type Address} from 'viem';
-import {canonicalJSON,type CaseDraft} from '../../cases/src/build.mts';
+import {canonicalJSON} from '../../cases/src/build.mts';
 import {planFor,type PuzzleCase} from '../../cases/src/puzzle.mts';
 export const casebookAbi=parseAbi([
  'function owner() view returns (address)',
@@ -16,8 +16,6 @@ export const casebookAbi=parseAbi([
  'event SolveRecorded(bytes32 indexed caseId,uint16 indexed tokenId,uint8 result)',
 ]);
 export const chainCaseId=(id:string)=>keccak256(toBytes(id));
-export const canonicalKey=(draft:CaseDraft)=>canonicalJSON({v:1,caseId:draft.public.id,key:draft.private.key,salt:draft.private.salt});
-export const encodedKey=(draft:CaseDraft)=>toHex(toBytes(canonicalKey(draft)));
 /** The revealed v2 key is the exact canonical text whose hash was committed at open. */
 export const puzzleKeyText=(puzzle:PuzzleCase)=>canonicalJSON(puzzle.key);
 export const puzzleKeyBytes=(puzzle:PuzzleCase)=>toHex(toBytes(puzzleKeyText(puzzle)));
@@ -40,11 +38,4 @@ export interface PuzzleChain {
  close(puzzle:PuzzleCase):Promise<ChainReceipt>;
  cast(puzzle:PuzzleCase):Promise<ChainReceipt>;
  solves(puzzle:PuzzleCase,chunk:number,rows:readonly SolveRecord[]):Promise<ChainReceipt>;
-}
-export interface CaseChain {
- address:Address;
- inspect(id:string):Promise<{hash:Hex;closed:boolean;opensAt:number;closesAt:number}>;
- open(draft:CaseDraft,opensAt:number,closesAt:number):Promise<ChainReceipt>;
- close(draft:CaseDraft):Promise<ChainReceipt>;
- cast(draft:CaseDraft):Promise<ChainReceipt>;
 }

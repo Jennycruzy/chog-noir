@@ -1,5 +1,8 @@
 import type {EnrichedEvent} from '../../core/src/enrich.mts';
-import {nativeBand} from '../../witness/src/facts.mts';
+/** The ticker's coarse price band for a gross payment in MON. */
+export function nativeBand(amount:bigint):string{
+ return amount<4000n*10n**18n?'below 4,000 MON':amount<5000n*10n**18n?'4,000–4,999 MON':amount<6000n*10n**18n?'5,000–5,999 MON':amount<8000n*10n**18n?'6,000–7,999 MON':'at least 8,000 MON';
+}
 export interface FeedEvent {id:string;tx:string;block:number;logIndex:number;tokenId:number;time:string;priceBand:string;route:string;grossWei:string;asset:string}
 export function saleFeed(rows:readonly EnrichedEvent[],times:ReadonlyMap<number,number>):FeedEvent[]{
  const result=new Map<string,FeedEvent>();

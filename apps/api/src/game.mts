@@ -104,7 +104,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const services=await holderServices({root,origin});
  const metadata=new Map<number,Metadata>([...services.metadata].map(([id,record])=>[id,record.metadata]));
  const [enriched,history]=await Promise.all(['runs/daily/source/enriched.json','runs/daily/source/history.json'].map(path=>readFile(join(root,path),'utf8').catch(()=>null)));
- const context=enriched&&history?await (async()=>{const rows=(JSON.parse(enriched) as {events:EnrichedEvent[]}).events,saved=JSON.parse(history);const times=new Map<number,number>(saved.data.blocks.map((block:{number:number;timestamp:number})=>[block.number,block.timestamp]));return publicContext(root,metadata,rows,times,saved.toBlockExclusive,saved.coverageAt);})():null;
+ const context=enriched&&history?await (async()=>{const rows=(JSON.parse(enriched) as {events:EnrichedEvent[]}).events,saved=JSON.parse(history);const times=new Map<number,number>(saved.data.blocks.map((block:{number:number;timestamp:number})=>[block.number,block.timestamp]));return publicContext(root,rows,times,saved.toBlockExclusive,saved.coverageAt);})():null;
  const cases=new PublishedPuzzles(join(root,'runs/puzzle-publications'),await localVault(join(root,'runs/publication-vault'),privateVaultKeyFile()));
  // Training and replay files are rebuilt offline from real archived records; the API re-reads them when they change.
  const saved=<T,>(path:string)=>{let version='',value:T|null=null;return async()=>{const info=await stat(join(root,path)).catch(()=>null);if(!info)return null;const next=info.mtimeMs+':'+info.size;if(next!==version){value=JSON.parse(await readFile(join(root,path),'utf8')) as T;version=next;}return value;};};

@@ -1,23 +1,21 @@
 # Source-backed cases
 
-Run `corepack pnpm cases:build` on the VPS. The builder reads saved classification,
-enrichment, block timestamps and original metadata. Missing data fails the build.
-It excludes unsupported or unclassified events from answers.
+Every case starts from one real paid move: a marketplace sale priced by its `OrderFulfilled`
+payment, or an escrow deal paid in $CHOG and proven by the token's own Transfer log. Bundles,
+unsupported routes and unclassified events are never used. Ownership is evaluated at the
+case's evidence cutoff; later transfers never contribute facts.
 
-Sale prices come from payment records, including marketplace fees. Bundles and
-unsupported payment routes are excluded. A quick resale requires a preceding
-verified purchase. Cast ownership is evaluated at the event's block and log index;
-later transfers do not contribute historical facts.
+The daily builder (`workers/daily/build.mts`) ranks yesterday's real moves by case type and
+score: a Founder's first move since mint, a quick resale, a big spender, a long hold ending,
+a Chog that keeps moving, or a $CHOG deal. It tries them in order and keeps the first that
+passes every check below. A quiet day takes a cold case from an older real sale that none of
+the previous seven cases used, in an order fixed by the day. Events involving a wallet that
+opted out are skipped.
 
-The private archive is stored at `runs/case-engine/archive.json`, alongside a
-fallback pool. These files contain answer keys and random salts and must never be
-served directly. Gameplay responses control access to sealed facts and keep
-private answers server-side. Human-readable output and machine reports are
-written outside the repository to private storage.
-
-`corepack pnpm cases:build --verify-replay` rebuilds from the same source inputs and
-requires byte-identical archive content, including keys and salts. The archive is
-replaced atomically after validation. Existing cases retain their salts.
+Witnesses must have a recorded connection to the event: Chogs in the seller's or buyer's
+wallet, earlier wallet-mates, or Chogs sold within six hours of it. Sales after the subject
+may join only up to the opening time and never past the subject's own next move; the evidence
+cutoff moves only as far as needed to fill the cast.
 
 Run focused checks with
 `corepack pnpm exec vitest run packages/cases/test --maxWorkers=1 --no-file-parallelism`.

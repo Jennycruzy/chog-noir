@@ -16,7 +16,6 @@ export function traitsFor(tokenId:number,metadata:Metadata){
  return {tokenId,name:metadata.name,power,uses,special,moneyTalk:['gold tooth','btc coin','mon coin'].includes(attr('Mouth')),side:attr('Side')==='right'?'BUYER' as const:'SELLER' as const,
   voice:({XRAY:'sharp',ANALYST:'cool',TAKES_ONE:'nervous',EMPATH:'dreamy'} as const)[power],
   cleanTraits:metadata.attributes.map(item=>({type:item.trait_type,...cleanTrait(item.trait_type,item.value)})),
-  description:power==='XRAY'?`Open a sealed record free (${uses} ${uses===1?'use':'uses'}).`:power==='ANALYST'?`Ask for an exact price (${uses} ${uses===1?'use':'uses'}).`:power==='TAKES_ONE'?'Identify the lying witness once.':'Start with two extra card plays.',
  };
 }
 export function traitDictionary(metadata:ReadonlyMap<number,Metadata>){

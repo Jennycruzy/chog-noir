@@ -10,7 +10,6 @@ import {setTimeout as pause} from 'node:timers/promises';
 import {createPublicClient,http,encodeDeployData,encodeFunctionData,toHex,keccak256,type Hex} from 'viem';
 import {generatePrivateKey,privateKeyToAccount} from 'viem/accounts';
 import {transactionWriter,recoverCaseOpened,monad,type SignedJournal} from '../src/client.mts';
-import {draft as originalDraft} from '../../game/test/fixture.mts';
 import {casebookAbi,chainCaseId} from '../src/casebook.mts';
 const binary=process.env.ANVIL_PATH??'/home/ubuntu/.foundry/bin/anvil';
 const enabled=existsSync(binary),run=test.skipIf(!enabled);
@@ -67,10 +66,10 @@ run('a dropped transaction is replaced with the same intent and nonce while both
 },120_000);
 
 run('a confirmed CaseOpened event recovers the original receipt without another nonce',async()=>{
- const draft=structuredClone(originalDraft);draft.public.id='recoverable-case';const opensAt=1,closesAt=Math.floor(Date.now()/1000)+3600;
- const data=encodeFunctionData({abi:casebookAbi,functionName:'openCase',args:[chainCaseId(draft.public.id),draft.public.answerHash as Hex,BigInt(opensAt),BigInt(closesAt)]});
+ const commitment={id:'recoverable-case',answerHash:'0x'+'9a'.repeat(32)},opensAt=1,closesAt=Math.floor(Date.now()/1000)+3600;
+ const data=encodeFunctionData({abi:casebookAbi,functionName:'openCase',args:[chainCaseId(commitment.id),commitment.answerHash as Hex,BigInt(opensAt),BigInt(closesAt)]});
  const first=await writer.send('recoverable-case-open',data,deployed,deployed),nonce=await writer.client.getTransactionCount({address:writer.account.address});
  await rm(join(directory,'runs/chain/transactions/recoverable-case-open.json'));
- const recovered=await recoverCaseOpened(writer.client,deployed,{id:draft.public.id,answerHash:draft.public.answerHash},opensAt,closesAt,BigInt(first.blockNumber));expect(recovered).toEqual(first);expect(await writer.client.getTransactionCount({address:writer.account.address})).toBe(nonce);
- await expect(recoverCaseOpened(writer.client,deployed,{id:draft.public.id,answerHash:draft.public.answerHash},opensAt,closesAt+1,BigInt(first.blockNumber))).rejects.toThrow('CHAIN_RECOVERY_CONFLICT');
+ const recovered=await recoverCaseOpened(writer.client,deployed,commitment,opensAt,closesAt,BigInt(first.blockNumber));expect(recovered).toEqual(first);expect(await writer.client.getTransactionCount({address:writer.account.address})).toBe(nonce);
+ await expect(recoverCaseOpened(writer.client,deployed,commitment,opensAt,closesAt+1,BigInt(first.blockNumber))).rejects.toThrow('CHAIN_RECOVERY_CONFLICT');
 },120_000);

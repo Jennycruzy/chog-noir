@@ -4,14 +4,9 @@ Use `ubuntu@54.154.121.30` as the project's execution host. The full checkout li
 
 Dependencies are installed for Linux from `pnpm-lock.yaml` using `corepack pnpm install --frozen-lockfile`. Run project commands from the checkout using `corepack pnpm`. The private build instructions live separately at `/home/ubuntu/chognoir-private`, outside Git. Project credentials are stored in a mode-600 `.env`; they are never committed. The migration preserves existing VPS settings and backs up its previous environment file privately.
 
-The `chog-noir-api.service` systemd service serves the archive game API and starts at boot. Nginx serves the public preview at https://chognoir.54-154-121-30.sslip.io/ and proxies `/api/` and `/health`. The local computer and SSH session can be turned off without stopping these services. This is archive play, not a live daily case or continuous indexer.
+The `chog-noir-api.service` systemd service serves the game API and starts at boot. Nginx serves the site at https://chognoir.54-154-121-30.sslip.io/ and proxies `/api/` and `/health`; the Precinct board and live ticker streams are proxied without buffering. The local computer and SSH session can be turned off without stopping these services. [The runbook](runbook.md) lists every service.
 
-The API loads the validated private archive at startup, then stores guest sessions
-in ignored `runs/game-sessions/`. `corepack pnpm game:web` assembles HTML, JavaScript,
-CSS and only the required original portraits under `runs/game-preview/web/`.
-Nginx serves a copy of that public-only bundle from `/var/www/chog-noir`; it has no
-route to the source archive, metadata, environment or session files. Preserve the
-host's existing Certbot TLS directives when updating Nginx. The archive and session files remain private.
+`corepack pnpm game:web` assembles the page, script, style, service worker and the art of every Chog under `runs/game-preview/web/`. Nginx serves a copy of that public-only bundle from `/var/www/chog-noir`; it has no route to cases, keys, metadata, the environment or player records, which stay private under `runs/`. Preserve the host's existing Certbot TLS directives when updating Nginx.
 
 Use systemd for long jobs, with an explicit working directory and a persistent output directory under `runs/`. A plain foreground SSH command can stop when its connection closes. The `chog-noir-reliability.service` runs as `ubuntu`, with its own working directory and a six-hour duration, independently of SSH.
 
@@ -23,10 +18,9 @@ This is a single observation run. The service does not automatically restart fai
 
 The API, daily builder and live feed run from
 `/home/ubuntu/chog-noir-release/current`. Each release is a detached Git worktree
-named for its commit, with shared `data`, `runs` and `.env` symlinks. Each release
-keeps a private, fixed `release-archive.json` snapshot, so rebuilding the working
-archive cannot change existing released cases. Editing the
-main checkout does not change the running release's source.
+named for its commit, with shared `data`, `runs` and `.env` symlinks. Published cases
+live sealed in the shared vault, so a new release never changes a case already locked on
+chain. Editing the main checkout does not change the running release's source.
 
 After committing and synchronizing a tested commit, run
 `bash scripts/deploy-release.sh <full-commit-sha>` under systemd as `ubuntu`,
@@ -52,11 +46,11 @@ HTTP health and actual observation interval after enabling it. The live worker's
 forced startup-failure check uses process-local RPC overrides; it never changes
 `.env`. Its expected nonzero exit and redacted error are not a live-service pass.
 
-Daily publication waits for a confirmed open transaction. A source outage after
-00:10 UTC may select a labelled degraded fallback, while unavailable receipt or
-commitment confirmation still prevents publication. MAIN and COLD use distinct
-source events and exclude the previous seven plans. The saved daily status is
-`runs/daily/status.json`; publication and transaction journals remain private.
+Daily publication waits for a confirmed, finalized lock transaction. A source outage after
+00:10 UTC builds a labelled degraded case from the saved history, while an unavailable receipt
+or lock confirmation still prevents publication. A quiet day takes a cold case from an older
+real sale that none of the previous seven cases used. The saved daily status is
+`runs/daily/status.json`; publication records and transaction journals remain private.
 
 The vault master key is stored outside ciphertext at
 `/home/ubuntu/chognoir-private/vault.key` (or CASE_VAULT_KEY_FILE). The migration
@@ -64,11 +58,9 @@ command is `corepack pnpm exec tsx scripts/migrate-vault.mts`. It preserves the
 existing encryption key; it does not create a wallet signer. Retain this key with
 its encrypted cases when backing up or restoring runtime state.
 
-Cleanup removes rendered PNGs older than seven days and empty guest profiles
-older than thirty days. It skips busy players and retains scored results and
-pending daily submissions. Run it manually with
-`corepack pnpm exec tsx scripts/cleanup-game.mts` before installing the cleanup
-timer. It does not purge casebooks or session files on an age threshold.
+Cleanup runs at case open and overnight: it closes the Rookie desk for the finished case and
+removes spent sign-in nonces and expired wallet sessions. Player results and careers are never
+removed. Run it manually with `corepack pnpm exec tsx scripts/cleanup-game.mts`.
 
 Automatic gas-price replacement remains disabled until the funded Monad probe is
 verified. Each replacement preserves intent and nonce, retains every signed hash
