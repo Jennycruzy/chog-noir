@@ -1,4 +1,4 @@
-import {mkdir,copyFile,writeFile,link} from 'node:fs/promises';
+import {mkdir,copyFile,writeFile,link,readdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 // Public-only static bundle: the page, script, style and the art of every Chog. No case, key or metadata file is copied.
@@ -6,6 +6,8 @@ const root=fileURLToPath(new URL('../',import.meta.url)),output=join(root,'runs/
 const ids=Array.from({length:1969},(_,index)=>index+1);
 for(const folder of ['art','thumbs','medium'])await mkdir(join(output,folder),{recursive:true});
 for(const file of ['index.html','app.js','style.css','sw.js'])await copyFile(join(root,'apps/web',file),join(output,file));
+await mkdir(join(output,'fonts'),{recursive:true});
+for(const file of await readdir(join(root,'apps/web/fonts')))await copyFile(join(root,'apps/web/fonts',file),join(output,'fonts',file));
 const place=async(from:string,to:string)=>{try{await link(from,to);}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;}};
 for(const id of ids){await place(join(root,`data/images/${id}.webp`),join(output,`art/${id}.webp`));for(const folder of ['thumbs','medium'])await place(join(root,`runs/art/${folder}/${id}.webp`),join(output,folder,`${id}.webp`));}
 const report={preparedAt:new Date().toISOString(),files:['index.html','app.js','style.css','sw.js'],portraits:ids.length,privateArchiveCopied:false};

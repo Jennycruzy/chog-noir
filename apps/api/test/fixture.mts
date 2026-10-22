@@ -57,8 +57,8 @@ export async function fixtureServer(root:string,options:{web?:boolean}={}){
   if(!options.web)return false;
   const path=new URL(request.url??'/','http://localhost').pathname;
   if(path.startsWith('/api/'))return false;
-  const art=path.match(/^\/(art|thumbs|medium)\/(\d+)\.webp$/),file=art?(art[1]==='art'?`data/images/${art[2]}.webp`:`runs/art/${art[1]}/${art[2]}.webp`):path==='/app.js'?'apps/web/app.js':path==='/style.css'?'apps/web/style.css':'apps/web/index.html';
-  try{const bytes=await readFile(join(repository,file));response.writeHead(200,{'content-type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.webp')?'image/webp':'text/html; charset=utf-8','content-security-policy':"default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"});response.end(bytes);}
+  const font=path.match(/^\/fonts\/([a-z0-9-]+\.(?:woff2|css))$/),art=path.match(/^\/(art|thumbs|medium)\/(\d+)\.webp$/),file=font?`apps/web/fonts/${font[1]}`:art?(art[1]==='art'?`data/images/${art[2]}.webp`:`runs/art/${art[1]}/${art[2]}.webp`):path==='/app.js'?'apps/web/app.js':path==='/style.css'?'apps/web/style.css':'apps/web/index.html';
+  try{const bytes=await readFile(join(repository,file));response.writeHead(200,{'content-type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.webp')?'image/webp':file.endsWith('.woff2')?'font/woff2':'text/html; charset=utf-8','content-security-policy':"default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"});response.end(bytes);}
   catch{response.writeHead(404);response.end();}
   return true;
  };
