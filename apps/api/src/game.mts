@@ -21,6 +21,7 @@ import {OptOuts} from '../../../packages/auth/src/optout.mts';
 import {issueImage,shareImage} from '../../../packages/art/src/render.mts';
 import {ChogBurns} from '../../../packages/game/src/burns.mts';
 import {HunchDesk} from '../../../packages/game/src/arcs.mts';
+import {PushDesk} from '../../../packages/game/src/push.mts';
 import {createPublicClient,http} from 'viem';
 import {monad} from '../../../packages/chain/src/client.mts';
 import {playRoutes,type PlayOptions} from './play.mts';
@@ -121,6 +122,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   return {daily:{status:status.status,day:status.day??null,caseId:status.caseId??null},caseOpen:!!open,casesPublished:published.length,lastOpenTx:published.at(-1)?.open?.hash??null,owners,history:context?{toBlockExclusive:context.toBlockExclusive,coverageAt:context.coverageAt}:null};
  };
  const pages=publicRoutes({root,context,names:id=>metadata.get(id)?.name});options.history=pages.history;options.hunches=new HunchDesk(root);
+ options.push=new PushDesk({root,keyFile:process.env.PUSH_KEY_FILE??'/home/ubuntu/chognoir-private/push-vapid.json',subject:new URL(origin).origin});
  const server=gameServer({routes:[holderRoutes({origin,auth:services.auth,roster:services.roster,trustProxy:true}),playRoutes(options),pages],health});
  server.listen(port,'127.0.0.1',()=>console.log(`Chog Noir listening on 127.0.0.1:${port}`));
  for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>{server.close();server.closeAllConnections();});

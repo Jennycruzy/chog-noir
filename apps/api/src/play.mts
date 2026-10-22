@@ -18,6 +18,7 @@ import {BurnError,type ChogBurns} from '../../../packages/game/src/burns.mts';
 import config from '../../../config/cases.json' with {type:'json'};
 import {currentArc,caseHook,hunchResult,ArcError,type HunchDesk} from '../../../packages/game/src/arcs.mts';
 import type {EnrichedEvent} from '../../../packages/core/src/enrich.mts';
+import {PushError,type PushDesk} from '../../../packages/game/src/push.mts';
 import type {ShareFacts} from '../../../packages/art/src/render.mts';
 
 export interface CaseSource {
@@ -33,6 +34,7 @@ export interface PlayOptions {
  burns?:ChogBurns;
  /** The stored chain history, for the ongoing story and each closed case's hook. */
  history?:()=>{history:readonly EnrichedEvent[];times:ReadonlyMap<number,number>}|null;hunches?:HunchDesk;
+ push?:PushDesk;
  render?:{issue:(puzzle:PuzzleCase,issue:{number:number;openTx:string;closeTx:string},landscape:boolean)=>Promise<Buffer>;share:(facts:ShareFacts)=>Promise<Buffer>};
 }
 /** A real caught lie for the front door: the false statement, the exact CAUGHT label and the breaking receipt, together. */
@@ -267,10 +269,10 @@ export function playRoutes(options:PlayOptions){
  const handler=async(request:IncomingMessage,response:ServerResponse):Promise<boolean>=>{
   // Game routes live only under /api; page addresses such as /chog/11 belong to the site.
   const url=new URL(request.url??'/','http://localhost');if(!url.pathname.startsWith('/api/'))return false;const path=url.pathname.slice(4);
-  const route=path.match(/^\/(case\/today|case\/start|case\/action|case\/state|rookie\/start|precinct|precinct\/stream|issues|replay|training\/start|training\/action|optout|case\/burn|arc\/current|arc\/hunch)$/)?.[1]??(/^\/case\/case-[a-f0-9]{24}\/(public|stats)$/.test(path)?'case-detail':/^\/chog\/\d+$/.test(path)?'chog':/^\/issues\/\d+$/.test(path)?'issue':/^\/issues\/\d+\/image$/.test(path)?'issue-image':path==='/case/share-image'?'share-image':/^\/verify\/case-[a-f0-9]{24}$/.test(path)?'verify':null);
+  const route=path.match(/^\/(case\/today|case\/start|case\/action|case\/state|rookie\/start|precinct|precinct\/stream|issues|replay|training\/start|training\/action|optout|case\/burn|arc\/current|arc\/hunch|push\/key|push\/subscribe)$/)?.[1]??(/^\/case\/case-[a-f0-9]{24}\/(public|stats)$/.test(path)?'case-detail':/^\/chog\/\d+$/.test(path)?'chog':/^\/issues\/\d+$/.test(path)?'issue':/^\/issues\/\d+\/image$/.test(path)?'issue-image':path==='/case/share-image'?'share-image':/^\/verify\/case-[a-f0-9]{24}$/.test(path)?'verify':null);
   if(!route)return false;
   try{
-   const post=['case/start','case/action','rookie/start','training/start','training/action','optout','arc/hunch'].includes(route)||route==='case/burn'&&request.method==='POST';
+   const post=['case/start','case/action','rookie/start','training/start','training/action','optout','arc/hunch','push/subscribe'].includes(route)||route==='case/burn'&&request.method==='POST';
    if(request.method!==(post?'POST':'GET')){response.setHeader('allow',post?'POST':'GET');throw new PlayError('METHOD_INVALID','Use the correct request method.',405);}
    if(route==='case/burn'){if(post){if(request.headers.origin!==origin)throw new PlayError('ORIGIN_INVALID','Play from the bureau website.',403);rate(request);}return reply(response,200,await burn(request,url)),true;}
    if(post){if(request.headers.origin!==origin)throw new PlayError('ORIGIN_INVALID','Play from the bureau website.',403);rate(request);}
@@ -280,6 +282,16 @@ export function playRoutes(options:PlayOptions){
    if(route==='case/action'){const input=await body(request);return reply(response,200,input.tokenId===undefined?await rookieAction(request,input):await holderAction(request,input)),true;}
    if(route==='case/state'){const tokenId=tokenParameter(url.searchParams.get('tokenId')),address=await wallet(request),{record,puzzle}=await today(),play=await options.plays.read(puzzle.file.id,tokenId);if(!play||play.wallet!==address)throw new PlayError('CASE_NOT_STARTED','Take the case with this Chog first.',404);return reply(response,200,holderView(puzzle,record,play)),true;}
    if(route==='precinct')return reply(response,200,await precinct()),true;
+   if(route==='push/key'){if(!options.push)throw new PushError('PUSH_UNAVAILABLE','Alerts are unavailable right now.',503);return reply(response,200,{publicKey:(await options.push.keys()).publicKey}),true;}
+   if(route==='push/subscribe'){
+    if(!options.push)throw new PushError('PUSH_UNAVAILABLE','Alerts are unavailable right now.',503);
+    const input=await body(request),subscription=input.subscription as {endpoint?:unknown;keys?:{p256dh?:unknown;auth?:unknown}}|undefined;
+    if(!subscription||typeof subscription.endpoint!=='string'||typeof subscription.keys?.p256dh!=='string'||typeof subscription.keys?.auth!=='string')throw new PushError('PUSH_SUBSCRIPTION_INVALID','This browser subscription cannot receive alerts.');
+    // Anyone may hear about new cases; following a Chog needs the wallet that holds it, checked on chain.
+    let tokenId:number|null=null;
+    if(input.tokenId!==undefined){tokenId=tokenParameter(input.tokenId);if(!await options.holders.owns(await wallet(request),tokenId))throw new AuthError('HOLDER_NOT_OWNER',"This Chog isn't in your wallet any more.",403);}
+    return reply(response,200,await options.push.subscribe({endpoint:subscription.endpoint,keys:{p256dh:subscription.keys.p256dh,auth:subscription.keys.auth}},tokenId)),true;
+   }
    if(route==='arc/current')return reply(response,200,await arc(request,response)),true;
    if(route==='arc/hunch')return reply(response,200,await arc(request,response,(await body(request)).answer)),true;
    if(route==='replay'){
@@ -321,7 +333,7 @@ export function playRoutes(options:PlayOptions){
    }
    return false;
   }catch(error){
-   if(error instanceof AuthError||error instanceof PlayError||error instanceof PuzzleActionError||error instanceof RookieError||error instanceof TrainingError||error instanceof BurnError||error instanceof ArcError)reply(response,error.status,{code:error.code,error:error.message});
+   if(error instanceof AuthError||error instanceof PlayError||error instanceof PuzzleActionError||error instanceof RookieError||error instanceof TrainingError||error instanceof BurnError||error instanceof ArcError||error instanceof PushError)reply(response,error.status,{code:error.code,error:error.message});
    else if(error instanceof CareerError)reply(response,error.code==='PLAY_ALREADY_TODAY'?409:400,{code:error.code,error:error.message});
    else if(error instanceof PlayerBusy)reply(response,409,{code:'CASE_BUSY',error:'Your last action is still being saved. Try again.'});
    else if(error instanceof DetectiveDataError||error instanceof PuzzleError)reply(response,503,{code:error.code,error:'This case could not be checked. Try again shortly.'});

@@ -115,7 +115,8 @@ async function home(){
  const hero=h('section',{class:'hero'},
   h('div',{},h('h1',{},'Chog Noir'),h('p',{class:'line'},'Every night something real happens to Chogs on Monad. Every morning your Chog takes the case. One witness is lying. The chain never does.'),
    h('div',{class:'actions'},today.case?h('button',{class:'primary',onclick:()=>go('/rookie')},'Play as a rookie'):null,h('button',{onclick:()=>go('/connect')},'Connect wallet')),
-   today.case?caseCard(today.case):h('p',{class:'type'},'No case is open right now. A new case opens at 00:20 UTC.')),
+   today.case?caseCard(today.case):h('p',{class:'type'},'No case is open right now. A new case opens at 00:20 UTC.'),
+   h('button',{onclick:()=>alertMe(null)},'Alert me when a new case opens')),
   replay??h('div',{}));
  app.replaceChildren(hero,...ticker(),h('nav',{class:'actions'},link('/precinct','Precinct board'),' · ',link('/arc','The story'),' · ',link('/issues','Issues'),' · ',link('/report','Precinct Report'),' · ',link('/scam-desk','Scam Desk')));
 }
@@ -332,6 +333,19 @@ async function arcPage(){
  try{const source=new EventSource('/api/events');state.streams.push(source);let seen='';source.addEventListener('feed',async event=>{const feed=JSON.parse(event.data),first=feed.events?.[0]?.id??'';if(seen&&first!==seen)draw(await api('/arc/current'));seen=first;});}catch{}
 }
 
+/* Alerts: opt-in only. The browser asks for permission; a refusal is respected and explained. */
+async function alertMe(tokenId){
+ try{
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)){notify('This browser cannot receive alerts.','alarm');return;}
+  if(await Notification.requestPermission()!=='granted'){notify('Alerts are off in your browser settings.','alarm');return;}
+  const registration=await navigator.serviceWorker.register('/sw.js'),{publicKey}=await api('/push/key');
+  const key=Uint8Array.from(atob(publicKey.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-publicKey.length%4)%4)),char=>char.charCodeAt(0));
+  const subscription=(await registration.pushManager.getSubscription())??await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
+  await api('/push/subscribe',{method:'POST',body:{subscription:subscription.toJSON(),...(tokenId?{tokenId}:{})}});
+  notify(tokenId?'You will hear when this Chog is in a case, and when each new case opens.':'You will hear when each new case opens.','clue');
+ }catch(error){fail(error);}
+}
+
 /* Public pages */
 async function precinct(){
  const node=h('div',{});
@@ -362,6 +376,8 @@ async function profile(id){
  app.replaceChildren(h('section',{class:'hero'},h('div',{},h('h2',{},data.name),h('p',{class:'type'},`${data.skill.name}: ${data.skill.line}`),data.founder?h('p',{class:'tag'},'Founder: never moved since mint'):null,
    h('table',{},h('tbody',{},[['Rank',c.rank],['Cases solved',c.solves],['Lies caught',c.liesCaught],['Perfect cases',c.perfectCases],['Streak',`${c.streak} (best ${c.bestStreak}, freezes ${c.freezes})`],['Called as witness',data.witness.called],['Caught lying as a witness',data.witness.lied]].map(([key,value])=>h('tr',{},h('th',{},key),h('td',{},String(value))))))),
   h('img',{src:art(id),alt:`${data.name}. ${data.traits.map(row=>row.display).join(', ')}`,style:'width:100%;max-width:420px;border-radius:8px'})),
+  state.roster?.chogs?.some(row=>row.tokenId===Number(id))?h('button',{onclick:()=>alertMe(Number(id))},'Alert me when this Chog is in a case'):null,
+  data.chogStamp?h('p',{class:'tag'},'$CHOG holder'):null,
   h('h3',{},'Traits'),h('p',{},data.traits.map(row=>row.display).join(' · ')),
   h('h3',{},'Rogues’ gallery'),data.gallery.length?h('p',{},data.gallery.map((row,index)=>[index?', ':'',link('/chog/'+row.tokenId,row.name??'Chog')])):h('p',{class:'muted'},'No liars caught yet.'),
   h('h3',{},'Issues'),data.issues.length?h('p',{},'Appeared in ',data.issues.map((row,index)=>[index?', ':'',link('/issues/'+row.number,'Issue #'+row.number)])):h('p',{class:'muted'},'Not in a closed case yet.'),

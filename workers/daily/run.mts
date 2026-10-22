@@ -1,4 +1,4 @@
-import {mkdir,readFile,readdir} from 'node:fs/promises';
+import {access,mkdir,readFile,readdir,writeFile} from 'node:fs/promises';
 import {randomBytes} from 'node:crypto';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -21,6 +21,7 @@ import {buildDailyPuzzle,type CaseEvent} from './build.mts';
 import {verifySourceReceipts,puzzleSources} from './receipts.mts';
 import {localVault,privateVaultKeyFile,atomicJSON} from '../../packages/publishing/src/vault.mts';
 import {PuzzlePublisher} from '../../packages/publishing/src/puzzles.mts';
+import {PushDesk} from '../../packages/game/src/push.mts';
 import {safeError} from '../../scripts/errors.mts';
 await loadEnv();
 if(process.env.CHOG_CHAIN_LOCKED!=='true')throw new Error('DAILY_LOCK: Run through corepack pnpm daily:run or the systemd service');
@@ -80,6 +81,13 @@ try{
  }
  await publisher.prepare(await vault.open<PuzzleCase>(plan.id),plan.source);
  const record=await publisher.publish(day);
+ // Alerts go out once per case, after it is published: never before its answer is locked on chain.
+ const announced=join(directory,'cases',day+'.announced');
+ if(record.status==='PUBLISHED'&&!await access(announced).then(()=>true,()=>false)){
+  const puzzle=await vault.open<PuzzleCase>(plan.id),origin=(process.env.BUREAU_ORIGIN??'https://chognoir.54-154-121-30.sslip.io/').replace(/\/$/,'');
+  const report=await new PushDesk({root,keyFile:process.env.PUSH_KEY_FILE??'/home/ubuntu/chognoir-private/push-vapid.json',subject:origin}).announce({caseNumber:record.number,title:puzzle.file.title,cast:puzzle.file.cast.map(row=>row.tokenId),url:origin+'/case'});
+  await writeFile(announced,JSON.stringify({...report,at:new Date().toISOString()}),{mode:0o600,flag:'wx'});
+ }
  await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:record.status==='PUBLISHED'?'PUBLISHED':'COMMITTED_WAITING_OPEN',day,caseId:plan.id,number:record.number,source:plan.source,condition:plan.condition,openTx:record.open?.hash??null,toBlockExclusive:plan.toBlockExclusive});
  console.log(JSON.stringify({status:'DAILY_RUN_COMPLETE',day,caseId:plan.id,publication:record.status}));
 }catch(error){
