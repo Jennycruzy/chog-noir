@@ -19,6 +19,9 @@ import {randomBytes} from 'node:crypto';
 import {TrainingDesk,type TrainingCase} from '../../../packages/game/src/training.mts';
 import {OptOuts} from '../../../packages/auth/src/optout.mts';
 import {issueImage,shareImage} from '../../../packages/art/src/render.mts';
+import {ChogBurns} from '../../../packages/game/src/burns.mts';
+import {createPublicClient,http} from 'viem';
+import {monad} from '../../../packages/chain/src/client.mts';
 import {playRoutes,type PlayOptions} from './play.mts';
 import {publicContext,type PublicContext} from './context.mts';
 import {safeError} from '../../../scripts/errors.mts';
@@ -107,7 +110,8 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const optOuts=new OptOuts(root);
  const options:PlayOptions={origin,...services,cases,plays:new HolderPlays(root),rookies:new RookieDesk<PuzzleSession>({root,metadata,secure:origin.startsWith('https:')}),trustProxy:true,verify:(record,file)=>verifyPuzzlePublication(record,file),
   training:new TrainingDesk(randomBytes(32),()=>training),replay:saved('runs/replay/replay.json'),optOut:address=>optOuts.record(address),
-  render:{issue:(puzzle,issue,landscape)=>issueImage(root,puzzle,issue,landscape),share:facts=>shareImage(root,facts)}};
+  render:{issue:(puzzle,issue,landscape)=>issueImage(root,puzzle,issue,landscape),share:facts=>shareImage(root,facts)},
+  burns:new ChogBurns({root,client:createPublicClient({chain:monad,transport:http(process.env.MONAD_RPC_HTTP??'https://rpc2.monad.xyz',{timeout:20_000,retryCount:1})})})};
  const health=async()=>{
   const status=await readFile(join(root,'runs/daily/status.json'),'utf8').then(text=>JSON.parse(text)).catch(()=>({status:'NOT_STARTED'}));
   const owners=await readFile(join(root,'runs/owners/snapshot.json'),'utf8').then(text=>{const value=JSON.parse(text);return {indexedBlock:value.indexedBlock,ageSeconds:Math.round((Date.now()-value.indexedAt)/1000)};}).catch(()=>null);

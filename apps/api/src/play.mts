@@ -14,6 +14,8 @@ import {PlayerBusy} from '../../../packages/game/src/player-lock.mts';
 import {detectiveFor,questionBudget,DetectiveDataError} from '../../../packages/traits/src/detective.mts';
 import type {PuzzlePublication} from '../../../packages/publishing/src/puzzles.mts';
 import {TrainingError,type TrainingDesk} from '../../../packages/game/src/training.mts';
+import {BurnError,type ChogBurns} from '../../../packages/game/src/burns.mts';
+import config from '../../../config/cases.json' with {type:'json'};
 import type {ShareFacts} from '../../../packages/art/src/render.mts';
 
 export interface CaseSource {
@@ -26,6 +28,7 @@ export interface PlayOptions {
  connectionsAt:(atBlock:number)=>Promise<WitnessConnections>;cases:CaseSource;plays:HolderPlays;rookies:RookieDesk<PuzzleSession>;
  trustProxy?:boolean;now?:()=>number;verify?:(record:PuzzlePublication,file:PuzzleCase['file']|null)=>Promise<unknown>;
  training?:TrainingDesk;replay?:()=>Promise<ReplayPanel|null>;optOut?:(address:string)=>Promise<{recordedAt:string}>;
+ burns?:ChogBurns;
  render?:{issue:(puzzle:PuzzleCase,issue:{number:number;openTx:string;closeTx:string},landscape:boolean)=>Promise<Buffer>;share:(facts:ShareFacts)=>Promise<Buffer>};
 }
 /** A real caught lie for the front door: the false statement, the exact CAUGHT label and the breaking receipt, together. */
@@ -75,7 +78,7 @@ export function playRoutes(options:PlayOptions){
 
  function detectivePanel(play:HolderPlay){
   const detective=detectiveFor(play.tokenId,metadataFor(play.tokenId).metadata);
-  return {tokenId:play.tokenId,name:detective.name,skill:detective.skill,skillName:detective.skillName,skillLine:detective.skillLine,uses:detective.uses,questions:play.session.initialQuestions,founder:play.founder,side:detective.side,moneyTalk:detective.moneyTalk,special:detective.special};
+  return {tokenId:play.tokenId,name:detective.name,skill:detective.skill,skillName:detective.skillName,skillLine:detective.skillLine,uses:detective.uses,questions:play.session.initialQuestions,founder:play.founder,side:detective.side,moneyTalk:detective.moneyTalk,special:detective.special,chogStamp:play.chogStamp};
  }
  function holderView(puzzle:PuzzleCase,record:PuzzlePublication,play:HolderPlay){
   return {mode:'HOLDER',case:caseSummary(record,puzzle),state:viewPuzzleSession(puzzle,play.session),detective:detectivePanel(play),
@@ -105,7 +108,9 @@ export function playRoutes(options:PlayOptions){
    const links=await options.connectionsAt(puzzle.file.cutoff.block);
    const known=puzzle.file.cast.filter(row=>row.tokenId!==tokenId).flatMap(row=>{const first=links.between(tokenId,row.tokenId)[0];return first?[{witness:row.tokenId,kind:first.kind,reason:first.reason}]:[];});
    const session=createPuzzleSession(puzzle,{tokenId,name:detective.name,skill:detective.skill,uses:detective.uses,questions:budget.total,moneyTalk:detective.moneyTalk,side:detective.side,freePress:known.map(row=>row.witness)},'HOLDER');
-   const play:HolderPlay={v:1,caseId:puzzle.file.id,tokenId,wallet:address,founder:chog.founder,startedAt:started,session,known,catches:[],finishedAt:null,transferredMidCase:false};
+   // The stamp is cosmetic: if the token cannot be read right now, the case still starts, without it.
+   const chogStamp=options.burns?await options.burns.holds(address).catch(()=>false):false;
+   const play:HolderPlay={v:1,caseId:puzzle.file.id,tokenId,wallet:address,founder:chog.founder,startedAt:started,session,known,catches:[],finishedAt:null,transferredMidCase:false,burnNonce:randomBytes(16).toString('hex'),chogStamp};
    await options.plays.create(play);return {...holderView(puzzle,record,play),budget};
   });
  }
@@ -131,6 +136,24 @@ export function playRoutes(options:PlayOptions){
    const before=play.session.caught.length;play.session=applyPuzzleAction(puzzle,play.session,action,seconds());
    for(let index=before;index<play.session.caught.length;index++)play.catches.push(now());
    if(play.session.done&&play.finishedAt===null)await finish(puzzle,record,play);
+   await options.plays.save(play);return holderView(puzzle,record,play);
+  });
+ }
+ /** GET returns the exact transaction to send; POST credits it once the chain shows it. */
+ async function burn(request:IncomingMessage,url:URL){
+  if(!options.burns)throw new BurnError('BURN_UNAVAILABLE','$CHOG burns are unavailable right now.',503);
+  const address=await wallet(request),{record,puzzle}=await today();
+  const tokenId=tokenParameter(request.method==='GET'?url.searchParams.get('tokenId'):undefined),input=request.method==='POST'?await body(request):null;
+  const id=input?tokenParameter(input.tokenId):tokenId;
+  return options.plays.locked(puzzle.file.id,id,async()=>{
+   const play=await options.plays.read(puzzle.file.id,id);
+   if(!play||play.wallet!==address)throw new PlayError('CASE_NOT_STARTED','Take the case with this Chog first.',404);
+   if(!input)return {...options.burns!.intent(puzzle.file.id,id,play.burnNonce),burnsLeft:holderView(puzzle,record,play).state.burnsLeft};
+   if(!Number.isSafeInteger(input.revision))throw new PlayError('ACTION_INVALID','Use the latest case view.');
+   // Check the limit before the chain so a third burn is refused without being recorded as used.
+   if(play.session.burns>=config.burnQuestions.maximum||play.session.done)throw new BurnError('BURN_LIMIT','The informant has been paid twice for this case.',409);
+   await options.burns!.verify({tx:String(input.tx),wallet:address,caseId:puzzle.file.id,tokenId:id,nonce:play.burnNonce});
+   play.session=applyPuzzleAction(puzzle,play.session,{type:'burn',revision:input.revision as number},seconds());
    await options.plays.save(play);return holderView(puzzle,record,play);
   });
  }
@@ -185,7 +208,8 @@ export function playRoutes(options:PlayOptions){
   const results=career.duties.filter(duty=>duty.result).map(duty=>{const chain=closed.find(row=>row.record.id===duty.caseId)?.record;return {caseId:duty.caseId,day:duty.day,grade:duty.result!.grade,transferredMidCase:duty.result!.transferredMidCase,recordTx:chain?.solves?.length?chain.solves.map(receipt=>receipt.hash):null};});
   // Founder status needs a fresh owner index; when it is updating the profile says so instead of guessing.
   const held=await options.holders.token(tokenId).catch(error=>{if(error instanceof AuthError&&error.status===503)return null;throw error;});
-  return {tokenId,name:detective.name,traits:detective.cleanTraits,skill:{name:detective.skillName,line:detective.skillLine,uses:detective.uses},founder:held?held.founder:null,
+  const chogStamp=held&&options.burns?await options.burns.holds(held.owner).catch(()=>null):null;
+  return {tokenId,name:detective.name,traits:detective.cleanTraits,skill:{name:detective.skillName,line:detective.skillLine,uses:detective.uses},founder:held?held.founder:null,chogStamp,
    career:{...careerStatus(career,day,held?.founder??false),grades:career.grades,liesCaught:career.liesCaught,perfectCases:career.perfectCases,firstCase:career.duties[0]?.day??null},
    gallery:career.gallery.map(id=>({tokenId:id,name:options.metadata.get(id)?.metadata.name??null})),results,
    witness:{called:appeared.length,lied:lied.length},issues:appeared.map(row=>({number:row.record.number,day:row.record.day,title:row.puzzle.file.title,caseId:row.record.id}))};
@@ -211,7 +235,7 @@ export function playRoutes(options:PlayOptions){
   const state=view.state;if(!state.done||!state.result)throw new PlayError('SHARE_LOCKED','Finish the case to share it.',403);
   const holder=view.mode==='HOLDER'?(view as ReturnType<typeof holderView>):null;
   const status=holder?careerStatus(await options.career.profile(holder.detective.tokenId),puzzle.file.day,holder.detective.founder):null;
-  return options.render.share({number:record.number,weekday:caseSummary(record,puzzle).weekday,detective:holder?`${holder.detective.name}${holder.detective.founder?' · Founder':''} · ${status!.rank}`:'ROOKIE DESK',
+  return options.render.share({number:record.number,weekday:caseSummary(record,puzzle).weekday,detective:holder?`${holder.detective.name}${holder.detective.founder?' · Founder':''} · ${status!.rank}${holder.detective.chogStamp?' · $CHOG':''}`:'ROOKIE DESK',
    liesCaught:state.caught.length,lies:state.result.panels.length,solved:state.result.solved,questionsLeft:state.questions,streak:status?status.streak:null,subject:puzzle.file.subject.tokenId});
  }
  const timer=setInterval(()=>{if(!streams.size)return;void precinct().then(value=>{const text='event: precinct\ndata: '+JSON.stringify(value)+'\n\n';for(const stream of streams)stream.write(text);}).catch(()=>{});},5000);timer.unref();
@@ -219,11 +243,12 @@ export function playRoutes(options:PlayOptions){
  const handler=async(request:IncomingMessage,response:ServerResponse):Promise<boolean>=>{
   // Game routes live only under /api; page addresses such as /chog/11 belong to the site.
   const url=new URL(request.url??'/','http://localhost');if(!url.pathname.startsWith('/api/'))return false;const path=url.pathname.slice(4);
-  const route=path.match(/^\/(case\/today|case\/start|case\/action|case\/state|rookie\/start|precinct|precinct\/stream|issues|replay|training\/start|training\/action|optout)$/)?.[1]??(/^\/case\/case-[a-f0-9]{24}\/(public|stats)$/.test(path)?'case-detail':/^\/chog\/\d+$/.test(path)?'chog':/^\/issues\/\d+$/.test(path)?'issue':/^\/issues\/\d+\/image$/.test(path)?'issue-image':path==='/case/share-image'?'share-image':/^\/verify\/case-[a-f0-9]{24}$/.test(path)?'verify':null);
+  const route=path.match(/^\/(case\/today|case\/start|case\/action|case\/state|rookie\/start|precinct|precinct\/stream|issues|replay|training\/start|training\/action|optout|case\/burn)$/)?.[1]??(/^\/case\/case-[a-f0-9]{24}\/(public|stats)$/.test(path)?'case-detail':/^\/chog\/\d+$/.test(path)?'chog':/^\/issues\/\d+$/.test(path)?'issue':/^\/issues\/\d+\/image$/.test(path)?'issue-image':path==='/case/share-image'?'share-image':/^\/verify\/case-[a-f0-9]{24}$/.test(path)?'verify':null);
   if(!route)return false;
   try{
-   const post=['case/start','case/action','rookie/start','training/start','training/action','optout'].includes(route);
+   const post=['case/start','case/action','rookie/start','training/start','training/action','optout'].includes(route)||route==='case/burn'&&request.method==='POST';
    if(request.method!==(post?'POST':'GET')){response.setHeader('allow',post?'POST':'GET');throw new PlayError('METHOD_INVALID','Use the correct request method.',405);}
+   if(route==='case/burn'){if(post){if(request.headers.origin!==origin)throw new PlayError('ORIGIN_INVALID','Play from the bureau website.',403);rate(request);}return reply(response,200,await burn(request,url)),true;}
    if(post){if(request.headers.origin!==origin)throw new PlayError('ORIGIN_INVALID','Play from the bureau website.',403);rate(request);}
    if(route==='case/today'){const current=await options.cases.current(now());return reply(response,200,{case:current?caseSummary(current.record,current.puzzle):null,nextOpensAt:current?null:Math.ceil((now()/1000-1200)/86400)*86400+1200}),true;}
    if(route==='case/start')return reply(response,201,await startHolder(request,await body(request))),true;
@@ -270,7 +295,7 @@ export function playRoutes(options:PlayOptions){
    }
    return false;
   }catch(error){
-   if(error instanceof AuthError||error instanceof PlayError||error instanceof PuzzleActionError||error instanceof RookieError||error instanceof TrainingError)reply(response,error.status,{code:error.code,error:error.message});
+   if(error instanceof AuthError||error instanceof PlayError||error instanceof PuzzleActionError||error instanceof RookieError||error instanceof TrainingError||error instanceof BurnError)reply(response,error.status,{code:error.code,error:error.message});
    else if(error instanceof CareerError)reply(response,error.code==='PLAY_ALREADY_TODAY'?409:400,{code:error.code,error:error.message});
    else if(error instanceof PlayerBusy)reply(response,409,{code:'CASE_BUSY',error:'Your last action is still being saved. Try again.'});
    else if(error instanceof DetectiveDataError||error instanceof PuzzleError)reply(response,503,{code:error.code,error:'This case could not be checked. Try again shortly.'});

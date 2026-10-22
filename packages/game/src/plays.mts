@@ -12,6 +12,8 @@ export interface KnownWitness {witness:number;kind:'LOOK'|'WALLET'|'MINT';reason
 export interface HolderPlay {
  v:1;caseId:string;tokenId:number;wallet:Address;founder:boolean;startedAt:number;
  session:PuzzleSession;known:KnownWitness[];catches:number[];finishedAt:number|null;transferredMidCase:boolean;
+ /** burnNonce binds a $CHOG burn to this play; chogStamp records that the wallet held $CHOG when the case started. */
+ burnNonce:string;chogStamp:boolean;
 }
 const validToken=(id:number)=>Number.isSafeInteger(id)&&id>=1&&id<=1969;
 const validCase=(id:string)=>/^case-[a-f0-9]{24}$/.test(id);
@@ -27,7 +29,7 @@ export class HolderPlays {
  }
  private parse(text:string,caseId:string,tokenId:number):HolderPlay{
   const play=JSON.parse(text) as HolderPlay;
-  if(play.v!==1||play.caseId!==caseId||play.tokenId!==tokenId||play.session?.caseId!==caseId||play.session.mode!=='HOLDER'||play.session.detective.tokenId!==tokenId||!Array.isArray(play.catches)||!Array.isArray(play.known)||typeof play.founder!=='boolean'||typeof play.transferredMidCase!=='boolean')throw new PlayError('PLAY_STORAGE_INVALID','This case record could not be read.',503);
+  if(play.v!==1||play.caseId!==caseId||play.tokenId!==tokenId||play.session?.caseId!==caseId||play.session.mode!=='HOLDER'||play.session.detective.tokenId!==tokenId||!Array.isArray(play.catches)||!Array.isArray(play.known)||typeof play.founder!=='boolean'||typeof play.transferredMidCase!=='boolean'||!/^[a-f0-9]{32}$/.test(play.burnNonce)||typeof play.chogStamp!=='boolean')throw new PlayError('PLAY_STORAGE_INVALID','This case record could not be read.',503);
   return play;
  }
  async read(caseId:string,tokenId:number):Promise<HolderPlay|null>{

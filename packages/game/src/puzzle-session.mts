@@ -1,24 +1,27 @@
 import {planFor,validatePuzzle,type PuzzleCase,type LieId} from '../../cases/src/puzzle.mts';
 import type {DetectiveSkill} from '../../traits/src/detective.mts';
+import config from '../../../config/cases.json' with {type:'json'};
 
 export class PuzzleActionError extends Error {constructor(public readonly code:string,message:string,public readonly status=400){super(message);}}
 export interface PuzzleDetective {tokenId:number;name:string;skill:DetectiveSkill;uses:number;questions:number;moneyTalk:boolean;side:'BUYER'|'SELLER'|null;freePress:number[]}
 export interface PuzzleSession {
  v:2;mode:'HOLDER'|'ROOKIE';caseId:string;detective:PuzzleDetective;revision:number;questions:number;initialQuestions:number;
  pressed:number[];opened:string[];caught:LieId[];identified:number[];highlighted:string[];skillUses:number;sideUsed:boolean;
- wrongPresents:number;attempts:number;feedback:'All correct'|'1 wrong'|'2 or more wrong'|null;notice:string|null;done:boolean;solved:boolean;solutionAttempt:number|null;
+ wrongPresents:number;attempts:number;feedback:'All correct'|'1 wrong'|'2 or more wrong'|null;notice:string|null;done:boolean;solved:boolean;solutionAttempt:number|null;burns:number;
 }
 export type PuzzleAction=
  |{type:'press';witness:number;revision:number}|{type:'present';statementId:string;receiptId:string;revision:number}
  |{type:'open';receiptId:string;revision:number}|{type:'skill';receiptId?:string;statementId?:string;revision:number}
- |{type:'solve';tiles:Record<string,string>;revision:number};
+ |{type:'solve';tiles:Record<string,string>;revision:number}
+ /** Applied by the server only after a $CHOG burn is verified on chain. */
+ |{type:'burn';revision:number};
 const error=(code:string,message:string,status=400):never=>{throw new PuzzleActionError(code,message,status);};
 export function createPuzzleSession(puzzle:PuzzleCase,detective:PuzzleDetective,mode:'HOLDER'|'ROOKIE'):PuzzleSession{
  if(validatePuzzle(puzzle).length)return error('CASE_INVALID','This case could not be checked.',503);
  if(!['HOLDER','ROOKIE'].includes(mode)||!Number.isSafeInteger(detective.tokenId)||detective.tokenId<1||detective.tokenId>1969||!detective.name||!['XRAY','ANALYST','TAKES_ONE','EMPATH','LEGEND'].includes(detective.skill)||!Number.isSafeInteger(detective.uses)||detective.uses<1||detective.uses>3||!Number.isSafeInteger(detective.questions)||detective.questions<4||detective.questions>11||!Array.isArray(detective.freePress)||detective.freePress.some(id=>!puzzle.file.cast.some(row=>row.tokenId===id)))return error('DETECTIVE_INPUT_INVALID','The detective could not be checked.',503);
  if(mode==='ROOKIE'&&(puzzle.file.cast.some(row=>row.tokenId===detective.tokenId)||detective.questions!==(detective.skill==='EMPATH'?8:6)||detective.side!==null||detective.moneyTalk||detective.freePress.length))return error('ROOKIE_BONUS_INVALID','The bureau badge cannot receive holder bonuses.',503);
  const ownReceipt=mode==='HOLDER'?puzzle.file.receipts.find(row=>row.sealed&&(row.tokenIds?.includes(detective.tokenId)||row.id==='payment'&&puzzle.file.subject.tokenId===detective.tokenId))?.id??null:null;
- return {v:2,mode,caseId:puzzle.file.id,detective:structuredClone(detective),revision:0,questions:detective.questions,initialQuestions:detective.questions,pressed:[],opened:puzzle.file.receipts.filter(row=>!row.sealed||row.id===ownReceipt).map(row=>row.id),caught:[],identified:[],highlighted:[],skillUses:detective.skill==='EMPATH'?0:detective.skill==='LEGEND'?1:detective.uses,sideUsed:false,wrongPresents:0,attempts:0,feedback:null,notice:null,done:false,solved:false,solutionAttempt:null};
+ return {v:2,mode,caseId:puzzle.file.id,detective:structuredClone(detective),revision:0,questions:detective.questions,initialQuestions:detective.questions,pressed:[],opened:puzzle.file.receipts.filter(row=>!row.sealed||row.id===ownReceipt).map(row=>row.id),caught:[],identified:[],highlighted:[],skillUses:detective.skill==='EMPATH'?0:detective.skill==='LEGEND'?1:detective.uses,sideUsed:false,wrongPresents:0,attempts:0,feedback:null,notice:null,done:false,solved:false,solutionAttempt:null,burns:0};
 }
 function freePress(puzzle:PuzzleCase,session:PuzzleSession,witness:number){return session.mode==='HOLDER'&&(session.detective.freePress.includes(witness)||!session.sideUsed&&session.detective.side!==null&&puzzle.file.cast.find(row=>row.tokenId===witness)?.side===session.detective.side);}
 export function applyPuzzleAction(puzzle:PuzzleCase,session:PuzzleSession,action:PuzzleAction,now:number):PuzzleSession{
@@ -80,6 +83,11 @@ export function applyPuzzleAction(puzzle:PuzzleCase,session:PuzzleSession,action
    if(wrong===0){next.solved=true;next.solutionAttempt=next.attempts;next.done=true;}else if(next.attempts===2)next.done=true;
    break;
   }
+  case 'burn':{
+   if(next.mode!=='HOLDER')return error('BURN_HOLDER_ONLY','Only a held Chog can bribe the informant.');
+   if(next.burns>=config.burnQuestions.maximum)return error('BURN_LIMIT','The informant has been paid twice for this case.');
+   next.burns++;next.questions++;next.notice='The informant talks: +1 question.';break;
+  }
   default:return error('ACTION_INVALID','Choose a case action.');
  }
  next.revision++;return next;
@@ -89,7 +97,8 @@ export function puzzleScore(puzzle:PuzzleCase,session:PuzzleSession){
  let mandatory=0,sideUsed=false;
  for(const witness of needed){if(session.mode==='HOLDER'&&session.detective.freePress.includes(witness))continue;const side=puzzle.file.cast.find(row=>row.tokenId===witness)?.side;if(session.mode==='HOLDER'&&!sideUsed&&session.detective.side!==null&&session.detective.side===side)sideUsed=true;else mandatory++;}
  const max=plan.lies.length*150+200+(session.initialQuestions-mandatory)*10+50;
- const score=session.caught.length*150+(session.solved?(session.solutionAttempt===1?200:100):0)+session.questions*10+(session.wrongPresents===0?50:0);
+ // Questions bought with $CHOG never add points: only the original budget counts toward the score.
+ const score=session.caught.length*150+(session.solved?(session.solutionAttempt===1?200:100):0)+Math.min(session.questions,session.initialQuestions)*10+(session.wrongPresents===0?50:0);
  return {score,max,grade:score>=max*0.85?'A' as const:score>=max*0.65?'B' as const:score>=max*0.4?'C' as const:'D' as const};
 }
 /**
@@ -109,7 +118,7 @@ export function viewPuzzleSession(puzzle:PuzzleCase,session:PuzzleSession){
  const plan=planFor(puzzle,session.mode==='HOLDER'?session.detective.tokenId:null),visible=plan.statements.filter(row=>(row.slot==='opening'||session.pressed.includes(row.witness))&&row.requiresCaught.every(id=>session.caught.includes(id)));
  const receipts=puzzle.file.receipts.map(row=>session.opened.includes(row.id)||session.done?{id:row.id,sealed:false,text:session.detective.moneyTalk?row.exactText:row.text,at:row.at,sources:row.sources}:{id:row.id,sealed:true});
  const caught=plan.lies.filter(lie=>session.caught.includes(lie.id));
- return {v:2,case:{id:puzzle.file.id,day:puzzle.file.day,mode:puzzle.file.mode,title:puzzle.file.title,setup:puzzle.file.setup,ruleLine:puzzle.file.ruleLine,cast:puzzle.file.cast,tiles:puzzle.file.tiles.map(({id,label})=>({id,label})),blanks:puzzle.file.blanks,answerHash:puzzle.answerHash},mode:session.mode,ownChogMessage:session.mode==='HOLDER'&&puzzle.file.cast.some(row=>row.tokenId===session.detective.tokenId)?"Your Chog is in today's case.":null,detective:{tokenId:session.detective.tokenId,name:session.detective.name,skill:session.detective.skill},revision:session.revision,questions:session.questions,skillUses:session.skillUses,
+ return {v:2,case:{id:puzzle.file.id,day:puzzle.file.day,mode:puzzle.file.mode,title:puzzle.file.title,setup:puzzle.file.setup,ruleLine:puzzle.file.ruleLine,cast:puzzle.file.cast,tiles:puzzle.file.tiles.map(({id,label})=>({id,label})),blanks:puzzle.file.blanks,answerHash:puzzle.answerHash},mode:session.mode,ownChogMessage:session.mode==='HOLDER'&&puzzle.file.cast.some(row=>row.tokenId===session.detective.tokenId)?"Your Chog is in today's case.":null,detective:{tokenId:session.detective.tokenId,name:session.detective.name,skill:session.detective.skill},revision:session.revision,questions:session.questions,skillUses:session.skillUses,burnsLeft:session.mode==='HOLDER'?config.burnQuestions.maximum-session.burns:0,
   statements:session.done?[]:visible.map(({id,witness,slot,line})=>({id,witness,slot,line})),receipts,caught:caught.map(row=>({id:row.id,statementId:row.statementId,witness:row.witness,message:'CAUGHT. '+row.inference,unlockedTruth:row.unlock.line,retraction:row.retraction})),identified:session.identified.map(witness=>({witness,message:plan.lies.length===3?'One of the two lying witnesses.':'The lying witness.'})),highlighted:session.highlighted,feedback:session.feedback,notice:session.notice,done:session.done,
   result:session.done?{...puzzleScore(puzzle,session),solved:session.solved,solutionAttempt:session.solutionAttempt,wrongPresents:session.wrongPresents,shareLabel:session.mode==='ROOKIE'?'ROOKIE DESK':session.detective.name,...caseReveal(puzzle,plan,session.detective.moneyTalk)}:null};
 }

@@ -233,7 +233,23 @@ function drawRoom(){
   h('div',{class:'room-actions'},
    h('button',{class:'primary',disabled:!(state.selected.statement&&state.selected.receipt),onclick:()=>act({type:'present',statementId:state.selected.statement,receiptId:state.selected.receipt})},'Present receipt'),
    skill==='EMPATH'?h('span',{class:'muted'},'Empath: +2 questions already added.'):h('button',{disabled:s.skillUses<1,onclick:useSkill},`Skill: ${skillName} (${s.skillUses} left)`),
+   view.mode==='HOLDER'&&s.burnsLeft>0?h('button',{onclick:bribe},'Bribe the informant: burn 100 $CHOG for +1 question'):null,
    h('button',{onclick:()=>drawSolve()},'Solve the case'))));
+}
+/** Sends the exact burn transaction from the player's wallet, then waits for the chain to show it before crediting. */
+async function bribe(){
+ const view=state.view,tokenId=view.detective.tokenId;
+ if(!window.ethereum){notify('A wallet is needed to burn $CHOG.','alarm');return;}
+ try{
+  const intent=await api('/case/burn?tokenId='+tokenId),[from]=await window.ethereum.request({method:'eth_requestAccounts'});
+  const tx=await window.ethereum.request({method:'eth_sendTransaction',params:[{from,to:intent.to,data:intent.data}]});
+  notify('Burn sent. It counts as soon as the chain shows it.');
+  for(let attempt=0;attempt<40;attempt++){
+   try{state.view=await api('/case/burn',{method:'POST',body:{tokenId,tx,revision:state.view.state.revision}});notify(state.view.state.notice??'+1 question.','clue');drawRoom();return;}
+   catch(error){if(error.code!=='BURN_NOT_FOUND')throw error;await new Promise(resolve=>setTimeout(resolve,5000));}
+  }
+  notify("We can't see that burn yet. It counts as soon as the chain shows it.",'alarm');
+ }catch(error){fail(error);}
 }
 function drawSolve(){
  const view=state.view,s=view.state;
