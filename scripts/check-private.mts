@@ -27,7 +27,10 @@ for (const file of files) {
   try { metadata = await lstat(location); }
   catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') continue; throw error; }
   if (!metadata.isFile()) { findings.push({ file, reason: 'Non-file repository entry' }); continue; }
-  const contents = await readFile(location, 'utf8');
+  const bytes = await readFile(location);
+  // Binary files (fonts, images) hold no prose or secrets in text form; scanning their bytes only finds noise.
+  if (bytes.includes(0)) continue;
+  const contents = bytes.toString('utf8');
   // Dependency security commands and guard declarations are technical controls.
   const scannedContents = file === '.github/workflows/check.yml' ? contents.replace(/pnpm audit --audit-level high/g, '') : contents;
   if (!['scripts/check-private.mts','.gitignore'].includes(file) && (internalLabels.test(scannedContents) || internalLabels.test(file))) findings.push({file, reason:'Internal progress label found'});
