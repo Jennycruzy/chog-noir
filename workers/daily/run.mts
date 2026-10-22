@@ -1,96 +1,81 @@
 import {mkdir,readFile,readdir} from 'node:fs/promises';
+import {randomBytes} from 'node:crypto';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {isAddress,createPublicClient,http} from 'viem';
-import {monad} from '../../packages/chain/src/client.mts';
+import {isAddress,createPublicClient,http,type Address} from 'viem';
+import {monad,puzzleChain} from '../../packages/chain/src/client.mts';
 import type {StoredHistory} from '../../scripts/data-types.mts';
 import type {EnrichedEvent} from '../../packages/core/src/enrich.mts';
+import type {Metadata} from '../../packages/cases/src/build.mts';
+import type {CaseRules} from '../../packages/cases/src/select.mts';
+import type {OwnerSnapshot} from '../../packages/auth/src/holders.mts';
+import type {PuzzleCase} from '../../packages/cases/src/puzzle.mts';
+import {CareerStore} from '../../packages/career/src/store.mts';
+import {OptOuts} from '../../packages/auth/src/optout.mts';
 import {loadEnv} from '../../scripts/env.mts';
 import {collectDaily} from './collect.mts';
-import {recoverDailySource,dailySources,sourceCaseId,type SavedPlan} from './plan.mts';
-import {saleCandidates,rankCandidates,type CaseRules} from '../../packages/cases/src/select.mts';
-import {buildCase,buildCast,castQuality,validateCase,verifyCaseSources,bindCaseContent,type CaseDraft,type Metadata} from '../../packages/cases/src/build.mts';
-import {buildMemories,memoryLine,freezeMemories} from '../../packages/witness/src/facts.mts';
-import {cards} from '../../packages/witness/src/lines.mts';
-import {planFullLie} from '../../packages/witness/src/lie.mts';
+import {recoverDailySource} from './plan.mts';
+import {buildDailyPuzzle,type CaseEvent} from './build.mts';
+import {verifySourceReceipts,puzzleSources} from './receipts.mts';
 import {localVault,privateVaultKeyFile,atomicJSON} from '../../packages/publishing/src/vault.mts';
-import {Publisher,dailyDraft,type Publication} from '../../packages/publishing/src/publish.mts';
-import {casebookChain} from '../../packages/chain/src/client.mts';
+import {PuzzlePublisher} from '../../packages/publishing/src/puzzles.mts';
 import {safeError} from '../../scripts/errors.mts';
 await loadEnv();
 if(process.env.CHOG_CHAIN_LOCKED!=='true')throw new Error('DAILY_LOCK: Run through corepack pnpm daily:run or the systemd service');
-const root=fileURLToPath(new URL('../../',import.meta.url)),directory=join(root,'runs/daily');await mkdir(join(directory,'plans'),{recursive:true,mode:0o700});
-const now=new Date(),day=now.toISOString().slice(0,10),sourceDay=new Date(Date.parse(day+'T00:00:00Z')-86400000).toISOString().slice(0,10);
+const root=fileURLToPath(new URL('../../',import.meta.url)),directory=join(root,'runs/daily');await mkdir(join(directory,'cases'),{recursive:true,mode:0o700});
+const day=new Date().toISOString().slice(0,10);
 const vault=await localVault(join(root,'runs/publication-vault'),privateVaultKeyFile());
 const statusPath=join(directory,'status.json');
-interface Plan extends SavedPlan {sourceDay:string;opensAt:number;closesAt:number;toBlockExclusive:number;condition?:'DEGRADED';reason?:string}
+/** The private record of which real event today's case was built from. The case itself is sealed in the vault. */
+interface DailyCase {v:2;day:string;id:string;source:'FRESH'|'COLD_FALLBACK';event:CaseEvent;toBlockExclusive:number;builtAt:string;condition:'DEGRADED'|null;reason:string|null;rejected:number}
+const casePath=(date:string)=>join(directory,'cases',date+'.json');
+async function savedCase(date:string):Promise<DailyCase|null>{try{return JSON.parse(await readFile(casePath(date),'utf8'));}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return null;throw error;}}
 try{
- let activePublisher:Publisher|null=null;
- const configuredAddress=process.env.CASEBOOK_ADDRESS;
- if(configuredAddress&&isAddress(configuredAddress)&&process.env.SERVER_PRIVATE_KEY&&process.env.EXECUTION_WRITES_ENABLED==='true'){
-  activePublisher=new Publisher(join(root,'runs/publications'),vault,await casebookChain(root,configuredAddress));
-  await mkdir(join(root,'runs/publications'),{recursive:true,mode:0o700});
-  for(const file of (await readdir(join(root,'runs/publications'))).filter(file=>/^\d{4}-\d{2}-\d{2}-(main|cold)\.json$/.test(file))){const old=await activePublisher.read(file.slice(0,-5));if(old?.open&&old.closesAt<=Date.now()/1000&&old.status!=='COMPLETE')await activePublisher.close(old.id);}
+ const address=process.env.CASEBOOK_ADDRESS,writable=!!address&&isAddress(address)&&!!process.env.SERVER_PRIVATE_KEY&&process.env.EXECUTION_WRITES_ENABLED==='true';
+ const publisher=writable?new PuzzlePublisher(join(root,'runs/puzzle-publications'),vault,await puzzleChain(root,address as Address)):null;
+ // Finish yesterday first: reveal the key, record the cast, then every holder's result. Each step resumes its journal.
+ if(publisher){
+  const career=new CareerStore(root);
+  for(const record of await publisher.list())if(record.open&&record.closesAt*1000<=Date.now()&&record.status!=='COMPLETE'){
+   await publisher.close(record.day);
+   const rows=(await career.results(record.id)).map(({tokenId,result})=>({tokenId,solved:result.solved,perfect:result.perfect,caught:result.lies,grade:result.grade}));
+   await publisher.recordSolves(record.day,rows);
+  }
  }
- let plan:Plan|null=null;
- try{plan=JSON.parse(await readFile(join(directory,'plans',day+'.json'),'utf8'));}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+ let plan=await savedCase(day);
  if(!plan){
-  await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:'BUILDING',day,sourceDay});
+  await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:'BUILDING',day});
   const recovery=await recoverDailySource(()=>collectDaily(root,Math.max(Date.parse(day+'T00:10:00Z'),Date.now()+30_000)),async()=>{
-   const snapshot=JSON.parse(await readFile(join(root,'data/related/history.json'),'utf8')) as StoredHistory;
-   const enriched=JSON.parse(await readFile(join(root,'runs/classification/enriched.json'),'utf8')) as {events:EnrichedEvent[]};
-   return {history:enriched.events,times:new Map(snapshot.data.blocks.map(block=>[block.number,block.timestamp])),coverageAt:Math.max(...snapshot.data.blocks.map(block=>block.timestamp)),rpc:createPublicClient({chain:monad,transport:http(process.env.MONAD_RPC_HTTP??'https://rpc.monad.xyz',{timeout:30_000})}),data:snapshot.data,toBlockExclusive:snapshot.toBlockExclusive};
+   // Degraded days build from the latest saved, already verified history.
+   const sourced=async(historyPath:string,enrichedPath:string)=>{const snapshot=JSON.parse(await readFile(join(root,historyPath),'utf8')) as StoredHistory&{coverageAt?:number},enriched=JSON.parse(await readFile(join(root,enrichedPath),'utf8')) as {events:EnrichedEvent[]};return {snapshot,enriched};};
+   const {snapshot,enriched}=await sourced('runs/daily/source/history.json','runs/daily/source/enriched.json').catch(error=>{if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;return sourced('data/related/history.json','runs/classification/enriched.json');});
+   return {history:enriched.events,times:new Map(snapshot.data.blocks.map(block=>[block.number,block.timestamp])),coverageAt:snapshot.coverageAt??Math.max(...snapshot.data.blocks.map(block=>block.timestamp)),rpc:createPublicClient({chain:monad,transport:http(process.env.MONAD_RPC_HTTP??'https://rpc.monad.xyz',{timeout:30_000})}),data:snapshot.data,toBlockExclusive:snapshot.toBlockExclusive};
   },day);
-  const {data,fresh}=recovery;
+  const {data}=recovery;
   if(recovery.degraded)console.error('DAILY_DEGRADED',safeError(new Error(recovery.reason!)));
   const metadata=new Map<number,Metadata>();
   for(let start=1;start<=1969;start+=64)await Promise.all(Array.from({length:Math.min(64,1970-start)},async(_,offset)=>{const id=start+offset;metadata.set(id,JSON.parse(await readFile(join(root,`data/metadata/${id}.json`),'utf8')).metadata);}));
   const rules=JSON.parse(await readFile(join(root,'config/cases.json'),'utf8')) as CaseRules;
-  const candidates=saleCandidates(data.history,data.times,rules),previous:{tokenId:number;wallets:string[]}[]=[];
-  try{for(const file of (await readdir(join(root,'runs/publications'))).filter(file=>file.endsWith('-main.json')).sort()){const record=JSON.parse(await readFile(join(root,'runs/publications',file),'utf8')) as Publication;if(!record.publishedAt)continue;const old=await vault.load(record.id);previous.push({tokenId:old.public.subject.tokenId,wallets:old.public.ledger.filter(fact=>fact.id==='seller'||fact.id==='buyer').map(fact=>fact.text.match(/0x[0-9a-f]{40}/i)?.[0]).filter((value):value is string=>!!value)});}}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
-  previous.splice(0,Math.max(0,previous.length-7));
-  const ranked=fresh?rankCandidates(candidates,{day:sourceDay,previous,castQuality:candidate=>castQuality(buildCast(candidate,data.history,data.times,metadata),metadata)}):[];
-  let chosen:CaseDraft|null=null;
-  for(const candidate of ranked){
-   try{const draft=buildCase(candidate.candidate,data.history,data.times,metadata,rules,'0x'+'00'.repeat(32));if(validateCase(draft).length||verifyCaseSources(draft,candidates,data.history,data.times,metadata,rules).length)continue;chosen=draft;break;}catch(error){if(!/^CASE_(OPTIONS|CAST|LIE):/.test((error as Error).message))throw error;}
-  }
-  const archive=(JSON.parse(await readFile(join(root,'runs/case-engine/fallback.json'),'utf8')) as {cases:CaseDraft[]}).cases;
-  const previousPlans:SavedPlan[]=[];
-  for(const file of (await readdir(join(directory,'plans'))).filter(file=>/^\d{4}-\d{2}-\d{2}\.json$/.test(file)))previousPlans.push(JSON.parse(await readFile(join(directory,'plans',file),'utf8')));
-  const drafts=dailySources(day,archive,previousPlans,chosen).map(item=>({...item,draft:dailyDraft(item.draft,day,item.kind)}));
-  for(const item of drafts){
-   item.draft.private.facts=buildMemories(item.draft,data.history,data.times,metadata);item.draft=planFullLie(item.draft,metadata);
-   for(const member of item.draft.public.cast)for(const card of cards){memoryLine(item.draft,member.tokenId,card);memoryLine(item.draft,member.tokenId,card,true);}
-   freezeMemories(item.draft);item.draft=bindCaseContent(item.draft);await vault.save(item.draft);
-  }
-  // Ledger records and every witness card must match successful canonical RPC receipts.
-  const selectedSources=drafts.flatMap(item=>[...item.draft.public.ledger.flatMap(fact=>fact.sources),...Object.values(item.draft.private.facts??{}).flatMap(memory=>Object.values(memory.cards).flatMap(fact=>fact.sources))]);
-  for(const tx of new Set(selectedSources.map(source=>source.tx))){
-   const receipt=await data.rpc.getTransactionReceipt({hash:tx as `0x${string}`});if(receipt.status!=='success')throw new Error('DAILY_RECEIPT: Selected source transaction failed');
-   const canonical=await data.rpc.getBlock({blockNumber:receipt.blockNumber});if(canonical.hash!==receipt.blockHash)throw new Error('DAILY_REORG: Selected receipt is no longer canonical');
-   for(const source of selectedSources.filter(source=>source.tx===tx)){
-    const original=data.data.logs.find(log=>log.transactionHash===source.tx&&log.logIndex===source.logIndex),actual=receipt.logs.find(log=>log.logIndex===source.logIndex);
-    if(Number(receipt.blockNumber)!==source.block||!original||!actual||actual.address.toLowerCase()!==original.address.toLowerCase()||actual.data!==original.data||JSON.stringify(actual.topics)!==JSON.stringify(original.topics.filter(topic=>topic!==null)))throw new Error('DAILY_RECEIPT: Source log does not match receipt');
-   }
-   await mkdir(join(directory,'receipts'),{recursive:true,mode:0o700});await atomicJSON(join(directory,'receipts',tx+'.json'),JSON.parse(JSON.stringify(receipt,(_,value)=>typeof value==='bigint'?value.toString():value)));
-  }
-  plan={day,sourceDay,opensAt:Date.parse(day+'T00:20:00Z')/1000,closesAt:Date.parse(day+'T00:20:00Z')/1000+86400,cases:drafts.map(item=>({id:item.draft.public.id,kind:item.kind,source:item.source,sourceCaseId:sourceCaseId(item.draft)})),toBlockExclusive:data.toBlockExclusive,...(recovery.degraded?{condition:'DEGRADED' as const,reason:safeError(new Error(recovery.reason!))}:{})};
-  await atomicJSON(join(directory,'plans',day+'.json'),plan);
+  const ownership=JSON.parse(await readFile(join(root,'runs/owners/snapshot.json'),'utf8')) as OwnerSnapshot;
+  const bulkIds=new Set(data.history.filter(row=>row.event.class==='BULK_MOVE').map(row=>row.event.tx)),fetchedAt=new Date().toISOString();
+  const bulkSources=data.data.transactions.filter(row=>bulkIds.has(row.hash)).map(transaction=>({transaction,logs:data.data.logs.filter(log=>log.transactionHash===transaction.hash),fetchedAt}));
+  const previous:CaseEvent[]=[];
+  for(const file of (await readdir(join(directory,'cases'))).filter(name=>/^\d{4}-\d{2}-\d{2}\.json$/.test(name)&&name.slice(0,10)<day).sort().slice(-7))previous.push((JSON.parse(await readFile(join(directory,'cases',file),'utf8')) as DailyCase).event);
+  const build=buildDailyPuzzle({day,salt:'0x'+randomBytes(32).toString('hex'),previous,optedOut:await new OptOuts(root).wallets(),history:data.history,times:data.times,metadata,ownership,bulkSources,rules});
+  await verifySourceReceipts(data.rpc,data.data,puzzleSources(build.puzzle),join(directory,'receipts'));
+  // Seal before any chain write, so a retry commits the same key and salt.
+  if(publisher)await publisher.prepare(build.puzzle,build.source);else await vault.seal(build.puzzle.file.id,build.puzzle);
+  plan={v:2,day,id:build.puzzle.file.id,source:build.source,event:build.event,toBlockExclusive:data.toBlockExclusive,builtAt:new Date().toISOString(),condition:recovery.degraded?'DEGRADED':null,reason:recovery.degraded?safeError(new Error(recovery.reason!)):null,rejected:build.rejected.length};
+  await atomicJSON(casePath(day),plan);
  }
- const address=process.env.CASEBOOK_ADDRESS;
- if(!address||!isAddress(address)||!process.env.SERVER_PRIVATE_KEY||process.env.EXECUTION_WRITES_ENABLED!=='true'){
-  await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:plan.condition??'READY_TO_COMMIT',publicationState:'READY_TO_COMMIT',condition:plan.condition??null,sourceReason:plan.reason??null,day,sourceDay,preparedCases:plan.cases.length,toBlockExclusive:plan.toBlockExclusive,reason:'CaseBook deployment, server signer and explicit write switch are required. No daily case has been published.'});
-  console.log(JSON.stringify({status:plan.condition??'READY_TO_COMMIT',publicationState:'READY_TO_COMMIT',day,cases:plan.cases.length,writes:0}));process.exit(0);
+ if(!publisher){
+  await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:'READY_TO_COMMIT',day,caseId:plan.id,source:plan.source,condition:plan.condition,toBlockExclusive:plan.toBlockExclusive,reason:'CaseBook deployment, the funded server signer and the explicit write switch are required. No daily case has been published.'});
+  console.log(JSON.stringify({status:'READY_TO_COMMIT',day,caseId:plan.id,writes:0}));process.exit(0);
  }
- const publisher=activePublisher??new Publisher(join(root,'runs/publications'),vault,await casebookChain(root,address));
- // Finish older reveals before opening new cases. Every step resumes its journal.
- await mkdir(join(root,'runs/publications'),{recursive:true,mode:0o700});
- for(const file of (await readdir(join(root,'runs/publications'))).filter(file=>/^\d{4}-\d{2}-\d{2}-(main|cold)\.json$/.test(file))){
-  const record=await publisher.read(file.slice(0,-5));if(record?.open&&record.closesAt<=Date.now()/1000&&record.status!=='COMPLETE')await publisher.close(record.id);
- }
- for(const item of plan.cases){await publisher.prepare(await vault.load(item.id),day,item.source,plan.opensAt,plan.closesAt,item.kind);await publisher.publish(item.id);}
- await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:Date.now()/1000>=plan.opensAt?'PUBLISHED':'COMMITTED_WAITING_OPEN',condition:plan.condition??null,sourceReason:plan.reason??null,day,sourceDay,cases:plan.cases.length,toBlockExclusive:plan.toBlockExclusive});
- console.log(JSON.stringify({status:'DAILY_RUN_COMPLETE',day}));
+ await publisher.prepare(await vault.open<PuzzleCase>(plan.id),plan.source);
+ const record=await publisher.publish(day);
+ await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:record.status==='PUBLISHED'?'PUBLISHED':'COMMITTED_WAITING_OPEN',day,caseId:plan.id,number:record.number,source:plan.source,condition:plan.condition,openTx:record.open?.hash??null,toBlockExclusive:plan.toBlockExclusive});
+ console.log(JSON.stringify({status:'DAILY_RUN_COMPLETE',day,caseId:plan.id,publication:record.status}));
 }catch(error){
  const reason=safeError(error),waiting=error instanceof Error&&error.message.startsWith('DAILY_SOURCE_WAIT:');await atomicJSON(statusPath,{updatedAt:new Date().toISOString(),status:waiting?'WAITING_SOURCE':'FAILED',day,reason});console.error(reason);process.exitCode=waiting?0:1;
 }

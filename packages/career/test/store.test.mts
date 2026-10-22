@@ -5,7 +5,7 @@ import {test,expect} from 'vitest';
 import {CareerStore,careerRank,careerStatus,type DetectiveResult} from '../src/store.mts';
 const wallet='0x285074ee7a7ae5e0a2188949fe6bd71de25492b7';
 const buyer='0x8041113dd804725e235d32aa2e85920d6af32428';
-const result=(day:string):DetectiveResult=>({caseId:'daily-'+day,day,grade:'A',score:600,perfect:true,caught:[11,11],transferredMidCase:false});
+const result=(day:string):DetectiveResult=>({caseId:'daily-'+day,day,grade:'A',score:600,perfect:true,solved:true,lies:['A','B'],caught:[11,11],transferredMidCase:false});
 async function sandbox(action:(root:string,store:CareerStore)=>Promise<void>){const root=await mkdtemp(join(tmpdir(),'chog-career-'));try{await action(root,new CareerStore(root));}finally{await rm(root,{recursive:true,force:true});}}
 async function complete(store:CareerStore,day:string,founder=false){const row=result(day);await store.start({mode:'HOLDER',tokenId:1,wallet,caseId:row.caseId,day,now:Date.parse(day)});return store.finish({mode:'HOLDER',tokenId:1,wallet,founder,result:row});}
 test('one duty per token per day survives restart and sale; a transferred finish stays on the token',async()=>sandbox(async(root,store)=>{
@@ -44,9 +44,15 @@ test('Founder weekly freezes cap at two and ranks depend on solved cases',async(
  expect([0,3,10,25,50].map(careerRank)).toEqual(['Rookie','Gumshoe','Detective','Inspector','Chief']);
 }));
 test('an unsolved submitted case keeps its streak but does not increase solved rank',async()=>sandbox(async(root,store)=>{
- const row=result('2026-10-01');row.grade='D';row.score=0;row.perfect=false;row.caught=[];
+ const row=result('2026-10-01');row.grade='D';row.score=0;row.perfect=false;row.solved=false;row.lies=[];row.caught=[];
  await store.start({mode:'HOLDER',tokenId:1,wallet,caseId:row.caseId,day:row.day,now:Date.parse(row.day)});
  expect(await store.finish({mode:'HOLDER',tokenId:1,wallet,founder:false,result:row})).toMatchObject({solves:0,streak:1,perfectCases:0,grades:{D:1},gallery:[]});
  await writeFile(join(root,'runs/career/1.json'),JSON.stringify({v:2,tokenId:1,duties:[]}));
  await expect(store.profile(1)).rejects.toMatchObject({code:'CAREER_STORAGE_INVALID'});
+}));
+test('a result must name the lie behind every caught Chog',async()=>sandbox(async(_root,store)=>{
+ const row=result('2026-10-01');await store.start({mode:'HOLDER',tokenId:1,wallet,caseId:row.caseId,day:row.day,now:Date.parse(row.day)});
+ await expect(store.finish({mode:'HOLDER',tokenId:1,wallet,founder:false,result:{...row,lies:['A']}})).rejects.toMatchObject({code:'CAREER_RESULT_INVALID'});
+ await expect(store.finish({mode:'HOLDER',tokenId:1,wallet,founder:false,result:{...row,lies:['A','A']}})).rejects.toMatchObject({code:'CAREER_RESULT_INVALID'});
+ expect((await store.finish({mode:'HOLDER',tokenId:1,wallet,founder:false,result:row})).duties[0]!.result!.lies).toEqual(['A','B']);
 }));

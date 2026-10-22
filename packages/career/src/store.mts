@@ -1,12 +1,13 @@
 import {createHash,randomBytes} from 'node:crypto';
-import {mkdir,open,readFile,rename} from 'node:fs/promises';
+import {mkdir,open,readFile,readdir,rename} from 'node:fs/promises';
 import {join,dirname} from 'node:path';
 import {getAddress,type Address} from 'viem';
 import {withPlayerLock} from '../../game/src/player-lock.mts';
 
 export class CareerError extends Error {constructor(public readonly code:string,message:string){super(message);}}
 export type Grade='A'|'B'|'C'|'D';
-export interface DetectiveResult {caseId:string;day:string;grade:Grade;score:number;perfect:boolean;caught:number[];transferredMidCase:boolean}
+/** caught[i] is the Chog that told lies[i]; solved means the solution sentence was right. */
+export interface DetectiveResult {caseId:string;day:string;grade:Grade;score:number;perfect:boolean;solved:boolean;lies:('A'|'B'|'C')[];caught:number[];transferredMidCase:boolean}
 interface Duty {caseId:string;day:string;wallet:Address;startedAt:number;result:DetectiveResult|null}
 export interface Career {
  v:2;tokenId:number;duties:Duty[];solves:number;grades:Record<Grade,number>;liesCaught:number;perfectCases:number;
@@ -57,6 +58,16 @@ export class CareerStore {
  }
  private async locked<T>(tokenId:number,action:()=>Promise<T>){this.path(tokenId);return withPlayerLock(this.root,createHash('sha256').update('career:'+tokenId).digest('hex'),action);}
  async profile(tokenId:number){return this.read(tokenId);}
+ /** Every finished holder result for one case, by token. Rookie play never reaches this store. */
+ async results(caseId:string){
+  const files=await readdir(join(this.root,'runs/career')).catch(error=>{if((error as NodeJS.ErrnoException).code==='ENOENT')return [] as string[];throw error;});
+  const rows:{tokenId:number;result:DetectiveResult}[]=[];
+  for(const file of files.filter(name=>/^\d+\.json$/.test(name)).sort((a,b)=>parseInt(a)-parseInt(b))){
+   const career=await this.read(Number(file.slice(0,-5))),duty=career.duties.find(row=>row.caseId===caseId&&row.result!==null);
+   if(duty)rows.push({tokenId:career.tokenId,result:structuredClone(duty.result!)});
+  }
+  return rows;
+ }
  async start(input:{mode:'HOLDER';tokenId:number;wallet:string;caseId:string;day:string;now:number}){
   if(input.mode!=='HOLDER')throw new CareerError('CAREER_HOLDER_REQUIRED','Only a held Chog keeps a detective record.');
   dayTime(input.day);if(!input.caseId||input.caseId.length>128||!Number.isSafeInteger(input.now)||input.now<0)throw new CareerError('CAREER_CASE_INVALID','The case identity is invalid.');
@@ -70,7 +81,7 @@ export class CareerStore {
  async finish(input:{mode:'HOLDER';tokenId:number;wallet:string;founder:boolean;result:DetectiveResult}){
   if(input.mode!=='HOLDER')throw new CareerError('CAREER_HOLDER_REQUIRED','Only a held Chog keeps a detective record.');
   const result=input.result;dayTime(result.day);
-  if(!['A','B','C','D'].includes(result.grade)||!Number.isSafeInteger(result.score)||result.score<0||typeof result.perfect!=='boolean'||typeof result.transferredMidCase!=='boolean'||typeof input.founder!=='boolean'||!Array.isArray(result.caught)||result.caught.length>3||result.caught.some(id=>!validToken(id)))throw new CareerError('CAREER_RESULT_INVALID','The case result is invalid.');
+  if(!['A','B','C','D'].includes(result.grade)||!Number.isSafeInteger(result.score)||result.score<0||typeof result.perfect!=='boolean'||typeof result.solved!=='boolean'||typeof result.transferredMidCase!=='boolean'||typeof input.founder!=='boolean'||!Array.isArray(result.caught)||result.caught.length>3||result.caught.some(id=>!validToken(id))||!Array.isArray(result.lies)||result.lies.length!==result.caught.length||new Set(result.lies).size!==result.lies.length||result.lies.some(id=>!['A','B','C'].includes(id)))throw new CareerError('CAREER_RESULT_INVALID','The case result is invalid.');
   return this.locked(input.tokenId,async()=>{
    const career=await this.read(input.tokenId),duty=career.duties.find(row=>row.day===result.day&&row.caseId===result.caseId);
    if(!duty||duty.wallet!==getAddress(input.wallet))throw new CareerError('CAREER_SESSION_MISMATCH','This case belongs to another detective session.');
