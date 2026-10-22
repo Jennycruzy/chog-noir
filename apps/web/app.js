@@ -304,12 +304,12 @@ function shareGrid(view,record){
  if(record&&view.mode==='HOLDER')lines.push(`Streak ${record.streak} 🔥`);
  return lines.join('\n');
 }
-async function drawReveal(){
+/** Shows the reveal at once. A holder's record line and streak arrive afterwards, so a slow record never holds back the reveal. */
+function drawReveal(){
  sound.rainStop();
- const view=state.view,s=view.state,result=s.result;
- const record=view.mode==='HOLDER'?(await api('/chog/'+view.detective.tokenId).catch(()=>null))?.career??null:null;
- if(record&&state.detective)state.detective={...state.detective,streak:record.streak};renderBadge();
- const grid=shareGrid(view,record),url=location.origin+'/';
+ const view=state.view,s=view.state,result=s.result,url=location.origin+'/';
+ let grid=shareGrid(view,null);
+ const recordLine=h('p',{class:'record-line'}),share=h('pre',{class:'share'},grid),post=h('a',{href:'https://x.com/intent/post?text='+encodeURIComponent(grid+'\n'+url),target:'_blank',rel:'noopener'},'Post on X');
  fill(app,h('section',{class:'reveal'},
   h('div',{class:'closed-stamp '+(result.solved?'solved':'cold'),'aria-hidden':'true'},result.solved?'CASE CLOSED':'CASE COLD'),
   view.mode==='ROOKIE'?h('span',{class:'stamp-label rookie-stamp'},'ROOKIE DESK'):null,
@@ -318,13 +318,22 @@ async function drawReveal(){
   h('h3',{},'The true story'),result.truth.map(row=>h('p',{class:'truth-line'},row.text,' ',...sourceLinks(row.sources))),
   view.hook?h('p',{class:'type'},view.hook.text,' ',...sourceLinks([view.hook.source]),' · ',link('/arc','Follow the story')):null,
   h('p',{class:'grade','aria-label':`Grade ${result.grade}`},result.grade),h('p',{},`Score ${result.score} of ${result.max} · ${result.solved?'Solved':'Not solved'}${s.solutionAttempt===1?' on the first try':''}`),
-  view.mode==='HOLDER'&&record?h('p',{},`${view.detective.name}: ${record.rank} · ${record.solves} solved · streak ${record.streak} · `,link('/chog/'+view.detective.tokenId,'Detective record')):null,
+  view.mode==='HOLDER'?recordLine:null,
   view.mode==='HOLDER'&&view.transferredMidCase?h('p',{class:'muted'},'This Chog left the wallet during the case. The result stays on the token, marked “transferred mid-case”.'):null,
   view.mode==='ROOKIE'?h('p',{class:'banner'},view.invitation,' ',h('a',{href:OPENSEA,target:'_blank',rel:'noopener'},'See Chogs on OpenSea')):null,
-  h('h3',{},'Share'),h('pre',{class:'share'},grid),
+  h('h3',{},'Share'),share,
   h('div',{class:'actions'},h('button',{onclick:async()=>{try{await navigator.clipboard.writeText(grid+'\n'+url);notify('Copied.','clue');}catch{notify('Copy is blocked in this browser. Select the text instead.');}}},'Copy'),
-   h('a',{href:'https://x.com/intent/post?text='+encodeURIComponent(grid+'\n'+url),target:'_blank',rel:'noopener'},'Post on X'),' · ',
+   post,' · ',
    h('a',{href:'/api/case/share-image'+(view.mode==='HOLDER'?'?tokenId='+view.detective.tokenId:''),download:'chog-noir-result.png'},'Download share image'),' · ',link(`/case/${encodeURIComponent(view.case.id)}/stats`,'Global results',{onclick:async event=>{event.preventDefault();event.stopPropagation();await showStats();}}))));
+ if(view.mode!=='HOLDER')return;
+ const id=view.detective.tokenId;recordLine.textContent='Updating the detective record…';
+ void api('/chog/'+id).then(data=>data.career).catch(()=>null).then(record=>{
+  if(state.view!==view)return;
+  if(!record){fill(recordLine,'The detective record is updating. ',link('/chog/'+id,'Open the record'));return;}
+  if(state.detective)state.detective={...state.detective,streak:record.streak};renderBadge();
+  fill(recordLine,`${view.detective.name}: ${record.rank} · ${record.solves} solved · streak ${record.streak} · `,link('/chog/'+id,'Detective record'));
+  grid=shareGrid(view,record);share.textContent=grid;post.href='https://x.com/intent/post?text='+encodeURIComponent(grid+'\n'+url);
+ });
 }
 async function showStats(){
  const view=state.view;

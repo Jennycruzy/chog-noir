@@ -132,7 +132,10 @@ try{
   await p.activate(await p.labelled('.chog-card',name));
   await p.activate(await p.labelled('button','Take the case'));await p.until("!!document.querySelector('.room .rule')",'holder room');
   await p.screenshot('desktop-room.png');
-  const grid=await work(p,planFor(puzzle,11),'desktop');
+  await work(p,planFor(puzzle,11),'desktop');
+  // The holder's record and streak load after the reveal is already on screen.
+  await p.until("document.querySelector('pre.share')?.textContent.includes('Streak')",'holder streak');
+  const grid=(await p.evaluate("document.querySelector('pre.share').textContent")).split('\n');
   assert.match(grid[1],new RegExp('^🕵️ '+name.replace(/[#]/g,'\\#')));assert.match(grid.at(-1),/^Streak 1 🔥$/);
   await p.screenshot('desktop-reveal.png');
   await p.go('/chog/11');await p.until("document.body.textContent.includes('Cases solved')",'profile');
