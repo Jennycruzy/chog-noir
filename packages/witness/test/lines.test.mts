@@ -30,3 +30,17 @@ test('banned and crude words are rejected',()=>{for(const word of ['guilty','cou
 test('overlong and empty responses are rejected',()=>{for(const line of ['','a'.repeat(161)])expect(validateLine(input,{...output,line})).toContain('LENGTH');});
 test('three sentences are rejected',()=>{expect(validateLine(input,{...output,line:input.displayFacts.join('; ')+'. The rain fell. The lamp dimmed.'})).toContain('SENTENCES');});
 test('malformed and extra output fields fail schema checks',()=>{for(const value of [null,{},'text',{...output,extra:true},{...output,facts_used:[42]}])expect(validateLine(input,value)).toContain('INVALID_SCHEMA');});
+
+test('every statement template keeps the fact verbatim, adds no value of its own and fits the length limit',async()=>{
+ const {witnessStatement,validateLine,voices}=await import('../src/lines.mts');
+ // Real claim shapes: a self arrival, the longest wallet-move clause, and a price.
+ const facts=['CHOG #1381 reached its new wallet on Thu 1 Oct, 01:11 UTC','CHOG #1381 moved from The Wandering Scarlet Messenger to The Northern Crimson Archivist','CHOG #368 was paid for with about 5,800 MON'];
+ const seen=new Set<string>();
+ for(const purpose of ['opening','followup','retraction'] as const)for(const voice of voices)for(const self of [true,false])for(const fact of facts)for(let seed=0;seed<12;seed++){
+  const line=witnessStatement({fact,purpose,voice,self,seed:String(seed)});seen.add(line.replace(fact,'{fact}'));
+  expect(line.startsWith('I ')).toBe(true);expect(line.length).toBeLessThanOrEqual(140);expect(line).toContain(fact);
+  expect(validateLine({id:'t',card:'ARRIVAL',voice,isLie:false,cleanPersona:'',displayFacts:[fact],trueFacts:[fact],sources:[]},{line,facts_used:[fact]})).toEqual([]);
+ }
+ expect(seen.size).toBeGreaterThanOrEqual(72);
+ expect(()=>witnessStatement({fact:'x'.repeat(200),purpose:'opening',voice:'sharp',self:false,seed:'1'})).toThrow('too long');
+});

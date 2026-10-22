@@ -1,6 +1,6 @@
 import {keccak256,toBytes} from 'viem';
 import {canonicalJSON} from './build.mts';
-import {buildSalePuzzle,dailyDifficulty,puzzleHash,validatePuzzle,PuzzleError,type PuzzleCase,type PuzzleReceipt,type LieId,type LieKind} from './puzzle.mts';
+import {buildSalePuzzle,dailyDifficulty,puzzleHash,validatePuzzle,speak,PuzzleError,type PuzzleCase,type PuzzleReceipt,type LieId,type LieKind} from './puzzle.mts';
 import {ClaimCatalog,noirWalletLabels,type ClaimCandidate,type BulkSource} from '../../witness/src/claims.mts';
 import type {OwnerSnapshot} from '../../auth/src/holders.mts';
 import {provePuzzleSolvable} from '../../solver/src/solve.mts';
@@ -67,11 +67,11 @@ export function composePuzzle(base:PuzzleCase,candidates:readonly ClaimCandidate
  const arrivalFact=arrival.facts.find(row=>row.id==='arrival-'+subject)!,paymentFact=payment.facts.find(row=>row.id==='move-kind')!;
  puzzle.file.receipts=groups.map(row=>row.receipt);
  for(const plan of Object.values(puzzle.key.plans)){
-  for(const statement of plan.statements){const fact=statement.slot==='opening'?arrivalFact:paymentFact;statement.claim={factId:fact.id,value:fact.value};statement.line='I saw '+fact.value+'.';statement.requiresCaught=[];}
+  for(const statement of plan.statements){const fact=statement.slot==='opening'?arrivalFact:paymentFact;statement.claim={factId:fact.id,value:fact.value};statement.line=speak(puzzle.file,puzzle.key.salt,statement.witness,fact.value,statement.slot,statement.id);statement.requiresCaught=[];}
   for(const lie of plan.lies){
    const claim=chosen.get(lie.id)!,receipt=proofFor(claim),statement=plan.statements.find(row=>row.id===lie.statementId)!;
    Object.assign(lie,{kind:claim.kind,trueValue:claim.trueValue,falseValue:claim.falseValue,receiptId:receipt.id,inference:claim.inference,unlock:{receiptId:lie.id==='A'?sealed?.id??null:null,line:claim.unlockLine}});
-   statement.claim={factId:claim.factId,value:claim.falseValue};statement.line='I saw '+claim.falseValue+'.';if(lie.id==='C'&&difficulty.chained)statement.requiresCaught=['B'];
+   statement.claim={factId:claim.factId,value:claim.falseValue};statement.line=speak(puzzle.file,puzzle.key.salt,statement.witness,claim.falseValue,statement.slot,statement.id);lie.retraction=speak(puzzle.file,puzzle.key.salt,statement.witness,claim.trueValue,'retraction',statement.id);if(lie.id==='C'&&difficulty.chained)statement.requiresCaught=['B'];
   }
  }
  puzzle.key.claimIds={...selection};puzzle.key.receiptIds=puzzle.file.receipts.map(row=>row.id);puzzle.key.contentHash=hash(canonicalJSON(puzzle.file));puzzle.answerHash=puzzleHash(puzzle);

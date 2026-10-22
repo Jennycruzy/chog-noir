@@ -43,7 +43,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px}.loading{font-
 .witness .name{font:700 16px var(--display);letter-spacing:.5px}.witness .nick{font:13px var(--type);color:var(--muted)}.tag{display:inline-block;font:12px var(--type);border:1px solid var(--clue);color:var(--clue);padding:1px 6px;border-radius:3px;margin-top:4px}
 .statement{display:block;width:100%;text-align:left;font:15px/1.5 var(--type);background:#00000033;border:1px solid var(--line);margin:6px 0;padding:10px 12px;min-height:44px}
 :root[data-theme="light"] .statement{background:#FFFFFF88}.statement[aria-pressed="true"]{border-color:var(--lamp);box-shadow:0 0 0 2px var(--lamp) inset}.statement.caught{border-color:var(--alarm);text-decoration:line-through;text-decoration-color:var(--alarm)}
-.statement .typed{white-space:pre-wrap}.press{width:100%;margin-top:6px;font-size:14px}
+.statement .typed{white-space:pre-wrap}.statement.retraction{border-color:var(--clue);border-style:dashed;cursor:default}.press{width:100%;margin-top:6px;font-size:14px}
 .tray{margin-top:16px}.tray h3{display:flex;justify-content:space-between;gap:8px}.receipts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px}
 .receipt-card{text-align:left;background:var(--paper);color:#16161A;border:1px solid #CFC5B3;border-radius:4px;padding:10px 12px;font:14px/1.45 var(--type);position:relative;min-height:44px}
 .receipt-card[aria-pressed="true"]{box-shadow:0 0 0 3px var(--lamp)}.receipt-card.highlight{box-shadow:0 0 0 3px var(--clue)}.receipt-card a{color:#5A3E00}

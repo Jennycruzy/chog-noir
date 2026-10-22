@@ -96,3 +96,12 @@ test('a rehashed case with moved cutoff or cast fails source reconstruction',()=
  const edited=structuredClone(puzzle);edited.file.receipts[0]!.text+=' Seen twice.';rehash(edited);
  expect(validatePuzzle(edited)).toEqual([]);expect(verifyComposedPuzzleSources(edited,input(),catalog)).toBe(false);
 },60_000);
+
+test('statements speak in the witness voice and every caught witness has a true corrected story',()=>{
+ const base=buildSalePuzzle(input()),{puzzle}=selectClaimPuzzle(base,catalogForPuzzle(base,{history:fixture.rows,times,metadata,ownership}));
+ for(const plan of Object.values(puzzle.key.plans)){
+  for(const statement of plan.statements){expect(statement.line).not.toBe('I saw '+statement.claim.value+'.');expect(statement.line).toContain(statement.claim.value);}
+  for(const lie of plan.lies){expect(lie.retraction).toContain(lie.trueValue);expect(lie.retraction).not.toContain(lie.falseValue);}
+ }
+ expect(puzzle.file.cast.every(row=>['nervous','sharp','dreamy','cool'].includes(row.voice))).toBe(true);
+},60_000);

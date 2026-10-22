@@ -211,7 +211,8 @@ function drawRoom(){
    h('header',{},h('img',{src:art(member.tokenId),alt:`${member.name}`}),h('div',{},h('div',{class:'name'},member.name),h('div',{class:'nick'},member.nickname),known.has(member.tokenId)?h('span',{class:'tag'},known.get(member.tokenId)):null,identified?h('span',{class:'tag',style:'border-color:var(--alarm);color:var(--alarm)'},identified.message):null)),
    statements.map(row=>{const button=h('button',{class:'statement'+(caughtIds.has(row.id)?' caught':''),'data-statement':row.id,'aria-pressed':String(state.selected.statement===row.id),'aria-label':`${member.name} says: ${row.line}${caughtIds.has(row.id)?' (caught)':''}`,disabled:caughtIds.has(row.id),
      onclick:()=>{state.selected.statement=state.selected.statement===row.id?null:row.id;drawRoom();},ondragover:event=>event.preventDefault(),ondrop:event=>{event.preventDefault();const receipt=event.dataTransfer.getData('text/plain');if(receipt)void act({type:'present',statementId:row.id,receiptId:receipt});}},h('span',{class:'typed'}));
-    typeOut(button.firstChild,row.line);return button;}),
+    typeOut(button.firstChild,row.line);const changed=s.caught.find(item=>item.statementId===row.id);
+    return changed?[button,h('p',{class:'statement retraction',role:'note','aria-label':`${member.name} changes its story`},h('span',{class:'typed'},changed.retraction))]:button;}),
    hasFollow?null:h('button',{class:'press','data-press':member.tokenId,onclick:()=>act({type:'press',witness:member.tokenId})},known.has(member.tokenId)?'Press (free)':'Press · 1 question'));
  }));
  const receipts=h('div',{class:'receipts'},s.receipts.map(row=>row.sealed?

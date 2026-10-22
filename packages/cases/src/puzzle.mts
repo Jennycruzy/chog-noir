@@ -3,17 +3,19 @@ import config from '../../../config/cases.json' with {type:'json'};
 import {buildLinkedCast,canonicalJSON,type Metadata} from './build.mts';
 import type {Candidate} from './select.mts';
 import type {EnrichedEvent,Source} from '../../core/src/enrich.mts';
-import {validateLine} from '../../witness/src/lines.mts';
+import {validateLine,witnessStatement,voices} from '../../witness/src/lines.mts';
+import {traitsFor} from '../../traits/src/traits.mts';
 
 export type LieKind='D1'|'D2'|'D3'|'D4'|'D5'|'D6'|'I1'|'I2'|'I3'|'I4'|'I5'|'I6';
 export type LieId='A'|'B'|'C';
 export interface PuzzleReceipt {id:string;text:string;exactText:string;at:number;sources:Source[];sealed:boolean;facts:{id:string;value:string}[];tokenIds?:number[]}
 export interface PuzzleStatement {id:string;witness:number;slot:'opening'|'followup';line:string;claim:{factId:string;value:string};requiresCaught:LieId[]}
-export interface PuzzleLie {id:LieId;witness:number;statementId:string;kind:LieKind;trueValue:string;falseValue:string;receiptId:string;inference:string;unlock:{receiptId:string|null;line:string}}
+/** retraction is the caught witness's new statement: it gives the true value in the witness's own voice. */
+export interface PuzzleLie {id:LieId;witness:number;statementId:string;kind:LieKind;trueValue:string;falseValue:string;receiptId:string;inference:string;unlock:{receiptId:string|null;line:string};retraction:string}
 export interface PuzzlePlan {statements:PuzzleStatement[];lies:PuzzleLie[]}
 export interface PuzzleFile {
  v:2;id:string;day:string;mode:'DAILY'|'REPLAY';title:string;setup:string;type:string;subject:{tokenId:number;name:string};ruleLine:string;
- opensAt:number;closesAt:number;cutoff:Source;cast:{tokenId:number;name:string;nickname:string;side:'BUYER'|'SELLER'|null}[];
+ opensAt:number;closesAt:number;cutoff:Source;cast:{tokenId:number;name:string;nickname:string;side:'BUYER'|'SELLER'|null;voice:typeof voices[number]}[];
  receipts:PuzzleReceipt[];tiles:{id:string;label:string;sources:Source[]}[];blanks:{id:string;label:string}[];
 }
 export interface PuzzleCase {file:PuzzleFile;key:{v:2;caseId:string;salt:string;contentHash:string;receiptIds:string[];answers:Record<string,string>;plans:Record<string,PuzzlePlan>;claimIds?:Partial<Record<LieId,string>>};answerHash:string}
@@ -38,6 +40,11 @@ const differentPriceBand=(wei:string)=>{
  return (band===0?bounds[0]!+500n:bounds[band-1]!-500n)*10n**18n;
 };
 const statementId=(id:number,slot:string)=>'w'+id+'-'+slot;
+/** A witness speaks one exact fact in its own voice; the same seed always picks the same template. */
+export function speak(file:Pick<PuzzleFile,'cast'>,salt:string,witness:number,fact:string,purpose:'opening'|'followup'|'retraction',id:string){
+ const member=file.cast.find(row=>row.tokenId===witness);if(!member)throw new PuzzleError('CASE_STATEMENT_WITNESS','Every statement needs a witness in the cast.');
+ return witnessStatement({fact,purpose,voice:member.voice,self:fact.startsWith(member.name+' ')||fact.startsWith(member.name+"'"),seed:salt+':'+id+':'+purpose});
+}
 
 /**
  * Sales up to six hours after the subject may join the cast. The evidence cutoff moves only as far as
@@ -84,7 +91,7 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
  const route=event.route==='offer_accepted'?'accepted offer':'bought listing',price=rounded(event.price.grossWei,event.price.asset),paymentSources=[anchor,...event.evidence.orderLogIndices.map(logIndex=>({tx:event.tx,block:event.block,logIndex}))];
  const paidValue=subject.name+' changed wallets through '+(event.route==='offer_accepted'?'an accepted offer':'a listing purchase'),priceValue=subject.name+' was paid for with '+price;
  receipts.push({id:'payment',text:subject.name+' · '+route+' · Paid: '+price+'.',exactText:subject.name+' · '+route+' · Paid: '+formatEther(BigInt(event.price.grossWei))+' '+event.price.asset+'.',at:candidate.at,sources:paymentSources,sealed:difficulty.sealed===1,facts:[{id:'move-kind',value:paidValue},{id:'price',value:priceValue}]});
- const castRows=cast.map(member=>({tokenId:member.tokenId,name:member.name,nickname:nicknames.get(owners.get(member.tokenId)!)!,side:member.role==='SUBJECT'||member.role==='BUYER_ROOMMATE'?'BUYER' as const:member.role==='SELLER_ROOMMATE'?'SELLER' as const:null}));
+ const castRows=cast.map(member=>({tokenId:member.tokenId,name:member.name,nickname:nicknames.get(owners.get(member.tokenId)!)!,side:member.role==='SUBJECT'||member.role==='BUYER_ROOMMATE'?'BUYER' as const:member.role==='SELLER_ROOMMATE'?'SELLER' as const:null,voice:traitsFor(member.tokenId,metadata.get(member.tokenId)!).voice}));
  const ranked=[...cast].sort((a,b)=>{
   const weight=(id:number)=>{const attributes=metadata.get(id)!.attributes,attr=(name:string)=>attributes.find(row=>row.trait_type===name)?.value.toLowerCase();return (['side eye','smirk','thug','mog','clown eye','clown eye mix'].includes(attr('Eyes')??'')?3:0)+(['clown','clown mouth'].includes(attr('Mouth')??'')?1:0)+(attr('Form')==='skull'?1:0);};
   return weight(b.tokenId)-weight(a.tokenId)||hash(salt+':liar:'+a.tokenId).localeCompare(hash(salt+':liar:'+b.tokenId));
@@ -94,16 +101,16 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
   const replacement=ranked.find(row=>row.tokenId!==primary&&row.tokenId!==secondary&&row.tokenId!==protectedId)!.tokenId;
   const first=primary===protectedId?replacement:primary,second=secondary!==null&&secondary===protectedId?replacement:secondary;
   const statements:PuzzleStatement[]=cast.flatMap(member=>[
-   {id:statementId(member.tokenId,'opening'),witness:member.tokenId,slot:'opening' as const,line:'I saw '+arrivalValue(member.name,member.arrivedAt)+'.',claim:{factId:'arrival-'+member.tokenId,value:arrivalValue(member.name,member.arrivedAt)},requiresCaught:[]},
-   {id:statementId(member.tokenId,'followup'),witness:member.tokenId,slot:'followup' as const,line:'I saw '+paidValue+'.',claim:{factId:'move-kind',value:paidValue},requiresCaught:[]},
+   {id:statementId(member.tokenId,'opening'),witness:member.tokenId,slot:'opening' as const,line:speak({cast:castRows},salt,member.tokenId,arrivalValue(member.name,member.arrivedAt),'opening',statementId(member.tokenId,'opening')),claim:{factId:'arrival-'+member.tokenId,value:arrivalValue(member.name,member.arrivedAt)},requiresCaught:[]},
+   {id:statementId(member.tokenId,'followup'),witness:member.tokenId,slot:'followup' as const,line:speak({cast:castRows},salt,member.tokenId,paidValue,'followup',statementId(member.tokenId,'followup')),claim:{factId:'move-kind',value:paidValue},requiresCaught:[]},
   ]);
   const arrivalTruth=arrivalValue(subject.name,candidate.at),falseArrival=arrivalValue(subject.name,candidate.at-86400);
   const lies:PuzzleLie[]=[
-   {id:'A',witness:first,statementId:statementId(first,'opening'),kind:'D1',trueValue:arrivalTruth,falseValue:falseArrival,receiptId:'arrival-'+event.tokenId,inference:'The arrival receipt puts the move on a different day.',unlock:{receiptId:difficulty.sealed?'payment':null,line:'The arrival record fixes the time of the move.'}},
-   {id:'B',witness:first,statementId:statementId(first,'followup'),kind:'I1',trueValue:paidValue,falseValue:subject.name+' moved as a gift',receiptId:'payment',inference:'Verified payment in the same transaction makes this a purchase.',unlock:{receiptId:null,line:'The payment record shows a '+route+'.'}},
+   {id:'A',witness:first,statementId:statementId(first,'opening'),kind:'D1',trueValue:arrivalTruth,falseValue:falseArrival,receiptId:'arrival-'+event.tokenId,inference:'The arrival receipt puts the move on a different day.',unlock:{receiptId:difficulty.sealed?'payment':null,line:'The arrival record fixes the time of the move.'},retraction:''},
+   {id:'B',witness:first,statementId:statementId(first,'followup'),kind:'I1',trueValue:paidValue,falseValue:subject.name+' moved as a gift',receiptId:'payment',inference:'Verified payment in the same transaction makes this a purchase.',unlock:{receiptId:null,line:'The payment record shows a '+route+'.'},retraction:''},
   ];
-  if(second!==null)lies.push({id:'C',witness:second,statementId:statementId(second,'followup'),kind:'D5',trueValue:priceValue,falseValue:subject.name+' was paid for with '+rounded(differentPriceBand(event.price!.grossWei!).toString(),event.price!.asset),receiptId:'payment',inference:'The payment receipt records a different amount.',unlock:{receiptId:null,line:'The price is recorded in the payment receipt.'}});
-  for(const lie of lies){const statement=statements.find(row=>row.id===lie.statementId)!;statement.line='I saw '+lie.falseValue+'.';statement.claim={factId:lie.id==='A'?'arrival-'+event.tokenId:lie.id==='B'?'move-kind':'price',value:lie.falseValue};if(lie.id==='C'&&difficulty.chained)statement.requiresCaught=['B'];}
+  if(second!==null)lies.push({id:'C',witness:second,statementId:statementId(second,'followup'),kind:'D5',trueValue:priceValue,falseValue:subject.name+' was paid for with '+rounded(differentPriceBand(event.price!.grossWei!).toString(),event.price!.asset),receiptId:'payment',inference:'The payment receipt records a different amount.',unlock:{receiptId:null,line:'The price is recorded in the payment receipt.'},retraction:''});
+  for(const lie of lies){const statement=statements.find(row=>row.id===lie.statementId)!;statement.line=speak({cast:castRows},salt,lie.witness,lie.falseValue,statement.slot,statement.id);lie.retraction=speak({cast:castRows},salt,lie.witness,lie.trueValue,'retraction',statement.id);statement.claim={factId:lie.id==='A'?'arrival-'+event.tokenId:lie.id==='B'?'move-kind':'price',value:lie.falseValue};if(lie.id==='C'&&difficulty.chained)statement.requiresCaught=['B'];}
   return {statements,lies};
  };
  const tileInputs=[{label:subject.name,sources:[anchor]},{label:route,sources:paymentSources},{label:price,sources:paymentSources},...cast.filter(member=>member.tokenId!==event.tokenId).map(member=>({label:member.name,sources:[member.arrival]}))];
@@ -128,6 +135,7 @@ export function validatePuzzle(puzzle:PuzzleCase):string[]{
  const errors=new Set<string>(),{file,key}=puzzle,difficulty=dailyDifficulty(file.day),add=(code:string)=>errors.add(code);
  if(!['DAILY','REPLAY'].includes(file.mode)||file.opensAt!==Date.parse(file.day+'T00:20:00Z')/1000||file.closesAt!==file.opensAt+86400)add('CASE_WINDOW');
  if(file.v!==2||key.v!==2||key.caseId!==file.id||!/^0x[a-f0-9]{64}$/i.test(key.salt)||key.contentHash!==hash(canonicalJSON(file))||puzzle.answerHash!==puzzleHash(puzzle))add('CASE_COMMITMENT');
+ if(file.cast.some(row=>!voices.includes(row.voice)))add('CASE_VOICE');
  if(file.ruleLine!==puzzleRule(file.day)||file.cast.length!==difficulty.witnesses||new Set(file.cast.map(row=>row.tokenId)).size!==file.cast.length||file.cast.filter(row=>row.tokenId===file.subject.tokenId).length!==1)add('RULE_LINE_MISMATCH');
  if(file.receipts.length<4||file.receipts.length>6||new Set(file.receipts.map(row=>row.id)).size!==file.receipts.length||file.receipts.filter(row=>row.sealed).length!==difficulty.sealed)add('CASE_RECEIPTS');
  const sourceValid=(row:Source)=>/^0x[a-f0-9]{64}$/i.test(row.tx)&&Number.isSafeInteger(row.block)&&row.block>=0&&Number.isSafeInteger(row.logIndex)&&row.logIndex>=0&&(row.block<file.cutoff.block||row.block===file.cutoff.block&&(row.tx===file.cutoff.tx||row.logIndex<=file.cutoff.logIndex));
@@ -146,6 +154,8 @@ export function validatePuzzle(puzzle:PuzzleCase):string[]{
    if(!witnessIds.has(statement.witness)||!['opening','followup'].includes(statement.slot)||statement.id!==statementId(statement.witness,statement.slot)||statement.line.length>140||!statement.line.startsWith('I ')||!statement.line.includes(statement.claim.value)||!matches.length||statement.requiresCaught.some(id=>!plan.lies.some(row=>row.id===id)))add('CASE_STATEMENT_FACT');
    if(validateLine({id:statement.id,card:'ARRIVAL',voice:'sharp',isLie:!!lie,cleanPersona:'',displayFacts:[statement.claim.value],trueFacts:[lie?.trueValue??statement.claim.value],sources:matches.flatMap(row=>row.sources)},{line:statement.line,facts_used:[statement.claim.value]}).length||/\bobjection\b/i.test(statement.line))add('CASE_STATEMENT_WORDS');
    if(lie){
+    const retraction={id:lie.statementId,card:'ARRIVAL' as const,voice:'sharp' as const,isLie:false,cleanPersona:'',displayFacts:[lie.trueValue],trueFacts:[lie.trueValue],sources:matches.flatMap(row=>row.sources)};
+    if(typeof lie.retraction!=='string'||!lie.retraction.startsWith('I ')||lie.retraction.length>140||!lie.retraction.includes(lie.trueValue)||lie.retraction.includes(lie.falseValue)||validateLine(retraction,{line:lie.retraction,facts_used:[lie.trueValue]}).length)add('CASE_RETRACTION');
     if(lie.witness!==statement.witness||lie.falseValue!==statement.claim.value||lie.falseValue===lie.trueValue||!lie.inference||!lie.unlock.line||matches.length!==1||matches[0]!.id!==lie.receiptId||!matches[0]!.facts.some(fact=>fact.id===statement.claim.factId&&fact.value===lie.trueValue)||lie.unlock.receiptId!==null&&!file.receipts.some(row=>row.id===lie.unlock.receiptId))add('CASE_CONTRADICTION');
    }else if(matches.some(receipt=>receipt.facts.some(fact=>fact.id===statement.claim.factId&&fact.value!==statement.claim.value)))add('CASE_TRUE_STATEMENT');
   }
