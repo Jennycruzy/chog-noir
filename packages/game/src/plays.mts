@@ -7,7 +7,7 @@ import {withPlayerLock} from './player-lock.mts';
 
 export class PlayError extends Error {constructor(public readonly code:string,message:string,public readonly status=400){super(message);}}
 /** A witness the detective's Chog already knows: its first Press is free. Facts only, with their sources. */
-export interface KnownWitness {witness:number;kind:'LOOK'|'WALLET'|'MINT';reason:string}
+export interface KnownWitness {witness:number;kind:'LOOK'|'WALLET'|'TRAIL'|'MINT';reason:string}
 /** One holder Chog's work on one case. Careers live separately on the token; this is the case-day state. */
 export interface HolderPlay {
  v:1;caseId:string;tokenId:number;wallet:Address;founder:boolean;startedAt:number;
