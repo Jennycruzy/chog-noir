@@ -131,7 +131,7 @@ async function home(){
    h('p',{class:'line'},'Every night something real happens to Chogs on Monad. Every morning your Chog takes the case. One witness is lying. The chain never does.'),
    h('div',{class:'actions'},c?h('button',{class:'primary cta',onclick:()=>go('/rookie')},'Play as a rookie',h('span',{class:'arrow','aria-hidden':'true'},'→')):null,h('button',{class:'cta',onclick:()=>go('/connect')},'Connect wallet')),
    h('p',{class:'proof'},h('span',{},'Real sales on Monad'),h('span',{},'No wallet needed to play'),c?.openTx?h('span',{},h('a',{href:explorer(c.openTx),target:'_blank',rel:'noopener'},'Answer locked on chain')):h('span',{},'Answers locked on chain'))),
-  h('figure',{class:'spotlight'},portrait(subject.tokenId,{alt:c?`${subject.name}, the subject of today's case`:`${subject.name}, a real Chog`,eager:true}),
+  h('figure',{class:'spotlight'},portrait(subject.tokenId,{alt:c?`${subject.name}, the subject of today's case`:`${subject.name}, a real Chog`,eager:true,sizes:'(max-width:860px) 60vw, 520px'}),
    h('div',{class:'blinds','aria-hidden':'true'}),h('div',{class:'flash','aria-hidden':'true'}),
    h('figcaption',{class:'plaque'},h('span',{},c?'SUBJECT':'ON THE RECORD'),h('strong',{},subject.name)),
    c?h('span',{class:'tape','aria-hidden':'true'},`CASE #${c.number} · OPEN`):null));

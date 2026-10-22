@@ -1,12 +1,12 @@
 :root{--ink:#0B0B0D;--paper:#F2EDE4;--manila:#E9DDBF;--manila-2:#D9C9A1;--smoke-1:#17171B;--smoke-2:#24242B;--lamp:#F5C451;--alarm:#E5484D;--clue:#4CC38A;--neon:#9C8CFF;
  --bg:var(--ink);--text:var(--paper);--panel:var(--smoke-1);--panel-2:var(--smoke-2);--muted:#A4A4AE;--line:#34343D;--glow:#F5C45133;
  --display:'Oswald','Arial Narrow',Arial,sans-serif;--type:'Courier Prime','Courier New',monospace;--ui:'Inter',Arial,sans-serif;
- --ease:cubic-bezier(.2,.8,.2,1);--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");color-scheme:dark}
+ --ease:cubic-bezier(.2,.8,.2,1);--grain:url(/img/grain.png);color-scheme:dark}
 :root[data-theme="light"]{--bg:#F2EDE4;--text:#16161A;--panel:#E8E0D1;--panel-2:#DCD2C0;--muted:#55555E;--line:#C2B7A4;--lamp:#8A5A00;--alarm:#B3261E;--clue:#1E7A4F;--neon:#5B47D6;--glow:#8A5A0022;color-scheme:light}
 *{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 var(--ui);min-height:100vh;overflow-x:hidden}
 /* Atmosphere: film grain and a vignette over every page. Decorative only; never intercepts a tap. */
 body:before,body:after{content:'';position:fixed;pointer-events:none;z-index:20}
-body:before{inset:-50%;background:var(--grain);opacity:.07;animation:grain 1.2s steps(6) infinite}
+body:before{inset:-10%;background:var(--grain);opacity:.09;animation:grain 1.2s steps(6) infinite;will-change:transform}
 body:after{inset:0;background:radial-gradient(ellipse at 50% 40%,transparent 55%,#00000073 100%)}
 :root[data-theme="light"] body:after{background:radial-gradient(ellipse at 50% 40%,transparent 60%,#4a3a1a22 100%)}
 a{color:var(--lamp);text-underline-offset:3px}
@@ -22,11 +22,11 @@ h1{font-size:clamp(40px,7.2vw,84px)}h2{font-size:clamp(26px,4vw,40px)}h3{font-si
 .muted{color:var(--muted)}.type{font-family:var(--type)}.lamp{color:var(--lamp)}
 .skip{position:absolute;left:-9999px}.skip:focus{left:16px;top:8px;z-index:30;background:var(--lamp);color:#000;padding:8px}
 /* Masthead */
-.masthead-bar{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.masthead-bar{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 96%,transparent);border-bottom:1px solid var(--line)}
 .masthead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;max-width:1200px;margin:auto;min-height:69px}
 .wordmark{font:700 26px var(--display);color:var(--text);text-decoration:none;letter-spacing:3px}.wordmark span{color:var(--lamp);text-shadow:0 0 18px #F5C45166;animation:neon 2.4s 1 .4s}
 :root[data-theme="light"] .wordmark span{text-shadow:none}
-.today{font:13px var(--type);color:var(--muted);text-decoration:none;min-width:9em;display:inline-flex;align-items:center;gap:8px}.today:before{content:'';width:8px;height:8px;border-radius:50%;background:var(--alarm);box-shadow:0 0 0 0 var(--alarm);animation:pulse 2s infinite}
+.today{font:13px var(--type);color:var(--muted);text-decoration:none;min-width:9em;display:inline-flex;align-items:center;gap:8px}.today:before{content:'';width:8px;height:8px;border-radius:50%;background:var(--alarm);animation:pulse 2s ease-in-out infinite}
 .today[hidden]{display:inline-flex;visibility:hidden}
 .badge{margin-left:auto;display:flex;align-items:center;gap:8px;font:13px var(--type);min-height:32px}.badge img{width:32px;height:32px;border-radius:50%;border:1px solid var(--lamp)}
 .controls{display:flex;gap:6px}.controls button{padding:6px 10px;min-height:36px;font-size:13px}
@@ -51,9 +51,9 @@ footer nav{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px}.loading{font-
 .spotlight{position:relative;margin:0;aspect-ratio:1;max-width:520px;width:100%;justify-self:end;border-radius:14px;overflow:hidden;background:radial-gradient(circle at 50% 30%,#2a2a31,#0B0B0D 70%);box-shadow:0 40px 80px -30px #000,0 0 0 1px var(--line);isolation:isolate}
 .spotlight img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:contrast(1.15) brightness(.95);animation:develop 1.6s var(--ease) both;transform-origin:50% 40%}
 .spotlight:hover img{transform:scale(1.03);transition:transform 1.2s var(--ease)}
-.blinds{position:absolute;inset:-20%;z-index:1;pointer-events:none;background:repeating-linear-gradient(172deg,transparent 0 26px,#000000a6 26px 46px);mix-blend-mode:multiply;animation:sway 9s ease-in-out infinite alternate}
+.blinds{position:absolute;inset:-20%;z-index:1;pointer-events:none;background:repeating-linear-gradient(172deg,transparent 0 26px,#0000008c 26px 46px);animation:sway 9s ease-in-out infinite alternate;will-change:transform}
 .spotlight:before{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 62% 18%,#F5C45140,transparent 55%),linear-gradient(transparent 55%,#0B0B0De6)}
-.spotlight:after{content:'';position:absolute;inset:-40% 0 0;z-index:3;pointer-events:none;background:repeating-linear-gradient(100deg,transparent 0 30px,#ffffff10 30px 31px);animation:rain .7s linear infinite}
+.spotlight:after{content:'';position:absolute;inset:-180px 0 0;z-index:3;pointer-events:none;background:repeating-linear-gradient(100deg,transparent 0 30px,#ffffff10 30px 31px);animation:rain-spot .7s linear infinite;will-change:transform}
 .spotlight .flash{position:absolute;inset:0;z-index:4;background:#fff;opacity:0;pointer-events:none;animation:lightning 11s infinite 2.5s}
 .plaque{position:absolute;left:16px;bottom:16px;z-index:5;display:flex;flex-direction:column;font:12px var(--type);color:#C9C9D1;letter-spacing:2px}
 .plaque strong{font:700 30px var(--display);letter-spacing:1px;color:#F2EDE4}
@@ -111,7 +111,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px}.loading{font-
 /* Interrogation room */
 .room{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:radial-gradient(ellipse at 70% -10%,#F5C45129,transparent 55%),linear-gradient(#141418,#0B0B0D);padding:20px;isolation:isolate;color:var(--paper)}
 :root[data-theme="light"] .room{background:radial-gradient(ellipse at 70% 0%,#F5C45144,transparent 55%),linear-gradient(#E9E1D3,#D7CDBB);color:#16161A}
-.room:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(105deg,transparent 0 22px,#ffffff08 22px 23px);animation:rain .9s linear infinite}
+.room:before{content:'';position:absolute;inset:-90px 0 0;z-index:-1;pointer-events:none;background:repeating-linear-gradient(105deg,transparent 0 22px,#ffffff08 22px 23px);animation:rain-room .9s linear infinite;will-change:transform}
 .room:after{content:'';position:absolute;top:-120px;left:50%;width:520px;height:320px;transform:translateX(-50%);z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 50% 0%,#F5C4511f,transparent 70%);animation:lamp 6s ease-in-out infinite}
 .room.flicker{animation:flicker .4s 2}.rookie-desk{position:absolute;right:14px;top:14px}
 .room-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -170,16 +170,17 @@ button.receipt-card:hover{background:#FFFBF1}
 .dossier img{width:100%;height:100%;object-fit:cover;display:block}.dossier .blinds{inset:-20%}
 table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;font-size:14px;overflow-wrap:anywhere}th{font-family:var(--type);color:var(--muted);font-weight:400}
 input{font:inherit;padding:10px;min-height:44px;width:100%;max-width:520px;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px}
-@keyframes rain{to{background-position:0 46px}}@keyframes flicker{50%{filter:brightness(.6)}}@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+/* Stripes at angle θ repeat every period/cos(θ-90°) px down the page, so each loop is seamless. */
+@keyframes rain-spot{to{transform:translateY(178.5px)}}@keyframes rain-room{to{transform:translateY(88.9px)}}@keyframes flicker{50%{filter:brightness(.6)}}@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 @keyframes stamp{from{opacity:0;transform:scale(2) rotate(-12deg)}to{opacity:1;transform:scale(1) rotate(-10deg)}}@keyframes slam{to{transform:none;opacity:1}}
 @keyframes fade{from{opacity:0}}@keyframes rise{from{opacity:0;transform:translateY(12px)}}
 @keyframes lineIn{from{opacity:0;transform:translateY(.4em);clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 -10% 0)}}
 @keyframes develop{from{opacity:0;filter:grayscale(1) contrast(2) brightness(.2);transform:scale(1.08)}}
 @keyframes sway{to{transform:translate(-3%,2%) rotate(1deg)}}@keyframes lamp{50%{opacity:.6}}
 @keyframes lightning{0%,94%,100%{opacity:0}95%{opacity:.35}96%{opacity:0}97%{opacity:.2}}
-@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-5%,3%)}40%{transform:translate(3%,-4%)}60%{transform:translate(-2%,5%)}80%{transform:translate(4%,1%)}}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-4%,3%)}40%{transform:translate(3%,-4%)}60%{transform:translate(-2%,4%)}80%{transform:translate(4%,1%)}}
 @keyframes neon{0%,100%{opacity:1}10%{opacity:.3}12%{opacity:1}30%{opacity:.5}32%{opacity:1}}
-@keyframes pulse{0%{box-shadow:0 0 0 0 #E5484D99}70%{box-shadow:0 0 0 8px #E5484D00}100%{box-shadow:0 0 0 0 #E5484D00}}
+@keyframes pulse{50%{opacity:.25}}
 @keyframes marquee{to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.replay .receipt,.replay-stamp{opacity:1!important;transform:none!important}[data-reveal]{opacity:1;transform:none}.wall{overflow-x:auto}}
 @media (max-width:860px){.hero{grid-template-columns:1fr;gap:22px;min-height:0}.spotlight{order:-1;justify-self:stretch;max-width:none;aspect-ratio:16/11}.case-row{grid-template-columns:1fr}.steps{grid-template-columns:1fr}.cta-band{grid-template-columns:1fr}}
