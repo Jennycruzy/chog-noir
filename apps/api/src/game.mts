@@ -119,7 +119,8 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const status=await readFile(join(root,'runs/daily/status.json'),'utf8').then(text=>JSON.parse(text)).catch(()=>({status:'NOT_STARTED'}));
   const owners=await readFile(join(root,'runs/owners/snapshot.json'),'utf8').then(text=>{const value=JSON.parse(text);return {indexedBlock:value.indexedBlock,ageSeconds:Math.round((Date.now()-value.indexedAt)/1000)};}).catch(()=>null);
   const published=await cases.list(),open=await cases.current(Date.now());
-  return {daily:{status:status.status,day:status.day??null,caseId:status.caseId??null},caseOpen:!!open,casesPublished:published.length,lastOpenTx:published.at(-1)?.open?.hash??null,owners,history:context?{toBlockExclusive:context.toBlockExclusive,coverageAt:context.coverageAt}:null};
+  const alerts=await readFile(join(root,'runs/alerts/status.json'),'utf8').then(text=>{const value=JSON.parse(text);return {checkedAt:value.checkedAt,codes:value.alerts.map((row:{code:string})=>row.code)};}).catch(()=>null);
+  return {daily:{status:status.status,day:status.day??null,caseId:status.caseId??null},alerts,caseOpen:!!open,casesPublished:published.length,lastOpenTx:published.at(-1)?.open?.hash??null,owners,history:context?{toBlockExclusive:context.toBlockExclusive,coverageAt:context.coverageAt}:null};
  };
  const pages=publicRoutes({root,context,names:id=>metadata.get(id)?.name});options.history=pages.history;options.hunches=new HunchDesk(root);
  options.push=new PushDesk({root,keyFile:process.env.PUSH_KEY_FILE??'/home/ubuntu/chognoir-private/push-vapid.json',subject:new URL(origin).origin});

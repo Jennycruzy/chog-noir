@@ -10,7 +10,8 @@ import {ClaimSourceError,type BulkSource} from '../../packages/witness/src/claim
 export interface DailySource {history:readonly EnrichedEvent[];times:ReadonlyMap<number,number>;metadata:ReadonlyMap<number,Metadata>;ownership:OwnerSnapshot;bulkSources:readonly BulkSource[];rules:CaseRules}
 /** The event a published case was built from; used to avoid repeating a Chog or wallet within seven cases. */
 export interface CaseEvent {sourceId:string;tokenId:number;from:string;to:string}
-export interface DailyBuild {puzzle:PuzzleCase;source:'FRESH'|'COLD_FALLBACK';event:CaseEvent;rejected:{candidate:string;code:string}[]}
+/** fallbackPool counts older real sales still eligible as cold cases: the reserve for quiet days. */
+export interface DailyBuild {puzzle:PuzzleCase;source:'FRESH'|'COLD_FALLBACK';event:CaseEvent;rejected:{candidate:string;code:string}[];fallbackPool:number}
 const eventOf=(candidate:Candidate):CaseEvent=>({sourceId:candidate.row.event.tx.toLowerCase()+':'+candidate.row.event.logIndex,tokenId:candidate.row.event.tokenId,from:candidate.row.event.from,to:candidate.row.event.to});
 
 /**
@@ -45,11 +46,12 @@ export function buildDailyPuzzle(input:DailySource&{day:string;salt:string;previ
  };
  const fresh=rankCandidates(candidates,{day:sourceDay,previous:recent.map(row=>({tokenId:row.tokenId,wallets:[row.from,row.to]})),castQuality:candidate=>{const cast=buildLinkedCast(candidate,history,times,metadata);return cast.length?castQuality(cast.slice(0,4),metadata):0;},
   ...(input.linkCoverage?{linkCoverage:(candidate:Candidate)=>input.linkCoverage!(buildLinkedCast(candidate,history,times,metadata).slice(0,4).map(row=>row.tokenId))}:{})});
- for(const {candidate} of fresh){const built=attempt(candidate);if(built)return {...built,source:'FRESH',rejected};}
  // Cold case: an older real sale, in an order fixed by the day so the fallback is reproducible but varies day to day.
  const excluded=new Set(recent.flatMap(row=>[String(row.tokenId),row.from.toLowerCase(),row.to.toLowerCase(),row.sourceId]));
  const cold=candidates.filter(candidate=>candidate.at<start-86400&&!excluded.has(eventOf(candidate).sourceId)&&!excluded.has(String(candidate.row.event.tokenId))&&!excluded.has(candidate.row.event.from.toLowerCase())&&!excluded.has(candidate.row.event.to.toLowerCase()))
   .sort((a,b)=>keccak256(toBytes(day+':'+a.id)).localeCompare(keccak256(toBytes(day+':'+b.id))));
- for(const candidate of cold){const built=attempt(candidate);if(built)return {...built,source:'COLD_FALLBACK',rejected};}
+ const fallbackPool=new Set(cold.map(candidate=>eventOf(candidate).sourceId)).size;
+ for(const {candidate} of fresh){const built=attempt(candidate);if(built)return {...built,source:'FRESH',rejected,fallbackPool};}
+ for(const candidate of cold){const built=attempt(candidate);if(built)return {...built,source:'COLD_FALLBACK',rejected,fallbackPool};}
  throw new PuzzleError('CASE_UNSOLVABLE','No real event produced a fair, solvable case for this day.');
 }

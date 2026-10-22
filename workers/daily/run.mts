@@ -30,7 +30,7 @@ const day=new Date().toISOString().slice(0,10);
 const vault=await localVault(join(root,'runs/publication-vault'),privateVaultKeyFile());
 const statusPath=join(directory,'status.json');
 /** The private record of which real event today's case was built from. The case itself is sealed in the vault. */
-interface DailyCase {v:2;day:string;id:string;source:'FRESH'|'COLD_FALLBACK';event:CaseEvent;toBlockExclusive:number;builtAt:string;condition:'DEGRADED'|null;reason:string|null;rejected:number}
+interface DailyCase {v:2;day:string;id:string;source:'FRESH'|'COLD_FALLBACK';event:CaseEvent;toBlockExclusive:number;builtAt:string;condition:'DEGRADED'|null;reason:string|null;rejected:number;fallbackPool:number}
 const casePath=(date:string)=>join(directory,'cases',date+'.json');
 async function savedCase(date:string):Promise<DailyCase|null>{try{return JSON.parse(await readFile(casePath(date),'utf8'));}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return null;throw error;}}
 try{
@@ -72,7 +72,7 @@ try{
   await verifySourceReceipts(data.rpc,data.data,puzzleSources(build.puzzle),join(directory,'receipts'));
   // Seal before any chain write, so a retry commits the same key and salt.
   if(publisher)await publisher.prepare(build.puzzle,build.source);else await vault.seal(build.puzzle.file.id,build.puzzle);
-  plan={v:2,day,id:build.puzzle.file.id,source:build.source,event:build.event,toBlockExclusive:data.toBlockExclusive,builtAt:new Date().toISOString(),condition:recovery.degraded?'DEGRADED':null,reason:recovery.degraded?safeError(new Error(recovery.reason!)):null,rejected:build.rejected.length};
+  plan={v:2,day,id:build.puzzle.file.id,source:build.source,event:build.event,toBlockExclusive:data.toBlockExclusive,builtAt:new Date().toISOString(),condition:recovery.degraded?'DEGRADED':null,reason:recovery.degraded?safeError(new Error(recovery.reason!)):null,rejected:build.rejected.length,fallbackPool:build.fallbackPool};
   await atomicJSON(casePath(day),plan);
  }
  if(!publisher){

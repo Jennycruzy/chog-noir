@@ -1,0 +1,8 @@
+[Unit]
+Description=Nightly Chog Noir backup
+[Timer]
+OnCalendar=*-*-* 03:10:00 UTC
+Persistent=true
+Unit=chog-noir-backup.service
+[Install]
+WantedBy=timers.target

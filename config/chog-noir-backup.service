@@ -1,0 +1,10 @@
+[Unit]
+Description=Back up Chog Noir private runtime state and prove the newest copy restores
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/chog-noir-release/current
+ExecStart=/usr/bin/bash scripts/backup.sh
+ExecStartPost=/usr/bin/node --import tsx scripts/restore-check.mts
+NoNewPrivileges=true
+UMask=0077

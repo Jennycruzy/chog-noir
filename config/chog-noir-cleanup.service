@@ -1,5 +1,5 @@
 [Unit]
-Description=Remove expired Chog Noir render cache and inactive empty guest files
+Description=Close the Rookie desk at each case open and remove spent sign-in records
 [Service]
 Type=oneshot
 User=ubuntu

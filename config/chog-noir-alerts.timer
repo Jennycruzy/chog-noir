@@ -1,0 +1,8 @@
+[Unit]
+Description=Check Chog Noir operating conditions every five minutes
+[Timer]
+OnCalendar=*-*-* *:00/5:30 UTC
+Persistent=true
+Unit=chog-noir-alerts.service
+[Install]
+WantedBy=timers.target
