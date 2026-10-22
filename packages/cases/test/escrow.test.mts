@@ -21,7 +21,7 @@ test('a $CHOG escrow deal becomes a CHOG_TRAIL case priced by the token transfer
  expect(deal.type).toBe('CHOG_TRAIL');
  const puzzle=buildSalePuzzle(input),payment=puzzle.file.receipts.find(row=>row.id==='payment')!;
  expect(validatePuzzle(puzzle)).toEqual([]);expect(verifySalePuzzleSources(puzzle,input)).toBe(true);
- expect(puzzle.file.title).toBe('Follow the $CHOG');expect(puzzle.file.setup).toContain('escrow deal paid in $CHOG');
+ expect(['Follow the $CHOG','Paid in $CHOG','The escrow job']).toContain(puzzle.file.title);expect(puzzle.file.setup).toContain('in a deal paid in $CHOG, through an escrow contract');expect(puzzle.file.cast.every(row=>typeof row.link==='string'&&row.link.length>0)).toBe(true);
  expect(payment.text).toBe(`${puzzle.file.subject.name} · an escrow deal · Paid: 2 $CHOG.`);
  const proof=deal.row.event.escrow!.paymentProof as {kind:'ERC20';log:{transactionHash:string;logIndex:number}};
  expect(payment.sources).toContainEqual({tx:proof.log.transactionHash,block:deal.row.event.block,logIndex:proof.log.logIndex});

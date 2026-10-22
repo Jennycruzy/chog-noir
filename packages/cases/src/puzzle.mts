@@ -1,6 +1,6 @@
 import {keccak256,toBytes,formatEther} from 'viem';
 import config from '../../../config/cases.json' with {type:'json'};
-import {buildLinkedCast,canonicalJSON,type Metadata} from './build.mts';
+import {buildLinkedCast,canonicalJSON,type CastMember,type Metadata} from './build.mts';
 import {CHOG_TOKEN} from '../../core/src/chain.mts';
 import type {Candidate} from './select.mts';
 import type {EnrichedEvent,Source} from '../../core/src/enrich.mts';
@@ -16,7 +16,7 @@ export interface PuzzleLie {id:LieId;witness:number;statementId:string;kind:LieK
 export interface PuzzlePlan {statements:PuzzleStatement[];lies:PuzzleLie[]}
 export interface PuzzleFile {
  v:2;id:string;day:string;mode:'DAILY'|'REPLAY';title:string;setup:string;type:string;subject:{tokenId:number;name:string};ruleLine:string;
- opensAt:number;closesAt:number;cutoff:Source;cast:{tokenId:number;name:string;nickname:string;side:'BUYER'|'SELLER'|null;voice:typeof voices[number]}[];
+ opensAt:number;closesAt:number;cutoff:Source;cast:{tokenId:number;name:string;nickname:string;side:'BUYER'|'SELLER'|null;voice:typeof voices[number];link?:string}[];
  receipts:PuzzleReceipt[];tiles:{id:string;label:string;sources:Source[]}[];blanks:{id:string;label:string}[];
 }
 export interface PuzzleCase {file:PuzzleFile;key:{v:2;caseId:string;salt:string;contentHash:string;receiptIds:string[];answers:Record<string,string>;plans:Record<string,PuzzlePlan>;claimIds?:Partial<Record<LieId,string>>};answerHash:string}
@@ -86,6 +86,38 @@ export function witnessCutoff(input:{candidate:Candidate;history:readonly Enrich
  return {cutoff,cast};
 }
 
+/** Why a witness is in the room, from its recorded connection to the move. */
+export function witnessLink(role:CastMember['role'],subject:string){
+ return {SUBJECT:'The Chog that changed hands',BUYER_ROOMMATE:'Shares a wallet with the buyer',SELLER_ROOMMATE:'Shares a wallet with the seller',PREVIOUS_ROOMMATE:'Once shared a wallet with '+subject,RECENT_SALE:'Changed hands within hours of it'}[role];
+}
+const titles:Record<string,readonly string[]>={
+ FIRST_MOVE:['The first step','Out of the cradle','It never left, until now'],QUICK_EXIT:['The short stay','In and out','Barely unpacked'],
+ BIG_SPENDER:['The heavy envelope','Big money, small hours','Somebody wanted it badly'],LONG_GOODBYE:['The long goodbye','After all this time','Old ties, cut'],
+ PING_PONG:['It moved again','Restless','No fixed address'],CHEAP_EXIT:['Sold cheap','Cut-price exit','Everything must go'],CHOG_TRAIL:['Follow the $CHOG','Paid in $CHOG','The escrow job'],COLD_CASE:['The ink still holds','Cold file','Dust on the folder']};
+/** A quick exit is either a fast resale or a sale well under recent prices; the trigger says which. */
+const cheap=(type:string,trigger:string)=>type==='QUICK_EXIT'&&!trigger.startsWith('Resale');
+/** A case title, varied by the case salt so the same kind of case does not always read the same. */
+export function caseTitle(type:string,salt:string,trigger=''){const pool=titles[cheap(type,trigger)?'CHEAP_EXIT':type]??titles.COLD_CASE!;return pool[Number(BigInt(hash(salt+':title'))%BigInt(pool.length))]!;}
+/**
+ * The case brief: what kind of move this was, when in the day it happened, and who saw it. Every sentence follows from the
+ * rule that selected the case. It never states the price, date or route, because those are what the player must prove.
+ */
+export function caseStory(input:{type:string;trigger:string;at:number;subject:string;witnesses:number}){
+ const {type,trigger,at,subject,witnesses}=input,hour=new Date(at*1000).getUTCHours();
+ const stakes:Record<string,string>={
+  FIRST_MOVE:`${subject} had never left the wallet it was minted to. Then its minter sold it.`,
+  QUICK_EXIT:trigger.startsWith('Resale')?`${subject} was sold again within days of being bought.`:`${subject} went for well under what recent Chogs have sold for.`,
+  BIG_SPENDER:`Someone bought ${subject} from a listing for well above what recent Chogs have sold for.`,
+  LONG_GOODBYE:`${subject} had sat in the same wallet for more than a month. Then it was sold.`,
+  PING_PONG:`${subject} had already moved more than once this week. Now it has changed hands again.`,
+  CHOG_TRAIL:`${subject} changed hands in a deal paid in $CHOG, through an escrow contract.`,
+  COLD_CASE:`An older sale of ${subject}, reopened from the archive on a quiet night.`};
+ const when=hour<5?'It happened in the small hours, while most of Monad slept.':hour<11?'It happened early in the day.':hour<17?'It happened in broad daylight.':hour<21?'It happened as the evening came on.':'It happened late at night.';
+ const hooks:Record<string,string>={FIRST_MOVE:'Why now, after all this time?',QUICK_EXIT:cheap(type,trigger)?'Why let it go so cheap?':'What was the hurry?',BIG_SPENDER:'Who pays that much, and why?',LONG_GOODBYE:'What finally changed?',PING_PONG:'Who keeps passing it on?',CHOG_TRAIL:'Follow the $CHOG.',COLD_CASE:'The ink is dry, but the chain remembers.'};
+ const count=['','One Chog','Two Chogs','Three Chogs','Four Chogs','Five Chogs'][witnesses]??`${witnesses} Chogs`;
+ return `${stakes[type]??stakes.COLD_CASE} ${type==='COLD_CASE'?'':when+' '}${count} know what really happened. ${hooks[type]??hooks.COLD_CASE}`;
+}
+
 /** Build the sale puzzle from classified records; the original records remain its authority. */
 export function buildSalePuzzle(input:{candidate:Candidate;history:readonly EnrichedEvent[];times:ReadonlyMap<number,number>;metadata:ReadonlyMap<number,Metadata>;day:string;salt:string;mode:'DAILY'|'REPLAY'}):PuzzleCase{
  const {candidate,history,times,metadata,day,salt,mode}=input,difficulty=dailyDifficulty(day),event=candidate.row.event,anchor=source(candidate.row);
@@ -111,7 +143,7 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
  const {route,paymentSources}=move,price=amount(move.grossWei,move.asset,move.exact);
  const paidValue=subject.name+' changed wallets through '+route,priceValue=subject.name+' was paid for with '+price;
  receipts.push({id:'payment',text:subject.name+' · '+route+' · Paid: '+price+'.',exactText:subject.name+' · '+route+' · Paid: '+formatEther(BigInt(move.grossWei))+' '+move.asset+'.',at:candidate.at,sources:paymentSources,sealed:difficulty.sealed===1,facts:[{id:'move-kind',value:paidValue},{id:'price',value:priceValue}]});
- const castRows=cast.map(member=>({tokenId:member.tokenId,name:member.name,nickname:nicknames.get(owners.get(member.tokenId)!)!,side:member.role==='SUBJECT'||member.role==='BUYER_ROOMMATE'?'BUYER' as const:member.role==='SELLER_ROOMMATE'?'SELLER' as const:null,voice:traitsFor(member.tokenId,metadata.get(member.tokenId)!).voice}));
+ const castRows=cast.map(member=>({tokenId:member.tokenId,name:member.name,nickname:nicknames.get(owners.get(member.tokenId)!)!,side:member.role==='SUBJECT'||member.role==='BUYER_ROOMMATE'?'BUYER' as const:member.role==='SELLER_ROOMMATE'?'SELLER' as const:null,voice:traitsFor(member.tokenId,metadata.get(member.tokenId)!).voice,link:witnessLink(member.role,subject.name)}));
  const ranked=[...cast].sort((a,b)=>{
   const weight=(id:number)=>{const attributes=metadata.get(id)!.attributes,attr=(name:string)=>attributes.find(row=>row.trait_type===name)?.value.toLowerCase();return (['side eye','smirk','thug','mog','clown eye','clown eye mix'].includes(attr('Eyes')??'')?3:0)+(['clown','clown mouth'].includes(attr('Mouth')??'')?1:0)+(attr('Form')==='skull'?1:0);};
   return weight(b.tokenId)-weight(a.tokenId)||hash(salt+':liar:'+a.tokenId).localeCompare(hash(salt+':liar:'+b.tokenId));
@@ -137,8 +169,8 @@ export function buildSalePuzzle(input:{candidate:Candidate;history:readonly Enri
  };
  const tileInputs=[{label:subject.name,sources:[anchor]},{label:route,sources:paymentSources},{label:price,sources:paymentSources},...cast.filter(member=>member.tokenId!==event.tokenId).map(member=>({label:member.name,sources:[member.arrival]}))];
  const tiles=tileInputs.map(row=>({id:hash(salt+':tile:'+row.label).slice(0,18),...row})).sort((a,b)=>hash(salt+a.id).localeCompare(hash(salt+b.id)));
- const file:PuzzleFile={v:2,id:'case-'+hash(candidate.id+':'+day).slice(2,26),day,mode,title:({QUICK_EXIT:'The short stay',BIG_SPENDER:'The heavy envelope',LONG_GOODBYE:'The long goodbye',FIRST_MOVE:'The first step',PING_PONG:'It moved again',CHOG_TRAIL:'Follow the $CHOG',COLD_CASE:'The ink still holds'} as const)[candidate.type],
-  setup:candidate.type==='CHOG_TRAIL'?'A real escrow deal paid in $CHOG moved '+subject.name+' out of its wallet. Find what the receipts say about the deal.':candidate.type==='FIRST_MOVE'?'For the first time since mint, a real sale moved '+subject.name+' to a new wallet. Find what the receipts say about the move.':'A real sale moved '+subject.name+' to a new wallet. Find what the receipts say about the move.',type:candidate.type,subject:{tokenId:event.tokenId,name:subject.name},ruleLine:puzzleRule(day),opensAt,closesAt:opensAt+86400,cutoff,cast:castRows,receipts,tiles,blanks:[{id:'subject',label:'Chog'},{id:'move',label:'moved in'},{id:'price',label:'for'}]};
+ const file:PuzzleFile={v:2,id:'case-'+hash(candidate.id+':'+day).slice(2,26),day,mode,title:caseTitle(candidate.type,salt,candidate.trigger),
+  setup:caseStory({type:candidate.type,trigger:candidate.trigger,at:candidate.at,subject:subject.name,witnesses:cast.length}),type:candidate.type,subject:{tokenId:event.tokenId,name:subject.name},ruleLine:puzzleRule(day),opensAt,closesAt:opensAt+86400,cutoff,cast:castRows,receipts,tiles,blanks:[{id:'subject',label:'Chog'},{id:'move',label:'moved in'},{id:'price',label:'for'}]};
  const plans:Record<string,PuzzlePlan>={default:makePlan(null)};for(const id of [primary,secondary])if(id!==null)plans[id]=makePlan(id);
  const puzzle:PuzzleCase={file,key:{v:2,caseId:file.id,salt,contentHash:hash(canonicalJSON(file)),receiptIds:receipts.map(row=>row.id),answers:{subject:tiles.find(row=>row.label===subject.name)!.id,move:tiles.find(row=>row.label===route)!.id,price:tiles.find(row=>row.label===price)!.id},plans},answerHash:''};
  puzzle.answerHash=puzzleHash(puzzle);

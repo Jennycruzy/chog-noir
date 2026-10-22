@@ -50,7 +50,7 @@ const ago=(seconds:number)=>seconds<60?'just now':seconds<3600?Math.floor(second
 function caseSummary(record:PuzzlePublication,puzzle:PuzzleCase){
  const {file}=puzzle;
  return {id:file.id,number:record.number,day:file.day,weekday:new Date(file.day+'T00:00:00Z').toLocaleDateString('en-GB',{weekday:'short',timeZone:'UTC'}),title:file.title,setup:file.setup,ruleLine:file.ruleLine,
-  subject:file.subject,cast:file.cast.map(({tokenId,name,nickname})=>({tokenId,name,nickname})),opensAt:file.opensAt,closesAt:file.closesAt,answerHash:record.answerHash,contract:record.contract,publishedAt:record.publishedAt,openTx:record.open?.hash??null,closeTx:record.close?.hash??null,closed:!!record.close};
+  subject:file.subject,cast:file.cast.map(({tokenId,name,nickname,link})=>({tokenId,name,nickname,...(link?{link}:{})})),opensAt:file.opensAt,closesAt:file.closesAt,answerHash:record.answerHash,contract:record.contract,publishedAt:record.publishedAt,openTx:record.open?.hash??null,closeTx:record.close?.hash??null,closed:!!record.close};
 }
 
 export function playRoutes(options:PlayOptions){

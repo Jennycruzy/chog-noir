@@ -140,7 +140,7 @@ async function home(){
  const lineup=c?h('section',{class:'section','data-reveal':true,'aria-labelledby':'lineup-title'},
   h('div',{class:'section-head'},h('h2',{id:'lineup-title'},'Today’s lineup'),h('p',{class:'muted'},'Real Chogs from the real move. One of them is lying about its own life on chain.')),
   h('div',{class:'lineup'},c.cast.map((member,index)=>h('a',{class:'suspect',href:'/chog/'+member.tokenId,'data-link':true,'aria-label':`${member.name}, ${member.nickname}: detective record`},
-   h('div',{class:'mug'},portrait(member.tokenId,{sizes:'(max-width:760px) 33vw, 360px'})),h('div',{class:'placard'},h('span',{class:'no'},String(index+1).padStart(2,'0')),h('strong',{},member.name),h('span',{},member.nickname)))))):null;
+   h('div',{class:'mug'},portrait(member.tokenId,{sizes:'(max-width:760px) 33vw, 360px'})),h('div',{class:'placard'},h('span',{class:'no'},String(index+1).padStart(2,'0')),h('strong',{},member.name),h('span',{},member.link??member.nickname)))))):null;
  const file=h('section',{class:'section','data-reveal':true,'aria-label':'The case file'},
   h('div',{class:'case-row'},h('div',{},c?caseCard(c):h('p',{class:'type'},'No case is open right now. A new case opens at 00:20 UTC.'),h('button',{onclick:()=>alertMe(null)},'Alert me when a new case opens')),replay??h('div',{})));
  const cast=c?.cast??[];const face=index=>cast[index]?.tokenId??wallIds(day,3)[index];
@@ -245,7 +245,7 @@ function drawRoom(){
   const statements=s.statements.filter(row=>row.witness===member.tokenId),caughtIds=new Set(s.caught.map(row=>row.statementId)),hasFollow=statements.some(row=>row.slot==='followup');
   const identified=s.identified.find(row=>row.witness===member.tokenId);
   return h('section',{class:'witness'+(hasFollow?' lean':''),'data-witness':member.tokenId,'aria-label':`Witness ${member.name}`},
-   h('header',{},h('span',{class:'mug'},h('img',{src:art(member.tokenId),alt:`${member.name}`,width:76,height:76})),h('div',{},h('div',{class:'name'},member.name),h('div',{class:'nick'},member.nickname),known.has(member.tokenId)?h('span',{class:'tag'},known.get(member.tokenId)):null,identified?h('span',{class:'tag',style:'border-color:var(--alarm);color:var(--alarm)'},identified.message):null)),
+   h('header',{},h('span',{class:'mug'},h('img',{src:art(member.tokenId),alt:`${member.name}`,width:76,height:76})),h('div',{},h('div',{class:'name'},member.name),h('div',{class:'nick'},member.nickname),member.link?h('div',{class:'why'},member.link):null,known.has(member.tokenId)?h('span',{class:'tag'},known.get(member.tokenId)):null,identified?h('span',{class:'tag',style:'border-color:var(--alarm);color:var(--alarm)'},identified.message):null)),
    statements.map(row=>{const button=h('button',{class:'statement'+(caughtIds.has(row.id)?' caught':''),'data-statement':row.id,'aria-pressed':String(state.selected.statement===row.id),'aria-label':`${member.name} says: ${row.line}${caughtIds.has(row.id)?' (caught)':''}`,disabled:caughtIds.has(row.id),
      onclick:()=>{state.selected.statement=state.selected.statement===row.id?null:row.id;drawRoom();},ondragover:event=>event.preventDefault(),ondrop:event=>{event.preventDefault();const receipt=event.dataTransfer.getData('text/plain');if(receipt)void act({type:'present',statementId:row.id,receiptId:receipt});}},h('span',{class:'typed'}));
     typeOut(button.firstChild,row.line);const changed=s.caught.find(item=>item.statementId===row.id);
