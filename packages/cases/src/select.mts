@@ -1,6 +1,6 @@
 import type {EnrichedEvent} from '../../core/src/enrich.mts';
 import {CHOG_TOKEN} from '../../core/src/chain.mts';
-export type CaseType='QUICK_EXIT'|'BIG_SPENDER'|'LONG_GOODBYE'|'FIRST_MOVE'|'CHOG_TRAIL'|'COLD_CASE';
+export type CaseType='QUICK_EXIT'|'BIG_SPENDER'|'LONG_GOODBYE'|'FIRST_MOVE'|'PING_PONG'|'CHOG_TRAIL'|'COLD_CASE';
 export interface CaseRules {quickExitDiscountBps:number;quickExitHoldHours:number;bigSpenderPremiumBps:number;longGoodbyeHoldDays:number;priceBandUpperMon:number[];archiveQueueSize:number}
 export interface Candidate {id:string;type:CaseType;at:number;row:EnrichedEvent;trigger:string}
 export interface ScoreInput {rarity:number;priceGap:number;holdDrama:number;castQuality:number;freshness:number;repeatPenalty:number}
@@ -38,6 +38,9 @@ export function saleCandidates(history:readonly EnrichedEvent[],times:ReadonlyMa
   const types:{type:CaseType;trigger:string}[]=[];
   // A Founder leaving its minter for the first time: the arrival being sold is the mint itself.
   if(arrival?.event.class==='MINT'&&arrival.event.to===event.from)types.push({type:'FIRST_MOVE',trigger:'First move since mint: the seller is the minter and the Chog never moved before.'});
+  // A Chog that keeps moving: two or more real moves in the week before this sale make it part of an ongoing story.
+  const recent=history.filter(other=>other.event.tokenId===event.tokenId&&other.event.from!==other.event.to&&other.event.class!=='MINT'&&other.event.class!=='UNCLASSIFIED'&&(other.event.block<event.block||other.event.block===event.block&&other.event.logIndex<event.logIndex)&&(times.get(other.event.block)??-Infinity)>=at-7*86400);
+  if(recent.length>=2)types.push({type:'PING_PONG',trigger:'The Chog moved again: at least two real moves in the week before this sale.'});
   if(shortResale||discounted)types.push({type:'QUICK_EXIT',trigger:shortResale?'Resale after a verified purchase within the configured hold window.':'Gross sale price below the seven-prior-sales median by the configured discount; this is not a historical floor quote.'});
   if(event.route==='listing_bought'&&reference!==null&&amount*10000n>=reference*BigInt(10000+rules.bigSpenderPremiumBps))types.push({type:'BIG_SPENDER',trigger:'Verified listing above the seven-prior-sales median by the configured premium; this is not a historical floor quote.'});
   if(row.holdSeconds!==null&&row.holdSeconds>=rules.longGoodbyeHoldDays*86400)types.push({type:'LONG_GOODBYE',trigger:'Sale ends a source-linked hold at least as long as the configured threshold.'});
@@ -56,7 +59,8 @@ export function rankCandidates(candidates:readonly Candidate[],context:{day:stri
   const components:ScoreInput={rarity:prior.length?1-prior.filter(item=>item.type===candidate.type).length/prior.length:1,
    priceGap:event.price?.grossWei?priceGap(BigInt(event.price.grossWei),candidate.row.priorSaleMedianWei===null?null:BigInt(candidate.row.priorSaleMedianWei)):0,
    holdDrama:Math.min((candidate.row.holdSeconds??0)/(180*86400),1),castQuality:context.castQuality(candidate),freshness:1,
-   repeatPenalty:context.previous.slice(-7).some(item=>item.tokenId===event.tokenId||item.wallets.some(wallet=>wallet.toLowerCase()===event.from.toLowerCase()||wallet.toLowerCase()===event.to.toLowerCase()))?1:0};
+   // An ongoing story is meant to continue, so a PING_PONG move is not penalised for its own Chog.
+   repeatPenalty:context.previous.slice(-7).some(item=>!(candidate.type==='PING_PONG'&&item.tokenId===event.tokenId)&&(item.tokenId===event.tokenId||item.wallets.some(wallet=>wallet.toLowerCase()===event.from.toLowerCase()||wallet.toLowerCase()===event.to.toLowerCase())))?1:0};
   return {candidate,score:caseScore(components)+(candidate.type==='FIRST_MOVE'?40:0)+((context.linkCoverage?.(candidate)??0)>=0.5?15:0),components};
  }).sort((a,b)=>b.score-a.score||b.candidate.row.event.block-a.candidate.row.event.block||b.candidate.row.event.logIndex-a.candidate.row.event.logIndex||a.candidate.id.localeCompare(b.candidate.id));
 }

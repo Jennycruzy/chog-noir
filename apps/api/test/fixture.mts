@@ -25,6 +25,7 @@ import {holderRoutes} from '../src/auth.mts';
 import {playRoutes,type CaseSource} from '../src/play.mts';
 import {gameServer} from '../src/game.mts';
 import {issueImage,shareImage} from '../../../packages/art/src/render.mts';
+import {HunchDesk} from '../../../packages/game/src/arcs.mts';
 
 // Real data only: the owner index of 20 Oct 12:44 UTC, all 1,969 metadata records, and cases built from stored chain records.
 const repository=fileURLToPath(new URL('../../../',import.meta.url));
@@ -33,6 +34,8 @@ const rows=JSON.parse(readFileSync(join(repository,'packages/traits/test/fixture
 export const records=new Map<number,MetadataRecord>(rows.map(row=>[row.tokenId,{metadata:row.metadata,uri:row.source.uri,fetchedAt:row.source.fetchedAt}]));
 export const metadata=new Map(rows.map(row=>[row.tokenId,row.metadata]));
 const window=JSON.parse(readFileSync(join(repository,'packages/cases/test/fixtures/witness-window.json'),'utf8')) as {rows:EnrichedEvent[];times:[number,number][]};
+/** CHOG token 1021's real moves: the ongoing story on the fixture's day. */
+const trail=JSON.parse(readFileSync(join(repository,'packages/cases/test/fixtures/chog-trail.json'),'utf8')) as {rows:EnrichedEvent[];times:[number,number][]};
 /** Tuesday 20 Oct: a real cold case from stored records, open at the time of the owner snapshot. */
 export const puzzle:PuzzleCase=buildDailyPuzzle({day:'2026-10-20',salt:'0x'+'c3'.repeat(32),previous:[],history:window.rows,times:new Map(window.times),metadata,ownership:snapshot,bulkSources:[],rules:config}).puzzle;
 const replayCandidate=saleCandidates(window.rows,new Map(window.times),config).find(row=>row.row.event.tokenId===1931)!;
@@ -66,6 +69,7 @@ export async function fixtureServer(root:string,options:{web?:boolean}={}){
  const play=playRoutes({origin,auth:wallet,holders,career,metadata:records,connectionsAt:async atBlock=>new WitnessConnections({snapshot,metadata:records,atBlock}),cases,plays:new HolderPlays(root),
   rookies:new RookieDesk<PuzzleSession>({root,metadata,now:()=>now,secure:false}),now:()=>now,training:new TrainingDesk(randomBytes(32),()=>training),
   render:{issue:(value,issue,landscape)=>issueImage(repository,value,issue,landscape),share:facts=>shareImage(repository,facts)},
+  history:()=>({history:trail.rows,times:new Map(trail.times)}),hunches:new HunchDesk(root),
   replay:async()=>({label:'REPLAY',caseLine:'A real sale, replayed.',witness:{tokenId:training.cast[0]!.tokenId,name:training.cast[0]!.name},statement:training.statements[0]!.line,receipt:training.receipts[0]!,inference:training.lie.inference})});
  routes.push(holderRoutes({origin,auth:wallet,roster:new DetectiveRoster({holders,career,metadata:records,now:()=>now}),now:()=>now}),play);
  return {server,origin,

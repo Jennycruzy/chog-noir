@@ -112,3 +112,13 @@ test('issue art follows the same-panel rule, and share images are the player’s
   const image=Buffer.from(await (await get('/api/issues/1/image'+format)).arrayBuffer());expect(image.length).toBeLessThanOrEqual(400_000);expect(image.readUInt32BE(16)).toBe(width);expect(image.readUInt32BE(20)).toBe(height);
  }
 }),300_000);
+
+test('the story board serves the moving Chog and keeps one anonymous hunch per browser',async()=>harness(async({post,get})=>{
+ const first=await (await get('/api/arc/current')).json();
+ expect(first.arc.tokenId).toBe(1021);expect(first.hunch.mine).toBeNull();expect(first.arc.moves.length).toBeGreaterThanOrEqual(3);
+ const vote=await post('/api/arc/hunch',{answer:'yes'}),cookie=vote.headers.get('set-cookie')!.split(';')[0]!;
+ expect(cookie).toMatch(/^chog_noir_hunch=[a-f0-9]{64}$/);expect((await vote.json()).hunch).toMatchObject({yes:1,no:0,mine:'yes'});
+ expect((await (await post('/api/arc/hunch',{answer:'no'},cookie)).json()).hunch).toMatchObject({yes:1,no:0,mine:'yes'});
+ expect((await post('/api/arc/hunch',{answer:'maybe'})).status).toBe(400);
+ const other=await (await get('/api/arc/current')).json();expect(other.hunch).toMatchObject({yes:1,no:0,mine:null});expect(JSON.stringify(other)).not.toContain(cookie.split('=')[1]);
+}),180_000);

@@ -16,6 +16,8 @@ import type {PuzzlePublication} from '../../../packages/publishing/src/puzzles.m
 import {TrainingError,type TrainingDesk} from '../../../packages/game/src/training.mts';
 import {BurnError,type ChogBurns} from '../../../packages/game/src/burns.mts';
 import config from '../../../config/cases.json' with {type:'json'};
+import {currentArc,caseHook,hunchResult,ArcError,type HunchDesk} from '../../../packages/game/src/arcs.mts';
+import type {EnrichedEvent} from '../../../packages/core/src/enrich.mts';
 import type {ShareFacts} from '../../../packages/art/src/render.mts';
 
 export interface CaseSource {
@@ -29,6 +31,8 @@ export interface PlayOptions {
  trustProxy?:boolean;now?:()=>number;verify?:(record:PuzzlePublication,file:PuzzleCase['file']|null)=>Promise<unknown>;
  training?:TrainingDesk;replay?:()=>Promise<ReplayPanel|null>;optOut?:(address:string)=>Promise<{recordedAt:string}>;
  burns?:ChogBurns;
+ /** The stored chain history, for the ongoing story and each closed case's hook. */
+ history?:()=>{history:readonly EnrichedEvent[];times:ReadonlyMap<number,number>}|null;hunches?:HunchDesk;
  render?:{issue:(puzzle:PuzzleCase,issue:{number:number;openTx:string;closeTx:string},landscape:boolean)=>Promise<Buffer>;share:(facts:ShareFacts)=>Promise<Buffer>};
 }
 /** A real caught lie for the front door: the false statement, the exact CAUGHT label and the breaking receipt, together. */
@@ -80,8 +84,10 @@ export function playRoutes(options:PlayOptions){
   const detective=detectiveFor(play.tokenId,metadataFor(play.tokenId).metadata);
   return {tokenId:play.tokenId,name:detective.name,skill:detective.skill,skillName:detective.skillName,skillLine:detective.skillLine,uses:detective.uses,questions:play.session.initialQuestions,founder:play.founder,side:detective.side,moneyTalk:detective.moneyTalk,special:detective.special,chogStamp:play.chogStamp};
  }
+ /** After a case, the subject's next real move, if it has already happened: the hook the story continues on. */
+ function hook(puzzle:PuzzleCase){const source=options.history?.();return source?caseHook(source.history,source.times,puzzle.file.subject.tokenId,puzzle.file.cutoff.block,Math.floor(now()/1000)):null;}
  function holderView(puzzle:PuzzleCase,record:PuzzlePublication,play:HolderPlay){
-  return {mode:'HOLDER',case:caseSummary(record,puzzle),state:viewPuzzleSession(puzzle,play.session),detective:detectivePanel(play),
+  return {mode:'HOLDER',case:caseSummary(record,puzzle),state:viewPuzzleSession(puzzle,play.session),detective:detectivePanel(play),hook:play.session.done?hook(puzzle):null,
    known:play.known.map(row=>({witness:row.witness,tag:'Knows your Chog: '+row.reason})),transferredMidCase:play.transferredMidCase};
  }
 
@@ -158,7 +164,7 @@ export function playRoutes(options:PlayOptions){
   });
  }
  const rookieCase=(puzzle:PuzzleCase)=>({id:puzzle.file.id,day:puzzle.file.day,opensAt:puzzle.file.opensAt*1000,closesAt:puzzle.file.closesAt*1000,salt:puzzle.key.salt,cast:puzzle.file.cast.map(row=>row.tokenId)});
- const rookieView=(puzzle:PuzzleCase,record:PuzzlePublication,session:{badge:{tokenId:number;name:string;skill:string;skillName:string;uses:number;questions:number;label:string};state:PuzzleSession})=>({mode:'ROOKIE',case:caseSummary(record,puzzle),state:viewPuzzleSession(puzzle,session.state),badge:session.badge,
+ const rookieView=(puzzle:PuzzleCase,record:PuzzlePublication,session:{badge:{tokenId:number;name:string;skill:string;skillName:string;uses:number;questions:number;label:string};state:PuzzleSession})=>({mode:'ROOKIE',case:caseSummary(record,puzzle),state:viewPuzzleSession(puzzle,session.state),badge:session.badge,hook:session.state.done?hook(puzzle):null,
   invitation:session.state.done?'Hold a Chog and it becomes your detective. Its career is kept on the token.':null});
  async function startRookie(request:IncomingMessage,response:ServerResponse){
   const {record,puzzle}=await today(),browserToken=cookieValue(request,'chog_noir_rookie');
@@ -215,6 +221,24 @@ export function playRoutes(options:PlayOptions){
    witness:{called:appeared.length,lied:lied.length},issues:appeared.map(row=>({number:row.record.number,day:row.record.day,title:row.puzzle.file.title,caseId:row.record.id}))};
  }
 
+ /** The ongoing story with today's free hunch. Counts only; a browser sees its own answer and nobody else's. */
+ async function arc(request:IncomingMessage,response:ServerResponse,answer?:unknown){
+  const source=options.history?.();if(!source||!options.hunches)throw new ArcError('ARC_UNAVAILABLE','The story board is unavailable right now.',503);
+  const at=Math.floor(now()/1000),day=new Date(at*1000).toISOString().slice(0,10),yesterday=new Date((at-86400)*1000).toISOString().slice(0,10);
+  const latest=(await options.cases.list()).at(-1),preferred=latest?(await options.cases.byId(latest.id))?.puzzle.file.subject.tokenId??null:null;
+  const story=currentArc(source.history,source.times,at,preferred);
+  if(!story)return {arc:null,empty:'No Chog is on the move this week. A story starts when one moves three times.'};
+  let voter=cookieValue(request,'chog_noir_hunch');
+  if(answer!==undefined){
+   if(!voter||!/^[a-f0-9]{64}$/.test(voter)){voter=randomBytes(32).toString('hex');response.setHeader('set-cookie',`chog_noir_hunch=${voter}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${origin.startsWith('https:')?'; Secure':''}`);}
+   if(answer!=='yes'&&answer!=='no')throw new ArcError('HUNCH_INPUT_INVALID','Choose yes or no.');
+   await options.hunches.cast(story.tokenId,day,voter,answer);
+  }
+  const name=options.metadata.get(story.tokenId)?.metadata.name??null,validVoter=voter&&/^[a-f0-9]{64}$/.test(voter)?voter:undefined;
+  return {arc:{tokenId:story.tokenId,name,moves:story.moves.map(row=>({at:row.at,text:`${name} ${row.kind}`,source:{tx:row.tx,block:row.block,logIndex:row.logIndex}})).reverse()},
+   hunch:{day,question:`Will ${name} move again tonight?`,...await options.hunches.tally(story.tokenId,day,validVoter)},
+   yesterday:{day:yesterday,answer:hunchResult(story.moves,yesterday),...await options.hunches.tally(story.tokenId,yesterday,validVoter)}};
+ }
  const images=new Map<string,Promise<Buffer>>();
  function png(response:ServerResponse,bytes:Buffer,shared:boolean,name:string){
   response.writeHead(200,{'content-type':'image/png','cache-control':shared?'public, max-age=86400':'private, no-store','content-disposition':`inline; filename="${name}.png"`,'x-content-type-options':'nosniff'});response.end(bytes);
@@ -243,10 +267,10 @@ export function playRoutes(options:PlayOptions){
  const handler=async(request:IncomingMessage,response:ServerResponse):Promise<boolean>=>{
   // Game routes live only under /api; page addresses such as /chog/11 belong to the site.
   const url=new URL(request.url??'/','http://localhost');if(!url.pathname.startsWith('/api/'))return false;const path=url.pathname.slice(4);
-  const route=path.match(/^\/(case\/today|case\/start|case\/action|case\/state|rookie\/start|precinct|precinct\/stream|issues|replay|training\/start|training\/action|optout|case\/burn)$/)?.[1]??(/^\/case\/case-[a-f0-9]{24}\/(public|stats)$/.test(path)?'case-detail':/^\/chog\/\d+$/.test(path)?'chog':/^\/issues\/\d+$/.test(path)?'issue':/^\/issues\/\d+\/image$/.test(path)?'issue-image':path==='/case/share-image'?'share-image':/^\/verify\/case-[a-f0-9]{24}$/.test(path)?'verify':null);
+  const route=path.match(/^\/(case\/today|case\/start|case\/action|case\/state|rookie\/start|precinct|precinct\/stream|issues|replay|training\/start|training\/action|optout|case\/burn|arc\/current|arc\/hunch)$/)?.[1]??(/^\/case\/case-[a-f0-9]{24}\/(public|stats)$/.test(path)?'case-detail':/^\/chog\/\d+$/.test(path)?'chog':/^\/issues\/\d+$/.test(path)?'issue':/^\/issues\/\d+\/image$/.test(path)?'issue-image':path==='/case/share-image'?'share-image':/^\/verify\/case-[a-f0-9]{24}$/.test(path)?'verify':null);
   if(!route)return false;
   try{
-   const post=['case/start','case/action','rookie/start','training/start','training/action','optout'].includes(route)||route==='case/burn'&&request.method==='POST';
+   const post=['case/start','case/action','rookie/start','training/start','training/action','optout','arc/hunch'].includes(route)||route==='case/burn'&&request.method==='POST';
    if(request.method!==(post?'POST':'GET')){response.setHeader('allow',post?'POST':'GET');throw new PlayError('METHOD_INVALID','Use the correct request method.',405);}
    if(route==='case/burn'){if(post){if(request.headers.origin!==origin)throw new PlayError('ORIGIN_INVALID','Play from the bureau website.',403);rate(request);}return reply(response,200,await burn(request,url)),true;}
    if(post){if(request.headers.origin!==origin)throw new PlayError('ORIGIN_INVALID','Play from the bureau website.',403);rate(request);}
@@ -256,6 +280,8 @@ export function playRoutes(options:PlayOptions){
    if(route==='case/action'){const input=await body(request);return reply(response,200,input.tokenId===undefined?await rookieAction(request,input):await holderAction(request,input)),true;}
    if(route==='case/state'){const tokenId=tokenParameter(url.searchParams.get('tokenId')),address=await wallet(request),{record,puzzle}=await today(),play=await options.plays.read(puzzle.file.id,tokenId);if(!play||play.wallet!==address)throw new PlayError('CASE_NOT_STARTED','Take the case with this Chog first.',404);return reply(response,200,holderView(puzzle,record,play)),true;}
    if(route==='precinct')return reply(response,200,await precinct()),true;
+   if(route==='arc/current')return reply(response,200,await arc(request,response)),true;
+   if(route==='arc/hunch')return reply(response,200,await arc(request,response,(await body(request)).answer)),true;
    if(route==='replay'){
     // The newest closed issue when one exists; until then a real archived case, labelled REPLAY.
     const latest=(await closedCases())[0];
@@ -280,10 +306,10 @@ export function playRoutes(options:PlayOptions){
     const found=await options.cases.byId(id!);if(!found)throw new PlayError('CASE_NOT_FOUND','That case is not published.',404);
     const {record,puzzle}=found;
     // The key and statements are never sent before the case closes and its key is revealed on chain.
-    return reply(response,200,{case:caseSummary(record,puzzle),...(record.close?{file:puzzle.file,key:puzzle.key,reveal:caseReveal(puzzle),castTx:record.cast?.hash??null,solveTxs:record.solves?.map(row=>row.hash)??[]}:{})},record.open?[{kind:'TRANSACTION',tx:record.open.hash}]:[]),true;
+    return reply(response,200,{case:caseSummary(record,puzzle),...(record.close?{file:puzzle.file,key:puzzle.key,reveal:caseReveal(puzzle),hook:hook(puzzle),castTx:record.cast?.hash??null,solveTxs:record.solves?.map(row=>row.hash)??[]}:{})},record.open?[{kind:'TRANSACTION',tx:record.open.hash}]:[]),true;
    }
    if(route==='issues'){const closed=await closedCases();return reply(response,200,{issues:closed.map(({record,puzzle})=>({number:record.number,day:record.day,caseId:record.id,title:puzzle.file.title,subject:puzzle.file.subject,cast:puzzle.file.cast.map(({tokenId,name})=>({tokenId,name})),openTx:record.open!.hash,closeTx:record.close!.hash}))}),true;}
-   if(route==='issue'){const number=Number(path.split('/')[2]),found=(await closedCases()).find(row=>row.record.number===number);if(!found)throw new PlayError('ISSUE_NOT_FOUND','That issue has not been published.',404);const {record,puzzle}=found;return reply(response,200,{number,case:caseSummary(record,puzzle),reveal:caseReveal(puzzle),openTx:record.open!.hash,closeTx:record.close!.hash}),true;}
+   if(route==='issue'){const number=Number(path.split('/')[2]),found=(await closedCases()).find(row=>row.record.number===number);if(!found)throw new PlayError('ISSUE_NOT_FOUND','That issue has not been published.',404);const {record,puzzle}=found;return reply(response,200,{number,case:caseSummary(record,puzzle),reveal:caseReveal(puzzle),hook:hook(puzzle),openTx:record.open!.hash,closeTx:record.close!.hash}),true;}
    if(route==='chog')return reply(response,200,await profile(tokenParameter(path.split('/')[2]))),true;
    if(route==='issue-image'){const number=Number(path.split('/')[2]),landscape=url.searchParams.get('format')==='landscape';return png(response,await issuePng(number,landscape),true,`chog-noir-issue-${number}${landscape?'-landscape':''}`),true;}
    if(route==='share-image')return png(response,await sharePng(request,url),false,'chog-noir-result'),true;
@@ -295,7 +321,7 @@ export function playRoutes(options:PlayOptions){
    }
    return false;
   }catch(error){
-   if(error instanceof AuthError||error instanceof PlayError||error instanceof PuzzleActionError||error instanceof RookieError||error instanceof TrainingError||error instanceof BurnError)reply(response,error.status,{code:error.code,error:error.message});
+   if(error instanceof AuthError||error instanceof PlayError||error instanceof PuzzleActionError||error instanceof RookieError||error instanceof TrainingError||error instanceof BurnError||error instanceof ArcError)reply(response,error.status,{code:error.code,error:error.message});
    else if(error instanceof CareerError)reply(response,error.code==='PLAY_ALREADY_TODAY'?409:400,{code:error.code,error:error.message});
    else if(error instanceof PlayerBusy)reply(response,409,{code:'CASE_BUSY',error:'Your last action is still being saved. Try again.'});
    else if(error instanceof DetectiveDataError||error instanceof PuzzleError)reply(response,503,{code:error.code,error:'This case could not be checked. Try again shortly.'});

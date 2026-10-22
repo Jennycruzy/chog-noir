@@ -65,7 +65,7 @@ function renderBadge(){
 const routes=[
  [/^\/$/,home],[/^\/rookie$/,rookie],[/^\/connect$/,connect],[/^\/pick$/,pick],[/^\/case$/,caseFile],[/^\/case\/room$/,room],[/^\/training$/,training],
  [/^\/precinct$/,precinct],[/^\/issues$/,issues],[/^\/issues\/(\d+)$/,issue],[/^\/chog\/(\d+)$/,profile],[/^\/verify(?:\/(case-[a-f0-9]{24}))?$/,verify],
- [/^\/report$/,report],[/^\/scam-desk$/,scamDesk],[/^\/about$/,about],
+ [/^\/report$/,report],[/^\/scam-desk$/,scamDesk],[/^\/about$/,about],[/^\/arc$/,arcPage],
 ];
 function closeStreams(){for(const stream of state.streams)stream.close();state.streams=[];sound.rainStop();}
 async function render(){
@@ -117,7 +117,7 @@ async function home(){
    h('div',{class:'actions'},today.case?h('button',{class:'primary',onclick:()=>go('/rookie')},'Play as a rookie'):null,h('button',{onclick:()=>go('/connect')},'Connect wallet')),
    today.case?caseCard(today.case):h('p',{class:'type'},'No case is open right now. A new case opens at 00:20 UTC.')),
   replay??h('div',{}));
- app.replaceChildren(hero,...ticker(),h('nav',{class:'actions'},link('/precinct','Precinct board'),' · ',link('/issues','Issues'),' · ',link('/report','Precinct Report'),' · ',link('/scam-desk','Scam Desk')));
+ app.replaceChildren(hero,...ticker(),h('nav',{class:'actions'},link('/precinct','Precinct board'),' · ',link('/arc','The story'),' · ',link('/issues','Issues'),' · ',link('/report','Precinct Report'),' · ',link('/scam-desk','Scam Desk')));
 }
 
 /* Wallet */
@@ -278,6 +278,7 @@ async function drawReveal(){
   h('h2',{},'What really happened'),
   h('div',{},result.panels.map(panel=>h('article',{class:'panel'},h('p',{class:'false'},panel.statement),h('p',{class:'label'},panel.label),h('p',{class:'type'},panel.receipt.text,' ',...sourceLinks(panel.receipt.sources)),h('p',{class:'muted'},panel.inference)))),
   h('h3',{},'The true story'),result.truth.map(row=>h('p',{class:'truth-line'},row.text,' ',...sourceLinks(row.sources))),
+  view.hook?h('p',{class:'type'},view.hook.text,' ',...sourceLinks([view.hook.source]),' · ',link('/arc','Follow the story')):null,
   h('p',{class:'grade','aria-label':`Grade ${result.grade}`},result.grade),h('p',{},`Score ${result.score} of ${result.max} · ${result.solved?'Solved':'Not solved'}${s.solutionAttempt===1?' on the first try':''}`),
   view.mode==='HOLDER'&&record?h('p',{},`${view.detective.name}: ${record.rank} · ${record.solves} solved · streak ${record.streak} · `,link('/chog/'+view.detective.tokenId,'Detective record')):null,
   view.mode==='HOLDER'&&view.transferredMidCase?h('p',{class:'muted'},'This Chog left the wallet during the case. The result stays on the token, marked “transferred mid-case”.'):null,
@@ -313,6 +314,24 @@ async function training(){
  state.selected={statement:null,receipt:null,blank:null};state.tiles={};draw();
 }
 
+/* The ongoing story: a Chog that keeps moving, with a free hunch about tonight. */
+async function arcPage(){
+ const node=h('div',{});
+ const draw=data=>{
+  if(!data.arc){node.replaceChildren(h('h2',{},'The story board'),h('p',{class:'type'},data.empty));return;}
+  const {arc,hunch,yesterday}=data,vote=answer=>async()=>{try{draw(await api('/arc/hunch',{method:'POST',body:{answer}}));notify('Hunch noted. The chain will answer.','clue');}catch(error){fail(error);}};
+  node.replaceChildren(h('section',{class:'hero'},h('div',{},h('h2',{},`${arc.name} keeps moving`),h('p',{},`${arc.moves.length} real moves this week. `,link('/chog/'+arc.tokenId,'Its record')),
+    h('h3',{},'Hunch'),h('p',{class:'type'},hunch.question+' No stake; just a hunch.'),
+    hunch.mine?h('p',{class:'banner'},`Your hunch: ${hunch.mine}. So far ${hunch.yes} yes, ${hunch.no} no.`):h('div',{class:'actions'},h('button',{class:'primary',onclick:vote('yes')},'Yes'),h('button',{onclick:vote('no')},'No')),
+    h('p',{class:'muted'},`Yesterday (${yesterday.day}): it ${yesterday.answer==='yes'?'did':'did not'} move. ${yesterday.yes} said yes, ${yesterday.no} said no.`)),
+   h('img',{src:art(arc.tokenId),alt:arc.name??'The Chog on the move',style:'width:100%;max-width:360px;border-radius:8px'})),
+   h('h3',{},'Timeline'),h('ol',{reversed:true},arc.moves.map(row=>h('li',{class:'type'},`${new Date(row.at*1000).toUTCString().slice(0,22)} UTC · ${row.text} `,...sourceLinks([row.source])))));
+ };
+ draw(await api('/arc/current'));app.replaceChildren(node);
+ // New real moves arrive through the live feed; the timeline reloads within seconds of one.
+ try{const source=new EventSource('/api/events');state.streams.push(source);let seen='';source.addEventListener('feed',async event=>{const feed=JSON.parse(event.data),first=feed.events?.[0]?.id??'';if(seen&&first!==seen)draw(await api('/arc/current'));seen=first;});}catch{}
+}
+
 /* Public pages */
 async function precinct(){
  const node=h('div',{});
@@ -333,6 +352,7 @@ async function issue(number){
  app.replaceChildren(h('h2',{},`Issue #${data.number} · ${data.case.title}`),caseCard(data.case),
   reveal.panels.map(panel=>h('article',{class:'panel'},h('p',{class:'false'},panel.statement),h('p',{class:'label'},panel.label),h('p',{class:'type'},panel.receipt.text,' ',...sourceLinks(panel.receipt.sources)),h('p',{class:'muted'},panel.inference))),
   h('h3',{},'The true story'),reveal.truth.map(row=>h('p',{class:'truth-line'},row.text,' ',...sourceLinks(row.sources))),
+  data.hook?h('p',{class:'type'},data.hook.text,' ',...sourceLinks([data.hook.source]),' · ',link('/arc','Follow the story')):null,
   h('figure',{},h('img',{src:`/api/issues/${data.number}/image`,alt:`Chog Noir Issue #${data.number}: four panels from real Chog art, ending with what really happened.`,style:'width:100%;max-width:540px;border-radius:8px'}),h('figcaption',{},h('a',{href:`/api/issues/${data.number}/image`,download:`chog-noir-issue-${data.number}.png`},'Portrait'),' · ',h('a',{href:`/api/issues/${data.number}/image?format=landscape`,download:`chog-noir-issue-${data.number}-landscape.png`},'Landscape'))),
   h('p',{},h('a',{href:explorer(data.openTx),target:'_blank',rel:'noopener'},'Answer locked on chain'),' · ',h('a',{href:explorer(data.closeTx),target:'_blank',rel:'noopener'},'Answer revealed on chain'),' · ',link('/verify/'+data.case.id,'Verify')),
   h('p',{},'Witnesses: ',data.case.cast.map((row,index)=>[index?', ':'',link('/chog/'+row.tokenId,row.name)])));

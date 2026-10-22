@@ -20,6 +20,7 @@ import {TrainingDesk,type TrainingCase} from '../../../packages/game/src/trainin
 import {OptOuts} from '../../../packages/auth/src/optout.mts';
 import {issueImage,shareImage} from '../../../packages/art/src/render.mts';
 import {ChogBurns} from '../../../packages/game/src/burns.mts';
+import {HunchDesk} from '../../../packages/game/src/arcs.mts';
 import {createPublicClient,http} from 'viem';
 import {monad} from '../../../packages/chain/src/client.mts';
 import {playRoutes,type PlayOptions} from './play.mts';
@@ -31,7 +32,7 @@ type Route=(request:IncomingMessage,response:ServerResponse)=>Promise<boolean>;
 const json=(response:ServerResponse,status:number,value:unknown)=>{response.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});response.end(JSON.stringify(value));};
 
 /** Public read-only pages kept from the archive: the Precinct Report, the Scam Desk lookup and the live ticker. */
-export function publicRoutes({root,context,names}:{root:string;context:PublicContext|null;names:(tokenId:number)=>string|undefined}):Route&{close():void}{
+export function publicRoutes({root,context,names}:{root:string;context:PublicContext|null;names:(tokenId:number)=>string|undefined}):Route&{close():void;history():{history:readonly EnrichedEvent[];times:ReadonlyMap<number,number>}|null}{
  let current=context,sourceRefresh=0,sourceVersion='';const feeds=new Set<ServerResponse>();
  async function refreshHistory(){
   if(!current||Date.now()-sourceRefresh<30_000)return;sourceRefresh=Date.now();
@@ -74,7 +75,8 @@ export function publicRoutes({root,context,names}:{root:string;context:PublicCon
   try{json(response,200,lookupDesk(url.searchParams.get('wallet')??'',current.desk));}catch{json(response,400,{error:'Enter a full Monad wallet address.'});}
   return true;
  };
- return Object.assign(handler,{close(){clearInterval(timer);for(const response of feeds)response.end();feeds.clear();}});
+ // The latest saved history, refreshed by the same reload the report uses.
+ return Object.assign(handler,{close(){clearInterval(timer);for(const response of feeds)response.end();feeds.clear();},history:()=>{void refreshHistory();return current?{history:current.history,times:current.times}:null;}});
 }
 
 export function gameServer({routes,health}:{routes:(Route&{close?():void})[];health:()=>Promise<Record<string,unknown>>}){
@@ -118,7 +120,8 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const published=await cases.list(),open=await cases.current(Date.now());
   return {daily:{status:status.status,day:status.day??null,caseId:status.caseId??null},caseOpen:!!open,casesPublished:published.length,lastOpenTx:published.at(-1)?.open?.hash??null,owners,history:context?{toBlockExclusive:context.toBlockExclusive,coverageAt:context.coverageAt}:null};
  };
- const server=gameServer({routes:[holderRoutes({origin,auth:services.auth,roster:services.roster,trustProxy:true}),playRoutes(options),publicRoutes({root,context,names:id=>metadata.get(id)?.name})],health});
+ const pages=publicRoutes({root,context,names:id=>metadata.get(id)?.name});options.history=pages.history;options.hunches=new HunchDesk(root);
+ const server=gameServer({routes:[holderRoutes({origin,auth:services.auth,roster:services.roster,trustProxy:true}),playRoutes(options),pages],health});
  server.listen(port,'127.0.0.1',()=>console.log(`Chog Noir listening on 127.0.0.1:${port}`));
  for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>{server.close();server.closeAllConnections();});
 }
