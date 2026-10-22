@@ -8,4 +8,5 @@ CHOG_DATABASE_TEST_TIMEOUT_MS=600000 corepack pnpm exec vitest run --maxWorkers=
 corepack pnpm game:smoke
 corepack pnpm check:private
 corepack pnpm game:browser
+CHOG_BROWSER_KEYBOARD_ONLY=true corepack pnpm game:browser
 corepack pnpm game:web
