@@ -18,6 +18,9 @@ presenting the real transaction receipt that breaks it, then say what really hap
 4. **Solve** the sentence with the phrase tiles. You get partial feedback and a second try.
 5. See what really happened, with a link for every number, and share a spoiler-free grid.
 
+Answers are locked in the CaseBook contract on Monad mainnet,
+[`0xf433f63d50ebc5ccb956f6ac915381f0bb0331ef`](https://monadscan.com/address/0xf433f63d50ebc5ccb956f6ac915381f0bb0331ef) (source verified).
+
 Every closed case is a numbered issue at `/issues`. Every Chog's detective record is at
 `/chog/<token id>`. Today's detectives are on the Precinct board at `/precinct`. Any case's
 on-chain lock can be checked at `/verify`.
