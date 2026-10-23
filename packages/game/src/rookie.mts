@@ -7,6 +7,8 @@ import {detectiveFor,rookieQuestionBudget} from '../../traits/src/detective.mts'
 import {atomicJSON} from '../../publishing/src/vault.mts';
 import {withPlayerLock} from './player-lock.mts';
 
+/** New Rookie desk games allowed per network per UTC day; high enough for a whole office or VPN of visitors. */
+export const ROOKIE_STARTS_PER_NETWORK=200;
 export class RookieError extends Error {constructor(public readonly code:string,message:string,public readonly status=400){super(message);}}
 export interface RookieCase {id:string;day:string;opensAt:number;closesAt:number;salt:string;cast:number[]}
 export interface RookieBadge {tokenId:number;name:string;skill:ReturnType<typeof detectiveFor>['skill'];skillName:string;uses:number;questions:number;label:string}
@@ -32,7 +34,7 @@ export class RookieDesk<S> {
  }
  private async load():Promise<Desk<S>|null>{
   try{const value=JSON.parse(await readFile(this.path,'utf8')) as Desk<S>;
-   if(!value||typeof value!=='object'||value.v!==1||typeof value.caseId!=='string'||!Number.isSafeInteger(value.opensAt)||!Number.isSafeInteger(value.expiresAt)||value.expiresAt<=value.opensAt||!value.sessions||typeof value.sessions!=='object'||Array.isArray(value.sessions)||Object.entries(value.sessions).some(([id,s])=>!tokenValid(id)||!s||s.mode!=='ROOKIE'||s.caseId!==value.caseId||typeof s.done!=='boolean'||!Number.isSafeInteger(s.revision)||s.revision<0)||!Array.isArray(value.browsers)||!value.browsers.every(tokenValid)||!value.ips||typeof value.ips!=='object'||typeof value.quotaDay!=='string'||!/^\d{4}-\d\d-\d\d$/.test(value.quotaDay)||typeof value.quotaSalt!=='string'||!tokenValid(value.quotaSalt)||Object.entries(value.ips).some(([id,n])=>!tokenValid(id)||!Number.isSafeInteger(n)||n<0||n>20))throw new RookieError('ROOKIE_STORAGE_INVALID','The Rookie desk could not be read.',503);
+   if(!value||typeof value!=='object'||value.v!==1||typeof value.caseId!=='string'||!Number.isSafeInteger(value.opensAt)||!Number.isSafeInteger(value.expiresAt)||value.expiresAt<=value.opensAt||!value.sessions||typeof value.sessions!=='object'||Array.isArray(value.sessions)||Object.entries(value.sessions).some(([id,s])=>!tokenValid(id)||!s||s.mode!=='ROOKIE'||s.caseId!==value.caseId||typeof s.done!=='boolean'||!Number.isSafeInteger(s.revision)||s.revision<0)||!Array.isArray(value.browsers)||!value.browsers.every(tokenValid)||!value.ips||typeof value.ips!=='object'||typeof value.quotaDay!=='string'||!/^\d{4}-\d\d-\d\d$/.test(value.quotaDay)||typeof value.quotaSalt!=='string'||!tokenValid(value.quotaSalt)||Object.entries(value.ips).some(([id,n])=>!tokenValid(id)||!Number.isSafeInteger(n)||n<0||n>ROOKIE_STARTS_PER_NETWORK))throw new RookieError('ROOKIE_STORAGE_INVALID','The Rookie desk could not be read.',503);
    return value;
   }catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return null;if(error instanceof RookieError)throw error;throw new RookieError('ROOKIE_STORAGE_INVALID','The Rookie desk could not be read.',503);}
  }
@@ -62,7 +64,7 @@ export class RookieDesk<S> {
    if(desk.sessions[id])return {token,session:structuredClone(desk.sessions[id]!),resumed:true};
    if(desk.browsers.includes(id))throw new RookieError('ROOKIE_DONE_TODAY',"You've worked today's case at the Rookie desk. A new case opens at 00:20 UTC.",409);
    const ip=createHmac('sha256',desk.quotaSalt).update(address).digest('hex');
-   if((desk.ips[ip]??0)>=20)throw new RookieError('ROOKIE_LIMIT','The Rookie desk is busy from this network. Try again later.',429);
+   if((desk.ips[ip]??0)>=ROOKIE_STARTS_PER_NETWORK)throw new RookieError('ROOKIE_LIMIT','The Rookie desk is busy from this network. Try again later.',429);
    if(this.options.metadata.size!==1969)throw new RookieError('ROOKIE_BADGES_MISSING','The bureau badges are unavailable.',503);
    const pool=[...this.options.metadata.keys()].filter(id=>validId(id)&&!current.cast.includes(id)).sort((a,b)=>a-b);
    if(pool.length!==1969-current.cast.length)throw new RookieError('ROOKIE_BADGES_MISSING','The bureau badges are unavailable.',503);

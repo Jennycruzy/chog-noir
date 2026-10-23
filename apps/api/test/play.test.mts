@@ -3,6 +3,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {test,expect} from 'vitest';
 import {planFor} from '../../../packages/cases/src/puzzle.mts';
+import {ROOKIE_STARTS_PER_NETWORK} from '../../../packages/game/src/rookie.mts';
 import {fixtureServer,puzzle,owners,holder} from './fixture.mts';
 
 const stranger='0x000000000000000000000000000000000000dEaD';
@@ -47,8 +48,8 @@ test('a visitor plays the full real case at the Rookie desk and nothing is writt
  const board=await (await get('/api/precinct')).json();expect(board.tiles).toEqual([]);expect(board.rookieLine).toBe('1 rookie at the desk today');
 }),180_000);
 
-test('the Rookie desk allows twenty new browsers per network per day',async()=>harness(async({post})=>{
- for(let index=0;index<20;index++)expect((await post('/api/rookie/start',{})).status).toBe(200);
+test('the Rookie desk allows a fixed number of new browsers per network per day',async()=>harness(async({post})=>{
+ for(let index=0;index<ROOKIE_STARTS_PER_NETWORK;index++)expect((await post('/api/rookie/start',{})).status).toBe(200);
  const limited=await post('/api/rookie/start',{});expect(limited.status).toBe(429);expect((await limited.json()).code).toBe('ROOKIE_LIMIT');
 }),180_000);
 

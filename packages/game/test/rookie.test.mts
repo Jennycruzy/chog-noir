@@ -4,7 +4,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {test,expect} from 'vitest';
-import {RookieDesk,type RookieCase} from '../src/rookie.mts';
+import {RookieDesk,ROOKIE_STARTS_PER_NETWORK,type RookieCase} from '../src/rookie.mts';
 import type {Metadata} from '../../cases/src/build.mts';
 const rows=JSON.parse(readFileSync(new URL('../../traits/test/fixtures/detectives.json',import.meta.url),'utf8')).tokens as {tokenId:number;metadata:Metadata}[];
 const metadata=new Map(rows.map(row=>[row.tokenId,row.metadata]));
@@ -43,9 +43,9 @@ test('only one concurrent action uses a revision and completed cases cannot act 
  await expect(desk.action(current,token,2,state=>({state,done:true}))).rejects.toMatchObject({code:'ROOKIE_DONE_TODAY'});
  expect((await desk.start(current,{browserToken:token,ip,create})).session.done).toBe(true);
 }));
-test('the twenty-per-network UTC quota survives restarts, address formats and case changes',async()=>sandbox(async root=>{
+test('the per-network UTC quota survives restarts, address formats and case changes',async()=>sandbox(async root=>{
  let now=current.closesAt-10*60_000;const options={root,metadata,now:()=>now};
- for(let i=0;i<20;i++)await new RookieDesk<State>(options).start(current,{ip,create});
+ for(let i=0;i<ROOKIE_STARTS_PER_NETWORK;i++)await new RookieDesk<State>(options).start(current,{ip,create});
  await expect(new RookieDesk<State>(options).start(current,{ip:'::ffff:192.0.2.80',create})).rejects.toMatchObject({code:'ROOKIE_LIMIT'});
  const next=nextCase();now=next.opensAt;
  await expect(new RookieDesk<State>(options).start(next,{ip,create})).rejects.toMatchObject({code:'ROOKIE_LIMIT'});
