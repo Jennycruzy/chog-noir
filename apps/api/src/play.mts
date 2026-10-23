@@ -39,6 +39,8 @@ export interface PlayOptions {
 }
 /** A real caught lie for the front door: the false statement, the exact CAUGHT label and the breaking receipt, together. */
 export interface ReplayPanel {label:'REPLAY';caseLine:string;witness:{tokenId:number;name:string};statement:string;receipt:{text:string;sources:unknown[]};inference:string}
+/** Game requests allowed per network per minute; visitors behind one office or VPN address share it. */
+const PLAY_REQUESTS_PER_MINUTE=300;
 const cookieValue=(request:IncomingMessage,name:string)=>{
  const values=(request.headers.cookie??'').split(';').map(value=>value.trim()).filter(value=>value.startsWith(name+'='));
  if(values.length>1)throw new PlayError('SESSION_COOKIE_INVALID','Open the bureau again.',400);return values[0]?.slice(name.length+1);
@@ -64,7 +66,7 @@ export function playRoutes(options:PlayOptions){
  function rate(request:IncomingMessage){
   const at=now();for(const [key,value] of rates)if(value.until<=at)rates.delete(key);
   const key=createHash('sha256').update(rateSalt+network(request)).digest('hex'),value=rates.get(key)??{count:0,until:at+60_000};
-  if(value.count>=60||rates.size>=10_000&&!rates.has(key))throw new PlayError('RATE_LIMIT','Please wait a minute before trying again.',429);
+  if(value.count>=PLAY_REQUESTS_PER_MINUTE||rates.size>=10_000&&!rates.has(key))throw new PlayError('RATE_LIMIT','Please wait a minute before trying again.',429);
   value.count++;rates.set(key,value);
  }
  function reply(response:ServerResponse,status:number,value:Record<string,unknown>,sources:unknown[]=[]){
