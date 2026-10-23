@@ -12,9 +12,10 @@ real transaction that proves it wrong.
 | | |
 | --- | --- |
 | **Play today's case** (no wallet, about 3 minutes) | [chognoir.54-154-121-30.sslip.io](https://chognoir.54-154-121-30.sslip.io/) → **Play as a rookie** |
-| **See how answers are locked before anyone plays** | [Verify case #1](https://chognoir.54-154-121-30.sslip.io/verify/case-56bb0a9ab0a2e08b8cb47ce9) |
+| **Check that an answer was locked before anyone played** | [Verify case #1](https://chognoir.54-154-121-30.sslip.io/verify/case-56bb0a9ab0a2e08b8cb47ce9) (result: PASS) |
 | **The contract that holds every answer** | [CaseBook on Monadscan](https://monadscan.com/address/0xf433f63d50ebc5ccb956f6ac915381f0bb0331ef) (source verified) |
 | **Case #1 sealed on chain** | [Transaction](https://monadscan.com/tx/0xf1e38433e5fd061d09bd3a62ee21bec8b089a055eed971c561bc3db6af090969) |
+| **A finished case: answer revealed and checked** | [Issue #1](https://chognoir.54-154-121-30.sslip.io/issues/1) · [reveal transaction](https://monadscan.com/tx/0x2f5477d3ddce7036cc44151703235216434161ce3720bb058e225aaf0ba35bf3) |
 | **Today's detectives** | [Precinct board](https://chognoir.54-154-121-30.sslip.io/precinct) |
 | **A Chog's detective record** | [CHOG #1025](https://chognoir.54-154-121-30.sslip.io/chog/1533) |
 | **What is real, and the sources** | [What's real](https://chognoir.54-154-121-30.sslip.io/about) |
@@ -138,7 +139,7 @@ keyboard only, and holder paths).
 
 ## Current state
 
-- Live on Monad mainnet since 22 October 2026. Case #1 opened that day.
+- Live on Monad mainnet since 22 October 2026. Case #1 opened that day, closed at 00:20 UTC on 23 October, and verifies as PASS. A new case opens every day.
 - Holders can play only with a Chog in the wallet they sign in with. Delegated wallets are not
   supported yet.
 
