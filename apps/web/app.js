@@ -232,9 +232,15 @@ function caughtMoment(next,before){
  const liar=fresh&&next.state.case.cast.length&&fresh.statementId.match(/^w(\d+)-/)?.[1];
  requestAnimationFrame(()=>{$('.room')?.classList.add('flicker');if(liar)$(`[data-witness="${liar}"]`)?.classList.add('shake');document.querySelectorAll('[data-witness]').forEach(node=>{if(node.dataset.witness!==liar&&next.state.case.ruleLine.startsWith('Two'))node.classList.add('react');});});
 }
+/**
+ * Types a line out letter by letter. The whole line is laid out from the start, with the untyped part invisible, so the
+ * statement never grows and the buttons below it never move under a player's finger.
+ */
 function typeOut(node,text){
  if(reduced.matches||state.seen.has(text)){node.textContent=text;return;}
- state.seen.add(text);let index=0;const step=()=>{node.textContent=text.slice(0,++index);if(index%3===0)sound.tick();if(index<text.length)setTimeout(step,18);};step();
+ state.seen.add(text);
+ const shown=document.createTextNode(''),rest=h('span',{class:'untyped','aria-hidden':'true'},text);node.replaceChildren(shown,rest);
+ let index=0;const step=()=>{index++;shown.data=text.slice(0,index);rest.textContent=text.slice(index);if(index%3===0)sound.tick();if(index<text.length)setTimeout(step,18);};step();
 }
 function drawRoom(){
  const view=state.view,s=view.state;

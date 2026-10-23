@@ -38,7 +38,7 @@ try{
   if(mobile)await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:5});
   // A test wallet for the holder path: it reports the real holder address and returns a signature the test verifier accepts.
   await send('Page.addScriptToEvaluateOnNewDocument',{source:"window.__trail=[];const __fetch=window.fetch;window.fetch=async(...args)=>{const label=(args[1]?.method||'GET')+' '+String(args[0]).replace(location.origin,'')+(args[1]?.body?' '+String(args[1].body).slice(0,60):'');window.__trail.push('→ '+label);try{const response=await __fetch(...args);window.__trail.push('← '+response.status+' '+label);return response;}catch(error){window.__trail.push('✗ '+label+' '+error);throw error;}};addEventListener('error',event=>window.__trail.push('error '+event.message));addEventListener('unhandledrejection',event=>window.__trail.push('rejection '+String(event.reason)));"});
-  if(mobile)await send('Page.addScriptToEvaluateOnNewDocument',{source:"addEventListener('touchend',()=>{window.__touched=true;},{capture:true,passive:true});addEventListener('click',()=>{window.__clicked=true;},{capture:true});"});
+  if(mobile)await send('Page.addScriptToEvaluateOnNewDocument',{source:"addEventListener('touchend',()=>{window.__touched=true;},{capture:true,passive:true});addEventListener('click',event=>{window.__clicked=true;window.__clickTarget=event.target;},{capture:true});window.__input=[];addEventListener('scroll',()=>window.__input.push('scroll'+Math.round(scrollY)+'@'+Math.round(performance.now())),{capture:true,passive:true});for(const type of ['pointerdown','pointerup','pointercancel','touchstart','touchend','touchcancel','click','contextmenu'])addEventListener(type,event=>window.__input.push(type+'@'+Math.round(performance.now())+(type==='click'||type==='pointerup'?'>'+(event.target?.closest?.('button,a')?.textContent?.slice(0,20)??event.target?.nodeName):'')),{capture:true,passive:true});"});
   if(wallet)await send('Page.addScriptToEvaluateOnNewDocument',{source:`window.ethereum={request:async({method})=>method==='eth_requestAccounts'?[${JSON.stringify(wallet)}]:method==='personal_sign'?'0x'+'12'.repeat(65):null};`});
   const evaluate=async expression=>{const value=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(value.exceptionDetails)throw new Error(value.exceptionDetails.exception?.description??value.exceptionDetails.text);return value.result.value;};
   const until=async(expression,label)=>{const start=Date.now();while(Date.now()-start<90000){if(await evaluate(expression))return;await pause(250);}throw new Error(`Browser condition timed out: ${label}; notice=${await evaluate("document.querySelector('#notice')?.textContent")}; path=${await evaluate('location.pathname')}; last requests=${await evaluate("JSON.stringify((window.__trail||[]).slice(-8))")}`);};
@@ -61,16 +61,20 @@ try{
      if(!box)await pause(250);
     }
     if(!box)throw new Error('Target never became tappable: '+selector+' '+await evaluate(`(()=>{const node=document.querySelector(${JSON.stringify(selector)}),rect=node.getBoundingClientRect(),hit=document.elementFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);const owner=hit?.closest('button'),r=x=>{const b=x.getBoundingClientRect();return [Math.round(b.top),Math.round(b.bottom),Math.round(b.left),Math.round(b.right)];};return JSON.stringify({target:r(node),covering:owner?r(owner):null,coverStyle:owner?getComputedStyle(owner).position+' '+getComputedStyle(owner).transform:null,parentStyle:getComputedStyle(node.parentElement).display,section:node.parentElement.className});})()`));
-    // On a starved CPU the gap between touch start and end can pass the long-press threshold, and a long press makes no click.
     // A tap is retried only when no click followed it, so an action is never sent twice.
     for(let attempt=0;attempt<3;attempt++){
      await evaluate('window.__touched=false;window.__clicked=false');
      await send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[box]});await send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
      if(!await evaluate('window.__touched'))throw new Error('No touch event reached the page');
      for(let wait=0;wait<20&&!await evaluate('window.__clicked');wait++)await pause(100);
-     if(await evaluate('window.__clicked'))return;
+     if(await evaluate('window.__clicked')){
+      // A tap must land on what it aimed at. If the layout moved under the finger, say so instead of carrying on.
+      const landed=await evaluate(`(()=>{const target=window.__clickTarget;return !target||target.closest?.(${JSON.stringify(selector)})?'':(target.closest?.('button,a')??target).outerHTML.slice(0,120);})()`);
+      if(landed)throw new Error('A tap on '+selector+' at '+JSON.stringify(box)+' landed on '+landed+' now='+await evaluate(`JSON.stringify({scrollY,rect:document.querySelector(${JSON.stringify(selector)})?.getBoundingClientRect(),input:window.__input.slice(-12)})`));
+      return;
+     }
     }
-    throw new Error('A tap produced no click: '+selector);
+    throw new Error('A tap produced no click: '+selector+' input='+await evaluate("(window.__input||[]).slice(-14).join(' ')")+' at='+JSON.stringify(box)+' hit='+await evaluate(`document.elementFromPoint(${box.x},${box.y})?.outerHTML.slice(0,120)`));
    }
    await evaluate(`document.querySelector(${JSON.stringify(selector)}).click()`);
   }

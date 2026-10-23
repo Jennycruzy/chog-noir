@@ -129,7 +129,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:8px}.loading{font-
 :root[data-theme="light"] .statement{background:#FFFFFF99}.statement[aria-pressed="true"]{border-color:var(--lamp);box-shadow:0 0 0 2px var(--lamp) inset,0 0 24px -6px #F5C45188}
 .statement.caught{border-color:var(--alarm);text-decoration:line-through;text-decoration-color:var(--alarm);opacity:1}
 .statement.caught:after{content:'CAUGHT';position:absolute;right:8px;top:50%;transform:translateY(-50%) rotate(-10deg);font:700 13px var(--display);letter-spacing:2px;color:var(--alarm);border:2px solid var(--alarm);padding:0 6px;background:#0B0B0Dcc;animation:stamp .3s ease-out both}
-.statement .typed{white-space:pre-wrap}.statement.retraction{border-color:var(--clue);border-style:dashed;cursor:default}.press{width:100%;margin-top:6px;font-size:14px}
+.statement .typed{white-space:pre-wrap}.untyped{visibility:hidden}.statement.retraction{border-color:var(--clue);border-style:dashed;cursor:default}.press{width:100%;margin-top:6px;font-size:14px}
 .tray{margin-top:22px}.tray h3{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px}.receipts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
 .receipt-card{text-align:left;background:var(--paper);color:#16161A;border:0;border-radius:2px;padding:14px 14px 20px;font:14px/1.45 var(--type);position:relative;min-height:44px;box-shadow:0 10px 20px -10px #000c;
  -webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/14px 100%;mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/14px 100%}
