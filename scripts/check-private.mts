@@ -10,7 +10,7 @@ const files = [...new Set(stdout.split('\0').filter(Boolean))];
 const privatePaths = /(?:^|\/)(?:(?:docs\/)?(?:audit|evals|reviews)(?:\/|$)|(?:decisions|implementation-status|status|playtests|game-preview|archive-review|judge-run)(?:[-.][^/]*)?\.md$)/i;
 const internalLabels = /\b(?:audit|milestone|spec|pending human review|user task|A-item|[MN][0-9]+[a-z]?)\b/i;
 
-const knownSecrets = ['ETHERSCAN_API_KEY', 'HYPERSYNC_TOKEN', 'OPENSEA_API_KEY', 'ANTHROPIC_API_KEY', 'SERVER_PRIVATE_KEY', 'CASE_VAULT_KEY', 'VERCEL_TOKEN', 'ALERT_TELEGRAM_TOKEN'].map(name => process.env[name]).filter((value): value is string => typeof value === 'string' && value.length >= 12);
+const knownSecrets = ['ETHERSCAN_API_KEY', 'HYPERSYNC_TOKEN', 'OPENSEA_API_KEY', 'ANTHROPIC_API_KEY', 'SERVER_PRIVATE_KEY', 'CASE_VAULT_KEY', 'ALERT_TELEGRAM_TOKEN'].map(name => process.env[name]).filter((value): value is string => typeof value === 'string' && value.length >= 12);
 const patterns = [
   { name: 'GitHub token', expression: /\bgh[pousr]_[A-Za-z0-9]{20,}\b/ },
   { name: 'Anthropic key', expression: /\bsk-ant-[A-Za-z0-9_-]{20,}\b/ },

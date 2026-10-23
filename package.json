@@ -28,7 +28,6 @@
     "data:owners": "tsx scripts/check-owners.mts",
     "data:escrow": "tsx scripts/check-escrow.mts",
     "data:reconcile": "tsx scripts/reconcile-sales.mts",
-    "data:hosting": "tsx scripts/check-hosting.mts",
     "data:market": "tsx scripts/check-market-data.mts",
     "check:private": "tsx scripts/check-private.mts",
     "typecheck": "tsc --noEmit",
